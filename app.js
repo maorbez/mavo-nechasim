@@ -506,6 +506,14 @@ function scrollToContact() {
   document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
 }
 
+function quickSearch(e) {
+  if (e) e.preventDefault();
+  const input = document.getElementById('navSearchInput');
+  const q = (input && input.value || '').trim();
+  if (!q) { window.location.href = 'search.html'; return; }
+  window.location.href = 'search.html?q=' + encodeURIComponent(q);
+}
+
 function doSearch() {
   const selects = document.querySelectorAll('.search-fields select');
   const city = selects[0].value;

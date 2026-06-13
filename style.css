@@ -175,6 +175,24 @@ html.site-ltr .section-title { text-transform: capitalize; }
 .navbar.scrolled .logo-sub { color: var(--text-muted); }
 
 .nav-links { display: flex; align-items: center; gap: 4px; flex: 1; justify-content: center; }
+.nav-search {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 50px; padding: 7px 14px; color: #fff;
+  transition: background .2s, border-color .2s; max-width: 240px;
+}
+.nav-search:focus-within { background: rgba(255,255,255,.22); border-color: var(--gold, #F5B731); }
+.nav-search svg { flex-shrink: 0; opacity: .85; }
+.nav-search input {
+  background: transparent; border: none; outline: none; color: #fff;
+  font-family: inherit; font-size: .85rem; width: 100%;
+}
+.nav-search input::placeholder { color: rgba(255,255,255,.65); }
+.navbar.scrolled .nav-search { background: rgba(15,27,45,.06); border-color: rgba(15,27,45,.15); color: #0f1b2d; }
+.navbar.scrolled .nav-search input { color: #0f1b2d; }
+.navbar.scrolled .nav-search input::placeholder { color: #64748b; }
+@media (max-width: 980px) { .nav-search { display: none; } }
 .nav-links a {
   color: rgba(255,255,255,.85);
   text-decoration: none;

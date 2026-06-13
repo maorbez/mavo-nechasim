@@ -585,6 +585,7 @@ function resetAll() {
   document.getElementById('priceMin').value = '';
   document.getElementById('priceMax').value = '';
   ['amElevator','amShelter','amParking'].forEach(id => { const el=document.getElementById(id); if(el) el.checked=false; });
+  window.__q = '';
   buildFilters();
   applyFilters();
 }
@@ -608,6 +609,10 @@ function applyFilters() {
     if (document.getElementById('amElevator')?.checked && !p.hasElevator) return false;
     if (document.getElementById('amShelter')?.checked && !p.hasShelter) return false;
     if (document.getElementById('amParking')?.checked && !p.hasParking) return false;
+    if (window.__q) {
+      const hay = ((p.title||'') + ' ' + (p.location||'') + ' ' + (p.desc||'')).toLowerCase();
+      if (!hay.includes(window.__q.toLowerCase())) return false;
+    }
     if (activeRooms !== 'all') {
       const r = parseFloat(activeRooms);
       if (activeRooms === '5') { if ((p.rooms || 0) < 5) return false; }
@@ -696,6 +701,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Prefill from URL params (e.g. ?city=תל אביב&type=sale)
   const p = new URLSearchParams(window.location.search);
+  if (p.get('q')) { window.__q = p.get('q'); applyFilters(); }
   if (p.get('type')) {
     const btn = document.querySelector(`.type-btn[data-type="${p.get('type')}"]`);
     if (btn) setType(btn);
