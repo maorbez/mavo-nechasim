@@ -530,10 +530,14 @@ function doSearch() {
   const roomsSelect = document.querySelector('.room-select');
   const rooms = roomsSelect ? roomsSelect.value : 'all';
 
+  // Max price — selects[2] holds options like "עד 2,000,000 ₪"
+  const priceMax = selects[2] ? (selects[2].value.replace(/[^0-9]/g, '')) : '';
+
   if (city && city !== 'בחר עיר...') url += `city=${encodeURIComponent(city)}&`;
   if (rooms && rooms !== 'all') url += `rooms=${rooms}&`;
+  if (priceMax) url += `priceMax=${priceMax}&`;
   url += `type=${typeParam}`;
-  
+
   window.location.href = url;
 }
 
