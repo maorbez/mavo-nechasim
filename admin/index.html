@@ -1,15 +1,199 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex" />
-  <title>ניהול נכסים — גלובס נכסים</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>ניהול נכסים — גלובס נכסים</title>
+<style>
+  :root { --gold:#F5B731; --dark:#0f1b2d; --ink:#1a2942; --line:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Heebo',system-ui,Arial,sans-serif; background:#f1f5f9; color:#0f1b2d; }
+  .wrap { max-width:1000px; margin:0 auto; padding:20px; }
+  header { background:var(--dark); color:#fff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; }
+  header h1 { font-size:1.1rem; margin:0; }
+  header .gold { color:var(--gold); }
+  button { font-family:inherit; cursor:pointer; border:none; border-radius:8px; padding:10px 16px; font-weight:600; font-size:.9rem; }
+  .btn-gold { background:var(--gold); color:var(--dark); }
+  .btn-blue { background:#1565C0; color:#fff; }
+  .btn-ghost { background:#e2e8f0; color:#0f1b2d; }
+  .btn-red { background:#fee2e2; color:#dc2626; }
+  input,select,textarea { width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:.92rem; margin-top:4px; }
+  label { display:block; font-size:.82rem; font-weight:600; color:#475569; margin-top:12px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .muted { color:#64748b; font-size:.85rem; }
+  .hidden { display:none; }
+  #login { max-width:360px; margin:80px auto; }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--dark); color:#fff; padding:12px 20px; border-radius:10px; z-index:50; }
+  .thumb { width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--line); }
+  .thumbs { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .badge { font-size:.72rem; padding:2px 8px; border-radius:20px; background:#dcfce7; color:#166534; }
+  .badge.off { background:#fee2e2; color:#991b1b; }
+</style>
 </head>
 <body>
-  <!-- Netlify Identity — התחברות הסוכנים -->
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-  <!-- Decap CMS — ממשק ניהול הנכסים -->
-  <script src="https://unpkg.com/decap-cms@^3.3.3/dist/decap-cms.js"></script>
+
+<!-- ===== LOGIN ===== -->
+<div id="login" class="card">
+  <h2 style="margin-top:0">כניסת סוכנים <span style="color:var(--gold)">גלובס נכסים</span></h2>
+  <label>אימייל</label>
+  <input type="email" id="email" placeholder="name@example.com" />
+  <label>סיסמה</label>
+  <input type="password" id="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+  <p id="loginErr" class="muted" style="color:#dc2626"></p>
+  <button class="btn-gold" style="width:100%;margin-top:14px" onclick="doLogin()">התחבר</button>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app" class="hidden">
+  <header>
+    <h1>ניהול נכסים · <span class="gold">גלובס נכסים</span></h1>
+    <div>
+      <button class="btn-gold" onclick="openForm()">➕ דירה חדשה</button>
+      <button class="btn-ghost" onclick="doLogout()">יציאה</button>
+    </div>
+  </header>
+  <div class="wrap">
+    <div id="formCard" class="card hidden"></div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://tnkiwgewdancvmkhzlwz.supabase.co';
+const SUPABASE_KEY = '***REMOVED***';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let editing = null;
+
+function toast(m){ const t=document.createElement('div'); t.className='toast'; t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
+
+// ---- AUTH ----
+async function doLogin(){
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const err=document.getElementById('loginErr'); err.textContent='';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ err.textContent='התחברות נכשלה: '+error.message; return; }
+  showApp();
+}
+async function doLogout(){ await sb.auth.signOut(); location.reload(); }
+function showApp(){ document.getElementById('login').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); loadList(); }
+
+sb.auth.getSession().then(({data})=>{ if(data.session) showApp(); });
+
+// ---- LIST ----
+async function loadList(){
+  const { data, error } = await sb.from('properties').select('*').order('id',{ascending:false});
+  const list=document.getElementById('list');
+  if(error){ list.innerHTML='<p class="muted">שגיאה בטעינה: '+error.message+'</p>'; return; }
+  if(!data.length){ list.innerHTML='<p class="muted">אין דירות עדיין. לחץ "דירה חדשה".</p>'; return; }
+  list.innerHTML = data.map(p=>`
+    <div class="card">
+      <div class="row">
+        <div>
+          <strong>${esc(p.title||'')}</strong>
+          <span class="badge ${p.active?'':'off'}">${p.active?'מוצג':'מוסתר'}</span>
+          <div class="muted">${esc(p.location||'')} · ${esc(p.price_label||p.price||'')} · ${p.rooms||'-'} חד׳ · ${p.sqm||'-'} מ״ר</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-blue" onclick="openForm(${p.id})">ערוך</button>
+          <button class="btn-red" onclick="del(${p.id})">מחק</button>
+        </div>
+      </div>
+      ${(p.photos&&p.photos.length)?`<div class="thumbs">${p.photos.map(u=>`<img class="thumb" src="${esc(u)}">`).join('')}</div>`:''}
+    </div>`).join('');
+}
+
+// ---- FORM ----
+async function openForm(id){
+  editing = null;
+  let p = { type:'sale', emoji:'🏠', active:true, photos:[] };
+  if(id){ const {data}=await sb.from('properties').select('*').eq('id',id).single(); if(data){ p=data; editing=id; } }
+  window.__photos = Array.isArray(p.photos)?[...p.photos]:[];
+  const fc=document.getElementById('formCard');
+  fc.classList.remove('hidden');
+  fc.innerHTML=`
+    <h3 style="margin-top:0">${editing?'עריכת דירה':'דירה חדשה'}</h3>
+    <label>כותרת</label><input id="f_title" value="${esc(p.title||'')}">
+    <div class="grid3">
+      <div><label>סוג</label><select id="f_type">
+        <option value="sale" ${p.type==='sale'?'selected':''}>מכירה</option>
+        <option value="rent" ${p.type==='rent'?'selected':''}>השכרה</option>
+        <option value="commercial-sale" ${p.type==='commercial-sale'?'selected':''}>מסחרי</option>
+      </select></div>
+      <div><label>מחיר (מספר)</label><input id="f_price" value="${esc(p.price||'')}" placeholder="4,200,000"></div>
+      <div><label>תווית מחיר</label><input id="f_pricelabel" value="${esc(p.price_label||'')}" placeholder="₪ 4,200,000"></div>
+    </div>
+    <label>מיקום (עיר, שכונה)</label><input id="f_location" value="${esc(p.location||'')}" placeholder="תל אביב, פלורנטין">
+    <div class="grid3">
+      <div><label>חדרים</label><input id="f_rooms" type="number" value="${p.rooms??''}"></div>
+      <div><label>חדרי רחצה</label><input id="f_baths" type="number" value="${p.baths??''}"></div>
+      <div><label>מ״ר</label><input id="f_sqm" type="number" value="${p.sqm??''}"></div>
+    </div>
+    <label>מאפיין בולט</label><input id="f_extra" value="${esc(p.extra||'')}" placeholder="מרפסת, חצר פרטית">
+    <label>תיאור</label><textarea id="f_desc" rows="3">${esc(p.description||'')}</textarea>
+    <label>תמונות</label>
+    <input type="file" id="f_photos" accept="image/*" multiple onchange="uploadPhotos(this)">
+    <div class="thumbs" id="photoPreview"></div>
+    <label style="margin-top:14px"><input type="checkbox" id="f_active" style="width:auto" ${p.active!==false?'checked':''}> מוצג באתר</label>
+    <div class="row" style="margin-top:18px">
+      <button class="btn-gold" onclick="save()">${editing?'שמור שינויים':'פרסם דירה'}</button>
+      <button class="btn-ghost" onclick="closeForm()">ביטול</button>
+    </div>`;
+  renderPhotos();
+  fc.scrollIntoView({behavior:'smooth'});
+}
+function closeForm(){ document.getElementById('formCard').classList.add('hidden'); }
+function renderPhotos(){
+  const el=document.getElementById('photoPreview'); if(!el) return;
+  el.innerHTML=(window.__photos||[]).map((u,i)=>`<div style="position:relative"><img class="thumb" src="${esc(u)}"><button onclick="rmPhoto(${i})" style="position:absolute;top:-6px;left:-6px;background:#dc2626;color:#fff;border-radius:50%;width:22px;height:22px;padding:0">×</button></div>`).join('');
+}
+function rmPhoto(i){ window.__photos.splice(i,1); renderPhotos(); }
+
+async function uploadPhotos(input){
+  const files=[...input.files]; input.value='';
+  for(const file of files){
+    if(file.size>5*1024*1024){ toast('"'+file.name+'" גדול מ-5MB'); continue; }
+    const path=Date.now()+'_'+Math.random().toString(36).slice(2)+'_'+file.name.replace(/[^a-zA-Z0-9.]/g,'_');
+    toast('מעלה תמונה...');
+    const { error }=await sb.storage.from('property-photos').upload(path,file,{upsert:false});
+    if(error){ toast('שגיאת העלאה: '+error.message); continue; }
+    const { data }=sb.storage.from('property-photos').getPublicUrl(path);
+    window.__photos.push(data.publicUrl);
+    renderPhotos();
+  }
+  toast('התמונות הועלו');
+}
+
+async function save(){
+  const v=id=>document.getElementById(id).value.trim();
+  const num=id=>{ const x=document.getElementById(id).value; return x===''?null:Number(x); };
+  const row={
+    type:v('f_type'), title:v('f_title'), price:v('f_price'), price_label:v('f_pricelabel'),
+    location:v('f_location'), rooms:num('f_rooms'), baths:num('f_baths'), sqm:num('f_sqm'),
+    extra:v('f_extra'), description:v('f_desc'), active:document.getElementById('f_active').checked,
+    photos:window.__photos||[]
+  };
+  if(!row.title){ toast('חובה כותרת'); return; }
+  let res;
+  if(editing){ res=await sb.from('properties').update(row).eq('id',editing); }
+  else { res=await sb.from('properties').insert(row); }
+  if(res.error){ toast('שגיאה: '+res.error.message); return; }
+  toast(editing?'הדירה עודכנה':'הדירה פורסמה'); closeForm(); loadList();
+}
+
+async function del(id){
+  if(!confirm('למחוק את הדירה? פעולה בלתי הפיכה.')) return;
+  const { error }=await sb.from('properties').delete().eq('id',id);
+  if(error){ toast('שגיאה: '+error.message); return; }
+  toast('נמחק'); loadList();
+}
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
 </body>
 </html>

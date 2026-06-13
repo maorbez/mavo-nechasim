@@ -434,6 +434,7 @@
 
 </div>
 
+<script src="db.js?v=1"></script>
 <script>
 // ============================================
 // SEARCH PAGE — Globes Nechasim
@@ -463,6 +464,12 @@ let activeRooms  = 'all';
 
 // ---- Load data ----
 async function loadData() {
+  if (window.fetchPropertiesFromDB) {
+    try {
+      const db = await window.fetchPropertiesFromDB();
+      if (Array.isArray(db) && db.length > 0) { allProps = db; return; }
+    } catch (e) { /* fall through */ }
+  }
   const stored = localStorage.getItem('globes_properties');
   if (stored) {
     try {

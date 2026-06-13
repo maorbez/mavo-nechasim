@@ -64,6 +64,13 @@ const HARDCODED = [
 const DATA_VERSION = 'ta-batya-v1'; // bump this to force-clear old localStorage data
 
 async function loadProperties() {
+  // 0. Try Supabase (live database — source of truth)
+  if (window.fetchPropertiesFromDB) {
+    try {
+      const db = await window.fetchPropertiesFromDB();
+      if (Array.isArray(db) && db.length > 0) return db;
+    } catch (e) { /* fall through to static data */ }
+  }
   // 1. Try localStorage (from admin panel) — skip if data version mismatch
   const storedVersion = localStorage.getItem('globes_data_version');
   if (storedVersion !== DATA_VERSION) {
