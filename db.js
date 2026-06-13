@@ -23,6 +23,9 @@ window.mapDbRow = function (r) {
     lat: r.lat,
     lng: r.lng,
     photos: Array.isArray(r.photos) ? r.photos : [],
+    hasElevator: r.has_elevator === true,
+    hasShelter: r.has_shelter === true,
+    hasParking: r.has_parking === true,
     thumbs: ['🏠', '🛋️', '🚿', '🌅'],
     agent: { name: 'גלובס נכסים', title: 'צרו קשר', color: '#1565C0', init: 'ג', phone: '054-802-6123' },
     active: r.active !== false

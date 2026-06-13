@@ -93,6 +93,8 @@
     .panel-title svg { color: var(--blue); }
 
     .filter-group { margin-bottom: 22px; }
+    .amenity-cb { display:flex; align-items:center; gap:8px; margin-top:9px; font-size:.92rem; color:#334155; cursor:pointer; }
+    .amenity-cb input { width:auto; margin:0; accent-color: var(--gold, #F5B731); }
     .filter-label {
       display: block; font-size: .8rem; font-weight: 700;
       color: var(--text-muted); text-transform: uppercase;
@@ -410,6 +412,14 @@
       </div>
     </div>
 
+    <!-- Amenities -->
+    <div class="filter-group">
+      <span class="filter-label">מאפיינים</span>
+      <label class="amenity-cb"><input type="checkbox" id="amElevator" onchange="applyFilters()"> מעלית</label>
+      <label class="amenity-cb"><input type="checkbox" id="amShelter" onchange="applyFilters()"> ממ״ד / מקלט</label>
+      <label class="amenity-cb"><input type="checkbox" id="amParking" onchange="applyFilters()"> חנייה</label>
+    </div>
+
     <button class="reset-filters" onclick="resetAll()">
       ✕ נקה סינון
     </button>
@@ -574,6 +584,7 @@ function resetAll() {
   document.querySelector('.room-pill[data-rooms="all"]').classList.add('active');
   document.getElementById('priceMin').value = '';
   document.getElementById('priceMax').value = '';
+  ['amElevator','amShelter','amParking'].forEach(id => { const el=document.getElementById(id); if(el) el.checked=false; });
   buildFilters();
   applyFilters();
 }
@@ -594,6 +605,9 @@ function applyFilters() {
     if (activeCities.size > 0 && !activeCities.has(city)) return false;
     if (activeHoods.size > 0 && !activeHoods.has(hood)) return false;
     if (pNum < priceMin || pNum > priceMax) return false;
+    if (document.getElementById('amElevator')?.checked && !p.hasElevator) return false;
+    if (document.getElementById('amShelter')?.checked && !p.hasShelter) return false;
+    if (document.getElementById('amParking')?.checked && !p.hasParking) return false;
     if (activeRooms !== 'all') {
       const r = parseFloat(activeRooms);
       if (activeRooms === '5') { if ((p.rooms || 0) < 5) return false; }

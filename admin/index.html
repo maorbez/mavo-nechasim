@@ -139,6 +139,12 @@ async function openForm(id){
     <label>תמונות</label>
     <input type="file" id="f_photos" accept="image/*" multiple onchange="uploadPhotos(this)">
     <div class="thumbs" id="photoPreview"></div>
+    <label style="margin-top:14px">מאפיינים</label>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:6px">
+      <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="f_elevator" style="width:auto" ${p.has_elevator?'checked':''}> מעלית</label>
+      <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="f_shelter" style="width:auto" ${p.has_shelter?'checked':''}> ממ״ד / מקלט</label>
+      <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="f_parking" style="width:auto" ${p.has_parking?'checked':''}> חנייה</label>
+    </div>
     <label style="margin-top:14px"><input type="checkbox" id="f_active" style="width:auto" ${p.active!==false?'checked':''}> מוצג באתר</label>
     <div class="row" style="margin-top:18px">
       <button class="btn-gold" onclick="save()">${editing?'שמור שינויים':'פרסם דירה'}</button>
@@ -176,6 +182,9 @@ async function save(){
     type:v('f_type'), title:v('f_title'), price:v('f_price'), price_label:v('f_pricelabel'),
     location:v('f_location'), rooms:num('f_rooms'), baths:num('f_baths'), sqm:num('f_sqm'),
     extra:v('f_extra'), description:v('f_desc'), active:document.getElementById('f_active').checked,
+    has_elevator:document.getElementById('f_elevator').checked,
+    has_shelter:document.getElementById('f_shelter').checked,
+    has_parking:document.getElementById('f_parking').checked,
     photos:window.__photos||[]
   };
   if(!row.title){ toast('חובה כותרת'); return; }
