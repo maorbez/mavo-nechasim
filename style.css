@@ -2078,9 +2078,9 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   50%      { transform: translateX(-50%) translateY(8px); opacity: .4; }
 }
 .hero-scroll-hint {
-  position: absolute;
-  bottom: 150px; left: 50%;
-  transform: translateX(-50%);
+  position: relative;
+  margin-top: auto;            /* centers in the gap between content and stats */
+  align-self: center;
   display: flex; flex-direction: row; align-items: center; gap: 5px;
   color: rgba(255,255,255,.7); font-size: .78rem; white-space: nowrap;
   animation: scrollBounce 1.8s ease-in-out infinite;
