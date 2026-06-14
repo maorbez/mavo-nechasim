@@ -295,7 +295,7 @@ select option {
    ============================ */
 .hero {
   position: relative;
-  min-height: 100vh;
+  min-height: 90vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -2797,7 +2797,7 @@ html body { margin-top: 0 !important; }
 /* 2. hero - use dvh on desktop, auto on mobile to avoid dead space */
 @supports (height: 100dvh) {
   @media (min-width: 769px) {
-    .hero { min-height: 100dvh; }
+    .hero { min-height: 90dvh; }
   }
 }
 
