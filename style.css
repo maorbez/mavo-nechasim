@@ -2079,7 +2079,7 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
 }
 .hero-scroll-hint {
   position: relative;
-  margin: 12px auto 72px;      /* below the stats, lifted clear above the wave */
+  margin: 10px auto 50px;      /* below the stats, clear above the 36px wave */
   align-self: center;
   display: flex; flex-direction: row; align-items: center; gap: 5px;
   color: rgba(255,255,255,.7); font-size: .78rem; white-space: nowrap;
