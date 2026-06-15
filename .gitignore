@@ -51,3 +51,6 @@ node_modules/
 
 # exception: the real logo (not a screenshot)
 !logo.png
+
+# internal ops skill — keep local, not in public repo
+.claude/
