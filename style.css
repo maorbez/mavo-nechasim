@@ -2007,7 +2007,7 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   bottom: -1px;            /* -1px hides any sub-pixel seam to next section */
   left: 0;
   width: 100%;
-  height: 60px;
+  height: 36px;
   z-index: 5;
   pointer-events: none;
   display: block;
