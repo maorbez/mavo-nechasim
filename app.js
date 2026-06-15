@@ -994,9 +994,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Build neighborhood filters
   buildNeighborhoodFilters(properties);
 
-  // Init map with loaded properties
-  if (document.getElementById('mainMap')) {
-    initMap(properties);
+  // Lazy-init the map only when it scrolls into view (keeps initial load + hero smooth)
+  const mapEl = document.getElementById('mainMap');
+  if (mapEl) {
+    if ('IntersectionObserver' in window) {
+      let mapInited = false;
+      const mapObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !mapInited) {
+          mapInited = true;
+          initMap(properties);
+          mapObserver.disconnect();
+        }
+      }, { rootMargin: '250px' });
+      mapObserver.observe(mapEl);
+    } else {
+      initMap(properties);
+    }
   }
 
   // Extract gold from logo (remove blue background via Canvas)
