@@ -638,7 +638,6 @@ select option {
 .hero-stats {
   position: relative; z-index: 6;
   margin-top: auto;
-  margin-bottom: 56px;
   background: rgba(255,255,255,.06);
   border-top: 1px solid rgba(255,255,255,.1);
   backdrop-filter: blur(10px);
@@ -2080,7 +2079,7 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
 }
 .hero-scroll-hint {
   position: relative;
-  margin-top: auto;            /* centers in the gap between content and stats */
+  margin: 12px auto 44px;      /* below the stats, lifted above the wave */
   align-self: center;
   display: flex; flex-direction: row; align-items: center; gap: 5px;
   color: rgba(255,255,255,.7); font-size: .78rem; white-space: nowrap;
