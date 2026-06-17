@@ -54,3 +54,6 @@ node_modules/
 
 # internal ops skill — keep local, not in public repo
 .claude/
+!favicon-32.png
+!favicon-192.png
+!apple-touch-icon.png
