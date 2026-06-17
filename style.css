@@ -389,11 +389,11 @@ select option {
   .hero-title { font-size: clamp(1.4rem, 2.6vw, 1.78rem); margin-bottom: 4px; }
   .hero-subtitle { display: none; }            /* hide on short screens to make room */
   .search-tabs { padding: 3px; }
-  .tab { padding: 6px; font-size: .83rem; }
-  .search-fields { padding: 8px 12px; gap: 8px; }
-  .field-group label { font-size: .68rem; }
-  .field-group select, .field-group input { padding: 7px 9px; font-size: .84rem; }
-  .search-btn { padding: 8px 20px; }
+  .tab { padding: 5px; font-size: .82rem; }
+  .search-fields { padding: 7px 12px; gap: 7px; }
+  .field-group label { font-size: .66rem; margin-bottom: 2px; }
+  .field-group select, .field-group input { padding: 6px 9px; font-size: .83rem; }
+  .search-btn { padding: 7px 20px; }
   .hero-tags { margin-top: 8px; }
   .hero-stats { padding: 4px 0; margin-bottom: 8px; }
   .stat-item { padding: 3px 40px; }
