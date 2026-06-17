@@ -394,13 +394,14 @@ select option {
   .field-group label { font-size: .68rem; }
   .field-group select, .field-group input { padding: 7px 9px; font-size: .84rem; }
   .search-btn { padding: 8px 20px; }
-  .hero-tags { margin-top: 9px; }
-  .hero-stats { padding: 5px 0; margin-bottom: 14px; }
-  .stat-num { font-size: 1.4rem; }
-  .stat-label { font-size: .66rem; margin-top: 1px; }
-  .stat-divider { height: 26px; }
-  .hero-scroll-hint { margin: 4px auto 14px; }
-  .hero-wave-bottom { height: 24px; }
+  .hero-tags { margin-top: 8px; }
+  .hero-stats { padding: 4px 0; margin-bottom: 8px; }
+  .stat-item { padding: 3px 40px; }
+  .stat-num { font-size: 1.35rem; }
+  .stat-label { font-size: .64rem; margin-top: 1px; }
+  .stat-divider { height: 24px; }
+  .hero-scroll-hint { margin: 3px auto 8px; }
+  .hero-wave-bottom { height: 22px; }
 }
 
 /* Neighborhood English Name — giant background watermark, anchored to the right */
