@@ -687,8 +687,8 @@ function renderResults(props) {
     const waMsg = encodeURIComponent(`שלום, אני מעוניין בנכס: ${p.title} — ${p.location}`);
     return `
       <div class="res-card" onclick="openProp(${pid})">
-        <div class="res-img" style="background:${esc(p.bg)}">
-          <div class="res-emoji">${esc(p.emoji||'🏠')}</div>
+        <div class="res-img" style="background:${esc(p.bg)};position:relative;overflow:hidden">
+          ${(p.photos&&p.photos.length)?`<img src="${esc(p.photos[0])}" alt="${esc(p.title)}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">`:`<div class="res-emoji">${esc(p.emoji||'🏠')}</div>`}
           <div class="res-badge ${esc(p.type)}">${typeLabel[p.type]||''}</div>
           <div class="res-avail"></div>
         </div>
