@@ -384,13 +384,13 @@ select option {
   .stat-divider { height: 38px; }
 }
 @media (min-width: 769px) and (max-height: 760px) {
-  .hero-content { padding-top: 36px; padding-bottom: 0; }
-  .hero-badge { margin-bottom: 5px; font-size: .72rem; padding: 4px 11px; }
-  .hero-title { font-size: clamp(1.45rem, 2.8vw, 1.95rem); margin-bottom: 5px; }
+  .hero-content { padding-top: 30px; padding-bottom: 0; }
+  .hero-badge { margin-bottom: 4px; font-size: .71rem; padding: 4px 11px; }
+  .hero-title { font-size: clamp(1.4rem, 2.6vw, 1.78rem); margin-bottom: 4px; }
   .hero-subtitle { display: none; }            /* hide on short screens to make room */
-  .search-tabs { padding: 4px; }
-  .tab { padding: 7px; font-size: .84rem; }
-  .search-fields { padding: 10px 14px; gap: 8px; }
+  .search-tabs { padding: 3px; }
+  .tab { padding: 6px; font-size: .83rem; }
+  .search-fields { padding: 8px 12px; gap: 8px; }
   .field-group label { font-size: .68rem; }
   .field-group select, .field-group input { padding: 7px 9px; font-size: .84rem; }
   .search-btn { padding: 8px 20px; }
