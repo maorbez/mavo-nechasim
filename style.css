@@ -384,24 +384,19 @@ select option {
   .stat-divider { height: 38px; }
 }
 @media (min-width: 769px) and (max-height: 760px) {
-  .hero-content { padding-top: 30px; padding-bottom: 0; }
-  .hero-badge { margin-bottom: 4px; font-size: .71rem; padding: 4px 11px; }
-  .hero-title { font-size: clamp(1.4rem, 2.6vw, 1.78rem); margin-bottom: 4px; }
+  .hero-content { padding-top: 38px; padding-bottom: 0; }
+  .hero-badge { margin-bottom: 8px; font-size: .73rem; padding: 5px 12px; }
+  .hero-title { font-size: clamp(1.55rem, 2.9vw, 1.95rem); margin-bottom: 8px; }
   .hero-subtitle { display: none; }            /* hide on short screens to make room */
-  .search-tabs { padding: 3px; }
-  .tab { padding: 5px; font-size: .82rem; }
-  .search-fields { padding: 7px 12px; gap: 7px; }
-  .field-group label { font-size: .66rem; margin-bottom: 2px; }
-  .field-group select, .field-group input { padding: 6px 9px; font-size: .83rem; }
-  .search-btn { padding: 7px 20px; }
-  .hero-tags { margin-top: 8px; }
-  .hero-stats { padding: 4px 0; margin-bottom: 8px; }
-  .stat-item { padding: 3px 40px; }
-  .stat-num { font-size: 1.35rem; }
-  .stat-label { font-size: .64rem; margin-top: 1px; }
-  .stat-divider { height: 24px; }
-  .hero-scroll-hint { margin: 3px auto 8px; }
-  .hero-wave-bottom { height: 22px; }
+  .search-tabs { padding: 4px; }
+  .tab { padding: 7px; font-size: .84rem; }
+  .search-fields { padding: 11px 16px; gap: 9px; }
+  .field-group label { font-size: .69rem; }
+  .field-group select, .field-group input { padding: 7px 10px; font-size: .85rem; }
+  .search-btn { padding: 8px 22px; }
+  .hero-tags { margin-top: 14px; gap: 12px; }
+  .hero-scroll-hint { margin: 7px auto 14px; }
+  .hero-wave-bottom { height: 26px; }
 }
 
 /* Neighborhood English Name — giant background watermark, anchored to the right */
