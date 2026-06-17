@@ -527,8 +527,8 @@
             </div>
             <div class="mform-group form-consent">
               <label class="consent-label">
-                <input type="checkbox" name="marketingConsent" />
-                <span>אני מסכים/ה לקבל עדכוני נכסים והצעות מגלובס נכסים.</span>
+                <input type="checkbox" name="marketingConsent" required />
+                <span><strong>אני מאשר/ת</strong> שגלובס נכסים תיצור עמי קשר ותשלח לי הודעות בנוגע לפנייה זו. *</span>
               </label>
               <p class="consent-note">
                 בלחיצה על שליחה אתה מאשר/ת את <a href="privacy.html" target="_blank">מדיניות הפרטיות</a>.
@@ -826,10 +826,10 @@
           </div>
           <div class="form-group form-consent">
             <label class="consent-label">
-              <input type="checkbox" id="marketingConsent" name="marketingConsent" />
+              <input type="checkbox" id="marketingConsent" name="marketingConsent" required />
               <span>
-                אני מסכים/ה לקבל עדכוני נכסים, הצעות ותוכן שיווקי מגלובס נכסים
-                (ניתן לביטול בכל עת).
+                <strong>אני מאשר/ת</strong> שגלובס נכסים תיצור עמי קשר טלפוני ותשלח לי
+                הודעות ועדכוני נכסים בנוגע לפנייה זו (ניתן לביטול בכל עת). *
               </span>
             </label>
             <p class="consent-note">
@@ -1104,7 +1104,7 @@
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
 <script src="db.js?v=1"></script>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 <script type="text/javascript">
 function googleTranslateElementInit() {
   // If Hebrew is the saved/default language, clear googtrans cookie RIGHT before GT reads it

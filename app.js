@@ -408,14 +408,16 @@ async function submitModalForm(e) {
   btn.disabled = true;
   btn.textContent = 'שולח...';
   try {
+    const val = sel => (form.querySelector(sel)?.value || '').trim();
     const payload = {
       _subject: 'פנייה על נכס — גלובס נכסים',
-      name:    form.querySelector('[name="name"]').value,
-      phone:   form.querySelector('[name="phone"]').value,
-      email:   form.querySelector('[name="email"]').value || 'לא צוין',
-      interest: form.querySelector('[name="interest"]').value,
-      property: document.getElementById('modalFormSub').textContent,
-      message: form.querySelector('[name="message"]').value || 'לא צוין',
+      name:    val('[name="name"]'),
+      phone:   val('[name="phone"]'),
+      email:   val('[name="email"]') || 'לא צוין',
+      interest: val('[name="interest"]'),
+      property: document.getElementById('modalFormSub')?.textContent || '',
+      message: val('[name="message"]') || 'לא צוין',
+      marketing_consent: form.querySelector('[name="marketingConsent"]')?.checked ? 'כן' : 'לא',
     };
     const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
       method: 'POST',

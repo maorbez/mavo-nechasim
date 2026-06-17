@@ -361,13 +361,13 @@
           <h3 class="modal-form-title"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.63 3.42 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.5 16z"/></svg> צור קשר על נכס זה</h3>
           <p class="modal-form-sub" id="modalFormSub"></p>
           <form onsubmit="submitModalForm(event)">
-            <div class="mform-group"><input type="text" placeholder="שם מלא *" required /></div>
-            <div class="mform-group"><input type="tel" placeholder="טלפון *" required /></div>
-            <div class="mform-group"><input type="email" placeholder="אימייל" /></div>
-            <div class="mform-group"><select><option>מעוניין לשמוע פרטים</option><option>רוצה לקבוע ביקור</option><option>שאלה על הנכס</option><option>הצעת מחיר</option></select></div>
-            <div class="mform-group"><textarea rows="3" placeholder="הודעה נוספת..."></textarea></div>
+            <div class="mform-group"><input type="text" name="name" placeholder="שם מלא *" required /></div>
+            <div class="mform-group"><input type="tel" name="phone" placeholder="טלפון *" required /></div>
+            <div class="mform-group"><input type="email" name="email" placeholder="אימייל" /></div>
+            <div class="mform-group"><select name="interest"><option>מעוניין לשמוע פרטים</option><option>רוצה לקבוע ביקור</option><option>שאלה על הנכס</option><option>הצעת מחיר</option></select></div>
+            <div class="mform-group"><textarea name="message" rows="3" placeholder="הודעה נוספת..."></textarea></div>
             <div class="mform-group form-consent">
-              <label class="consent-label"><input type="checkbox" name="marketingConsent" /><span>אני מסכים/ה לקבל עדכוני נכסים והצעות מגלובס נכסים.</span></label>
+              <label class="consent-label"><input type="checkbox" name="marketingConsent" required /><span><strong>אני מאשר/ת</strong> שגלובס נכסים תיצור עמי קשר ותשלח לי הודעות בנוגע לפנייה זו. *</span></label>
               <p class="consent-note">בלחיצה על שליחה אתה מאשר/ת את <a href="privacy.html" target="_blank">מדיניות הפרטיות</a>.</p>
             </div>
             <button type="submit" class="btn-primary full modal-submit"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> שלח פנייה על הנכס</button>
@@ -421,7 +421,7 @@
 
 <script src="components.js?v=1"></script>
 <script src="hood-map.js?v=1"></script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=5"></script>
 <script>
 function filterProps(btn, type) {
   document.querySelectorAll('.filter-btn').forEach(t => t.classList.remove('active'));
