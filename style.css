@@ -645,6 +645,7 @@ select option {
 .hero-tags {
   display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
   margin-top: 14px;
+  margin-bottom: 30px;
   color: rgba(255,255,255,.6);
   font-size: .85rem;
 }
