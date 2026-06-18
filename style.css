@@ -2001,6 +2001,18 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   .hero-scroll-hint { margin: 0 auto 48px; }
 }
 
+/* Tiny / very short screens (old Androids, landscape): squeeze the last ~30px */
+@media (max-width: 768px) and (max-height: 680px) {
+  .hero-content { padding-top: 8px; }
+  .hero-badge { margin-bottom: 4px; }
+  .hero-title { font-size: 1.32rem; margin-bottom: 4px; }
+  .hero-tags { margin-top: 4px; }
+  .search-fields { padding: 8px; gap: 6px; }
+  .tab { padding: 5px 4px; }
+  .stat-item { padding: 5px 18px; }
+  .hero-scroll-hint { margin: 0 auto 44px; }
+}
+
 /* ============================
    EXTRA DESIGN UPGRADES
    ============================ */
