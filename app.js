@@ -50,7 +50,7 @@ let properties = []; // single source of truth, filled on init
 
 const HARDCODED = [];
 
-const DATA_VERSION = 'globes-rentals-only-2026-06-20-v3'; // bump this to force-clear old localStorage data
+const DATA_VERSION = 'globes-rentals-coords-2026-06-20-v4'; // bump this to force-clear old localStorage data
 
 async function loadProperties() {
   // 1. Try localStorage (from admin panel) — skip if data version mismatch

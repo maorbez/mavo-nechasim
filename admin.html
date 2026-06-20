@@ -621,7 +621,7 @@ async function loadPropsFile(){
   try{const r=await fetch('properties.json');properties=await r.json();saveProps();}catch(e){properties=[];}
 }
 
-function saveProps()  {localStorage.setItem('globes_properties',JSON.stringify(properties));localStorage.setItem('globes_data_version','globes-rentals-only-2026-06-20-v3');}
+function saveProps()  {localStorage.setItem('globes_properties',JSON.stringify(properties));localStorage.setItem('globes_data_version','globes-rentals-coords-2026-06-20-v4');}
 function saveAgents() {localStorage.setItem('globes_agents',    JSON.stringify(agents));}
 function saveBlog()   {localStorage.setItem('globes_blog',      JSON.stringify(blogPosts));}
 
