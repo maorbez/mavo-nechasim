@@ -1720,10 +1720,18 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   backdrop-filter: blur(4px);
 }
 
-/* Honeypot anti-spam field — off-screen for humans, tempting for bots */
+/* Honeypot anti-spam field — clipped to 1px (NOT left:-9999px, which broke mobile scroll).
+   Stays in the DOM so bots fill it, but adds zero overflow. */
 .hp-field {
-  position: absolute !important; left: -9999px !important;
-  width: 1px; height: 1px; opacity: 0; pointer-events: none;
+  position: absolute !important;
+  width: 1px !important; height: 1px !important;
+  padding: 0 !important; margin: 0 !important; border: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* Fullscreen image lightbox */
