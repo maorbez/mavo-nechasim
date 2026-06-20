@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ניהול | גלובס נכסים</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--blue:#1565C0;--gold:#F5B731;--dark:#0a0f1e;--green:#10b981;--red:#ef4444;--purple:#7c3aed;--radius:12px}
+    body{font-family:'Heebo',sans-serif;background:#f1f5f9;color:#1a1a2e;direction:rtl;min-height:100vh}
+
+    /* LOGIN */
+    .login-screen{position:fixed;inset:0;background:#0a0f1e;display:flex;align-items:center;justify-content:center;z-index:9999}
+    .login-box{background:#111827;border-radius:24px;padding:50px 40px;width:400px;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.05)}
+    .login-logo{max-width:180px;height:auto;margin:0 auto 30px;display:block;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.3))}
+    .login-box h2{font-size:1.6rem;font-weight:800;color:#fff;margin-bottom:8px}
+    .login-box p{color:#94a3b8;font-size:0.95rem;margin-bottom:30px}
+    .login-input{width:100%;padding:16px;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.1);color:#fff;border-radius:12px;font-family:'Heebo',sans-serif;font-size:1rem;text-align:center;margin-bottom:16px;direction:ltr;letter-spacing:0.3em;transition:all 0.3s}
+    .login-input:focus{border-color:var(--gold);outline:none;background:rgba(255,255,255,0.08);box-shadow:0 0 0 3px rgba(245,183,49,0.2)}
+    .login-input::placeholder{color:#64748b;letter-spacing:normal}
+    .login-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--gold),#d97706);color:#0a0f1e;border:none;border-radius:12px;font-family:'Heebo',sans-serif;font-size:1.1rem;font-weight:800;cursor:pointer;transition:all 0.3s}
+    .login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(245,183,49,0.3)}
+    .login-err{color:var(--red);font-size:.85rem;margin-top:8px;display:none}
+    .login-screen.hidden{display:none}
+
+    /* SIDEBAR */
+    .admin-layout{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--dark);padding:24px 0;flex-shrink:0;position:fixed;top:0;right:0;bottom:0;overflow-y:auto;display:flex;flex-direction:column}
+    .sidebar-logo{display:flex;align-items:center;gap:10px;padding:0 20px 24px;border-bottom:1px solid rgba(255,255,255,.1)}
+    .sidebar-logo img{width:44px;height:44px;border-radius:8px}
+    .sidebar-logo span{color:#fff;font-size:.95rem;font-weight:800}
+    .sidebar-nav{padding:20px 0;flex:1}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:12px 20px;color:rgba(255,255,255,.6);cursor:pointer;transition:all .2s;font-size:.9rem;font-weight:500;border-right:3px solid transparent}
+    .nav-item:hover,.nav-item.active{color:#fff;background:rgba(255,255,255,.06);border-right-color:var(--gold)}
+    .nav-item.active{color:var(--gold)}
+    .nav-sep{height:1px;background:rgba(255,255,255,.08);margin:8px 20px}
+    .nav-bottom{padding:12px 0 20px}
+
+    /* MAIN */
+    .main-content{flex:1;margin-right:240px;padding:28px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;background:#fff;border-radius:var(--radius);padding:16px 24px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .page-title{font-size:1.3rem;font-weight:800}
+    .topbar-actions{display:flex;gap:10px}
+
+    /* STATS */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+    .stat-card{background:#fff;border-radius:var(--radius);padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .stat-card .sc-val{font-size:2rem;font-weight:900;color:var(--blue)}
+    .stat-card .sc-label{font-size:.8rem;color:#64748b;margin-top:4px;font-weight:500}
+    .stat-card .sc-icon{font-size:1.8rem;margin-bottom:8px}
+
+    /* TABLE */
+    .table-wrap{background:#fff;border-radius:var(--radius);box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden}
+    .table-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;gap:10px}
+    .table-header h3{font-size:1rem;font-weight:800}
+    table{width:100%;border-collapse:collapse}
+    th{background:#f8fafc;padding:12px 16px;text-align:right;font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
+    td{padding:14px 16px;border-bottom:1px solid #f8fafc;font-size:.88rem;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#f8fafc}
+    .badge{display:inline-block;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:50px;text-transform:uppercase}
+    .badge-sale{background:rgba(245,183,49,.15);color:#92680a}
+    .badge-rent{background:rgba(16,185,129,.12);color:#065f46}
+    .badge-commercial-sale{background:rgba(249,115,22,.12);color:#9a3412}
+    .badge-commercial-rent{background:rgba(168,85,247,.12);color:#6b21a8}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-family:'Heebo',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;border:none;transition:all .2s}
+    .btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#0d47a1}
+    .btn-gold{background:var(--gold);color:#1a1a1a}.btn-gold:hover{background:#d4920a}
+    .btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#dc2626}
+    .btn-ghost{background:#f1f5f9;color:#64748b}.btn-ghost:hover{background:#e2e8f0;color:#1a1a2e}
+    .btn-purple{background:var(--purple);color:#fff}.btn-purple:hover{background:#5b21b6}
+    .btn-sm{padding:6px 12px;font-size:.78rem}
+
+    /* DRAWER */
+    .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s}
+    .drawer-overlay.open{opacity:1;pointer-events:all}
+    .drawer{position:fixed;top:0;left:0;width:520px;height:100vh;background:#fff;z-index:1001;transform:translateX(-100%);transition:transform .35s cubic-bezier(.175,.885,.32,1.275);overflow-y:auto;padding:28px}
+    .drawer.open{transform:translateX(0)}
+    .drawer-title{font-size:1.2rem;font-weight:800;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+    .drawer-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:#64748b;padding:4px}
+
+    /* FORM */
+    .form-section{margin-bottom:24px}
+    .form-section-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f1f5f9}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-group{display:flex;flex-direction:column;gap:5px}
+    .form-group.full{grid-column:1/-1}
+    .form-group label{font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+    .form-group input,.form-group select,.form-group textarea{padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-family:'Heebo',sans-serif;font-size:.9rem;color:#1a1a2e;transition:border-color .2s;direction:rtl}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+    select,select option{background-color:#fff !important;color:#1a1a2e !important}
+    .form-group textarea{resize:vertical}
+    .form-actions{display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid #f1f5f9}
+
+    /* TAGS */
+    .tags-wrap{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:38px;padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:text;transition:border-color .2s}
+    .tags-wrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+    .tag-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(21,101,192,.1);color:var(--blue);font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:50px}
+    .tag-chip button{background:none;border:none;color:inherit;cursor:pointer;font-size:.9rem;line-height:1;padding:0;opacity:.7}
+    .tag-chip button:hover{opacity:1}
+    .tag-inline-input{border:none;outline:none;font-family:'Heebo',sans-serif;font-size:.9rem;color:#1a1a2e;min-width:80px;flex:1;background:transparent}
+    .tag-suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .tag-hint{display:inline-block;font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:50px;background:#f1f5f9;color:#64748b;cursor:pointer;transition:all .2s}
+    .tag-hint:hover{background:rgba(21,101,192,.1);color:var(--blue)}
+
+    /* PHOTO UPLOAD */
+    .photo-upload-area{border:2px dashed #e2e8f0;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+    .prop-photos-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+    .prop-photo-thumb{position:relative;width:90px;height:90px;border-radius:10px;overflow:hidden;border:2px solid #e2e8f0;flex-shrink:0}
+    .prop-photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .prop-photo-remove{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:rgba(220,38,38,.85);color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;line-height:1}
+    .prop-photo-add-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:2px dashed #cbd5e1;border-radius:8px;cursor:pointer;font-size:.85rem;color:#64748b;transition:all .2s;background:none;font-family:'Heebo',sans-serif}
+    .prop-photo-add-btn:hover{border-color:var(--blue);color:var(--blue);background:rgba(21,101,192,.04)}
+    .photo-upload-area:hover{border-color:var(--blue);background:rgba(21,101,192,.03)}
+    .photo-upload-area.has-photo{border-style:solid;border-color:#e2e8f0}
+    .photo-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+    .photo-preview{width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:block;border:3px solid #e2e8f0}
+    .photo-placeholder{width:80px;height:80px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:2rem}
+    .photo-upload-txt strong{display:block;color:#64748b;margin-bottom:3px;font-size:.85rem}
+    .photo-upload-txt span{font-size:.75rem;color:#94a3b8}
+
+    /* AGENTS */
+    .agents-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+    .agent-card-admin{background:#fff;border-radius:var(--radius);padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;gap:14px;align-items:flex-start}
+    .agent-avatar{width:60px;height:60px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3rem;font-weight:800;flex-shrink:0;overflow:hidden}
+    .agent-avatar img{width:100%;height:100%;object-fit:cover}
+    .agent-card-info{flex:1;min-width:0}
+    .agent-card-name{font-weight:800;font-size:.95rem;margin-bottom:2px}
+    .agent-card-title{font-size:.8rem;color:#64748b;margin-bottom:8px}
+    .agent-card-meta{font-size:.78rem;color:#94a3b8;line-height:1.7}
+    .agent-card-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+    .dim{opacity:.45}
+
+    /* BLOG */
+    .blog-list{display:flex;flex-direction:column;gap:10px}
+    .blog-item{background:#fff;border-radius:var(--radius);padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;gap:14px}
+    .blog-item-body{flex:1;min-width:0}
+    .blog-item-title{font-weight:700;font-size:.9rem;margin-bottom:4px}
+    .blog-item-meta{font-size:.75rem;color:#94a3b8;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .hood-badge{display:inline-block;font-size:.68rem;font-weight:700;padding:2px 9px;border-radius:50px}
+    .hb-florentin{background:rgba(124,58,237,.12);color:#5b21b6}
+    .hb-neve-tzedek{background:rgba(16,185,129,.12);color:#065f46}
+    .hb-kerem-hateimanim{background:rgba(245,158,11,.15);color:#92400e}
+    .hb-bat-yam{background:rgba(59,130,246,.15);color:#1e40af}
+    .hb-north-tel-aviv{background:rgba(239,68,68,.12);color:#991b1b}
+    .blog-excerpt{font-size:.82rem;color:#64748b;margin-top:5px}
+
+    /* HOOD TILES */
+    .hoods-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+    .hood-tile{background:#fff;border-radius:var(--radius);padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-top:4px solid #e2e8f0;text-decoration:none;display:block;transition:transform .2s,box-shadow .2s}
+    .hood-tile:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
+    .hood-tile.florentin{border-color:#7c3aed}
+    .hood-tile.neve-tzedek{border-color:#10b981}
+    .hood-tile.kerem-hateimanim{border-color:#f59e0b}
+    .hood-tile.bat-yam{border-color:#3b82f6}
+    .hood-tile.north-tel-aviv{border-color:#ef4444}
+    .hood-tile h4{font-size:.88rem;font-weight:800;margin-bottom:3px;color:#1a1a2e}
+    .hood-tile p{font-size:.72rem;color:#94a3b8}
+    .hood-count{font-size:1.5rem;font-weight:900;color:var(--blue);margin-bottom:4px}
+
+    /* MISC */
+    .search-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+    .search-input{flex:1;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-family:'Heebo',sans-serif;font-size:.9rem;min-width:140px}
+    .search-input:focus{border-color:var(--blue);outline:none}
+    .filter-select{padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-family:'Heebo',sans-serif;font-size:.9rem}
+    .toggle-active{cursor:pointer;font-size:1.2rem}
+    .empty-state{text-align:center;padding:60px 20px;color:#94a3b8}
+    .empty-state .es-icon{font-size:3rem;margin-bottom:12px}
+    .geo-wrap{display:flex;gap:6px;align-items:center}
+    .geo-wrap input{flex:1}
+    .btn-geo{padding:10px 12px;background:var(--blue);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:700;font-family:'Heebo',sans-serif;white-space:nowrap;transition:all .2s}
+    .btn-geo:hover{background:#0d47a1}
+    .btn-geo:disabled{background:#94a3b8;cursor:not-allowed}
+    .geo-status{font-size:.75rem;margin-top:4px;display:none}
+    .geo-status.ok{color:var(--green);display:block}
+    .geo-status.err{color:var(--red);display:block}
+    .price-suffix{font-size:.75rem;color:#94a3b8;margin-top:3px;display:none}
+    .toast{position:fixed;bottom:24px;left:24px;background:#1a1a2e;color:#fff;border-radius:10px;padding:14px 20px;font-size:.88rem;font-weight:600;z-index:9999;transform:translateX(-150%);transition:transform .4s cubic-bezier(.175,.885,.32,1.275)}
+    .toast.show{transform:translateX(0)}
+    .section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+    .section-hdr h3{font-size:1rem;font-weight:800}
+    .export-box{background:linear-gradient(135deg,#0d47a1,#1565C0);border-radius:var(--radius);padding:24px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .export-box h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+    .export-box p{font-size:.82rem;opacity:.75}
+
+    @media(max-width:900px){
+      .sidebar{display:none}.main-content{margin-right:0}
+      .stats-row{grid-template-columns:repeat(2,1fr)}
+      .form-grid{grid-template-columns:1fr}
+      .drawer{width:100%}
+      .agents-grid{grid-template-columns:1fr}
+      .hoods-grid{grid-template-columns:repeat(2,1fr)}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <img src="logo.png" class="login-logo" alt="לוגו" />
+    <h2>ניהול גלובס נכסים</h2>
+    <p>פאנל ניהול פנימי</p>
+    <input type="password" class="login-input" id="pwInput" placeholder="הזן סיסמה..." onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="login-btn" onclick="doLogin()">כניסה</button>
+    <div class="login-err" id="loginErr">סיסמה שגויה, נסה שנית</div>
+  </div>
+</div>
+
+<!-- ADMIN LAYOUT -->
+<div class="admin-layout" id="adminLayout" style="display:none">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <img src="logo.png" alt="לוגו" />
+      <span>גלובס נכסים</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" data-page="props"   onclick="showPage('props',this)">🏠 נכסים</div>
+      <div class="nav-item"        data-page="agents"  onclick="showPage('agents',this)">👤 סוכנים</div>
+      <div class="nav-item"        data-page="blog"    onclick="showPage('blog',this)">📝 בלוג שכונות</div>
+      <div class="nav-sep"></div>
+      <div class="nav-item"        data-page="export"  onclick="showPage('export',this)">📤 ייצוא / ייבוא</div>
+      <div class="nav-item"                            onclick="window.open('index.html','_blank')">🌐 צפה באתר</div>
+    </div>
+    <div class="nav-bottom">
+      <div class="nav-item" onclick="logout()">🚪 התנתק</div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">ניהול נכסים</div>
+      <div class="topbar-actions" id="topbarActions"></div>
+    </div>
+    <div class="stats-row" id="statsRow"></div>
+
+    <!-- PROPERTIES -->
+    <div id="propsPage">
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>🏘️ נכסים (<span id="propCount">0</span>)</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input class="search-input" placeholder="חיפוש..." id="searchInput" oninput="renderTable()" style="width:180px" />
+            <select class="filter-select" id="typeFilter" onchange="renderTable()">
+              <option value="">כל הסוגים</option>
+              <option value="sale">למכירה</option>
+              <option value="rent">להשכרה</option>
+              <option value="commercial-sale">מסחרי למכירה</option>
+              <option value="commercial-rent">מסחרי להשכרה</option>
+            </select>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr><th>#</th><th>נכס</th><th>תגיות</th><th>מחיר</th><th>מיקום</th><th>שכונה</th><th>סוג</th><th>פעיל</th><th>פעולות</th></tr>
+          </thead>
+          <tbody id="propsTableBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="display:none">
+          <div class="es-icon">🏚️</div><p>לא נמצאו נכסים</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGENTS -->
+    <div id="agentsPage" style="display:none">
+      <div class="section-hdr">
+        <h3>👤 סוכנים (<span id="agentCount">0</span>)</h3>
+        <button class="btn btn-blue" onclick="openAgentDrawer()">➕ הוסף סוכן</button>
+      </div>
+      <div class="agents-grid" id="agentsGrid"></div>
+      <div class="empty-state" id="agentsEmpty" style="display:none">
+        <div class="es-icon">👤</div><p>אין סוכנים עדיין</p>
+      </div>
+    </div>
+
+    <!-- BLOG -->
+    <div id="blogPage" style="display:none">
+      <div class="hoods-grid" id="hoodsGrid"></div>
+      <div class="section-hdr">
+        <h3>📝 פוסטים (<span id="blogCount">0</span>)</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select class="filter-select" id="hoodFilter" onchange="renderBlogPage()">
+            <option value="">כל השכונות</option>
+            <option value="florentin">פלורנטין</option>
+            <option value="neve-tzedek">נווה צדק</option>
+            <option value="kerem-hateimanim">כרם התימנים</option>
+            <option value="bat-yam">בת ים</option>
+            <option value="north-tel-aviv">צפון תל אביב</option>
+          </select>
+          <button class="btn btn-purple" onclick="openBlogDrawer()">✏️ פוסט חדש</button>
+        </div>
+      </div>
+      <div class="blog-list" id="blogList"></div>
+      <div class="empty-state" id="blogEmpty" style="display:none">
+        <div class="es-icon">📝</div><p>אין פוסטים עדיין. לחץ "פוסט חדש" כדי להוסיף.</p>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div id="exportPage" style="display:none">
+      <div class="export-box">
+        <div>
+          <h3>📤 ייצוא ו-ייבוא נתונים</h3>
+          <p>הורד קובץ JSON לגיבוי, או ייבא קובץ קיים לעדכון הנתונים</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="exportJSON('properties')">⬇️ נכסים</button>
+          <button class="btn btn-gold" onclick="exportJSON('agents')">⬇️ סוכנים</button>
+          <button class="btn btn-gold" onclick="exportJSON('blog')">⬇️ בלוג</button>
+          <label class="btn btn-ghost" style="cursor:pointer">
+            ⬆️ ייבא נכסים
+            <input type="file" accept=".json" style="display:none" onchange="importJSON(event)" />
+          </label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PROPERTY DRAWER -->
+<div class="drawer-overlay" id="propOverlay" onclick="closePropDrawer()"></div>
+<div class="drawer" id="propDrawer">
+  <div class="drawer-title">
+    <span id="propDrawerTitle">➕ הוסף נכס חדש</span>
+    <button class="drawer-close" onclick="closePropDrawer()">✕</button>
+  </div>
+  <form id="propForm" onsubmit="saveProp(event)">
+    <input type="hidden" id="editId" />
+    <div class="form-section">
+      <div class="form-section-title">פרטים בסיסיים</div>
+      <div class="form-grid">
+        <div class="form-group full"><label>כותרת *</label><input type="text" id="fTitle" placeholder="דירת 3 חדרים להשכרה בפלורנטין" required /></div>
+        <div class="form-group"><label>עיר</label>
+          <select id="fCity" onchange="populateHoodSelect()">
+            <option value="">— בחר עיר —</option>
+            <option value="תל אביב">תל אביב</option>
+            <option value="בת ים">בת ים</option>
+          </select>
+        </div>
+        <div class="form-group"><label>שכונה</label>
+          <select id="fHood">
+            <option value="">— בחר שכונה —</option>
+          </select>
+        </div>
+        <div class="form-group"><label>סוג *</label>
+          <select id="fType" required onchange="toggleRooms()">
+            <option value="sale">🏠 למכירה</option><option value="rent">🏠 להשכרה</option>
+            <option value="commercial-sale">🏪 מסחרי למכירה</option><option value="commercial-rent">🏪 מסחרי להשכרה</option>
+          </select>
+        </div>
+        <div class="form-group"><label>מחיר *</label><input type="text" id="fPrice" placeholder="4,200,000" required /><div class="price-suffix" id="priceSuffix">💡 יצורף: <b>/ לחודש</b></div></div>
+        <div class="form-group full"><label>מיקום *</label>
+          <div class="geo-wrap"><input type="text" id="fLocation" placeholder="תל אביב, הצפון הישן" required onblur="geocodeLocation()" /><button type="button" class="btn-geo" id="geoBtn" onclick="geocodeLocation()">📍 אתר</button></div>
+          <div class="geo-status" id="geoStatus"></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">מפה</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Lat</label><input type="number" id="fLat" step="0.000001" placeholder="32.0853" /></div>
+        <div class="form-group"><label>Lng</label><input type="number" id="fLng" step="0.000001" placeholder="34.7818" /></div>
+      </div>
+    </div>
+    <div class="form-section" id="residentialFields">
+      <div class="form-section-title">פרטי דיור</div>
+      <div class="form-grid">
+        <div class="form-group"><label>חדרים</label><input type="number" id="fRooms" placeholder="3" min="1" max="20" /></div>
+        <div class="form-group"><label>אמבטיות</label><input type="number" id="fBaths" placeholder="2" min="1" max="10" /></div>
+        <div class="form-group"><label>מ"ר</label><input type="number" id="fSqm" placeholder="95" /></div>
+        <div class="form-group"><label>פיצ'ר</label><input type="text" id="fExtra" placeholder="חניה, בריכה..." /></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">🏷️ תגיות</div>
+      <div class="tags-wrap" id="tagsWrap" onclick="document.getElementById('tagInput').focus()">
+        <input type="text" class="tag-inline-input" id="tagInput" placeholder="הוסף תגית + Enter..." onkeydown="handleTagKey(event)" />
+      </div>
+      <div class="tag-suggestions" id="tagSuggestions"></div>
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">תיאור ופרטי סוכן</div>
+      <div class="form-grid">
+        <div class="form-group full"><label>תיאור</label><textarea id="fDesc" rows="3" placeholder="תיאור מפורט..."></textarea></div>
+        <div class="form-group"><label>סוכן</label>
+          <select id="fAgent"><option value="">— בחר סוכן —</option></select>
+        </div>
+        <div class="form-group"><label>צבע רקע</label><input type="color" id="fColor" value="#1565C0" /></div>
+        <div class="form-group"><label>פעיל</label>
+          <select id="fActive"><option value="true">✅ כן</option><option value="false">❌ לא</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">📸 תמונות הנכס</div>
+      <div class="prop-photos-grid" id="propPhotosGrid"></div>
+      <label class="prop-photo-add-btn">
+        <input type="file" accept="image/*" multiple style="display:none" id="propPhotoInput" onchange="handlePropPhotos(event)">
+        ➕ הוסף תמונות
+      </label>
+      <p style="font-size:.75rem;color:#94a3b8;margin-top:6px">עד 5 תמונות, JPG/PNG מומלץ עד 1MB לתמונה</p>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-blue">💾 שמור נכס</button>
+      <button type="button" class="btn btn-ghost" onclick="closePropDrawer()">ביטול</button>
+    </div>
+  </form>
+</div>
+
+<!-- AGENT DRAWER -->
+<div class="drawer-overlay" id="agentOverlay" onclick="closeAgentDrawer()"></div>
+<div class="drawer" id="agentDrawer">
+  <div class="drawer-title">
+    <span id="agentDrawerTitle">➕ הוסף סוכן</span>
+    <button class="drawer-close" onclick="closeAgentDrawer()">✕</button>
+  </div>
+  <form id="agentForm" onsubmit="saveAgent(event)">
+    <input type="hidden" id="aEditId" />
+    <div class="form-section">
+      <div class="form-section-title">תמונת פרופיל</div>
+      <div class="photo-upload-area" id="photoArea">
+        <input type="file" accept="image/*" id="photoInput" onchange="handlePhotoUpload(event)" />
+        <div id="photoPlaceholder">
+          <div class="photo-placeholder">📷</div>
+          <div class="photo-upload-txt"><strong>לחץ להעלאת תמונה</strong><span>JPG, PNG עד 2MB</span></div>
+        </div>
+        <div id="photoPreviewWrap" style="display:none">
+          <img class="photo-preview" id="photoPreviewImg" src="" alt="תצוגה מקדימה" />
+          <div class="photo-upload-txt"><span>לחץ להחלפת תמונה</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">פרטי הסוכן</div>
+      <div class="form-grid">
+        <div class="form-group"><label>שם מלא *</label><input type="text" id="aName" placeholder="מאור בצלאל" required /></div>
+        <div class="form-group"><label>תפקיד *</label><input type="text" id="aTitle" placeholder="גלובס נכסים" required /></div>
+        <div class="form-group"><label>טלפון</label><input type="tel" id="aPhone" placeholder="054-802-6123" /></div>
+        <div class="form-group"><label>אימייל</label><input type="email" id="aEmail" placeholder="info@globes-nechasim.co.il" /></div>
+        <div class="form-group"><label>שנות ניסיון</label><input type="number" id="aYears" placeholder="8" min="0" max="50" /></div>
+        <div class="form-group"><label>התמחות</label><input type="text" id="aSpec" placeholder="דירות יוקרה, פנטהאוזים" /></div>
+        <div class="form-group full"><label>ביוגרפיה קצרה</label><textarea id="aBio" rows="3" placeholder="מה מייחד את הסוכן הזה..."></textarea></div>
+        <div class="form-group"><label>פעיל באתר</label>
+          <select id="aActive"><option value="true">✅ כן</option><option value="false">❌ לא</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-blue">💾 שמור סוכן</button>
+      <button type="button" class="btn btn-ghost" onclick="closeAgentDrawer()">ביטול</button>
+    </div>
+  </form>
+</div>
+
+<!-- BLOG DRAWER -->
+<div class="drawer-overlay" id="blogOverlay" onclick="closeBlogDrawer()"></div>
+<div class="drawer" id="blogDrawer">
+  <div class="drawer-title">
+    <span id="blogDrawerTitle">✏️ פוסט חדש</span>
+    <button class="drawer-close" onclick="closeBlogDrawer()">✕</button>
+  </div>
+  <form id="blogForm" onsubmit="saveBlogPost(event)">
+    <input type="hidden" id="bEditId" />
+    <div class="form-section">
+      <div class="form-section-title">פרטי הפוסט</div>
+      <div class="form-grid">
+        <div class="form-group"><label>שכונה *</label>
+          <select id="bHood" required>
+            <option value="">— בחר שכונה —</option>
+            <option value="florentin">פלורנטין</option>
+            <option value="neve-tzedek">נווה צדק</option>
+            <option value="kerem-hateimanim">כרם התימנים</option>
+            <option value="bat-yam">בת ים</option>
+            <option value="north-tel-aviv">צפון תל אביב</option>
+          </select>
+        </div>
+        <div class="form-group"><label>תאריך</label><input type="date" id="bDate" /></div>
+        <div class="form-group full"><label>כותרת *</label><input type="text" id="bTitle" placeholder="למה פלורנטין היא השכונה החמה של 2025" required /></div>
+        <div class="form-group full"><label>תקציר</label><textarea id="bExcerpt" rows="2" placeholder="תקציר קצר שיופיע בכרטיס הפוסט..."></textarea></div>
+        <div class="form-group full"><label>תוכן מלא *</label><textarea id="bContent" rows="10" style="min-height:180px" placeholder="כתוב כאן את תוכן הפוסט..." required></textarea></div>
+        <div class="form-group"><label>סטטוס</label>
+          <select id="bActive"><option value="true">✅ פורסם</option><option value="false">📝 טיוטה</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-purple">💾 שמור פוסט</button>
+      <button type="button" class="btn btn-ghost" onclick="closeBlogDrawer()">ביטול</button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Sanitize text for DOM insertion ──────────────────────────
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── CITY → HOOD MAP ───────────────────────────────────────────
+const ADMIN_HOODS = {
+  'תל אביב': ['הצפון הישן','הצפון החדש','פלורנטין','נווה צדק','כרם התימנים',
+               'לב העיר','מרכז העיר','מונטיפיורי','רמת אביב','רמת אביב ג׳',
+               'אפקה','הדר יוסף','רמת החייל','נווה שאנן','שפירא','תל כביר',
+               'נמל תל אביב','יפו','עג׳מי','נווה אביבים','בבלי'],
+  'בת ים':   ['קוממיות','גן רווה','רמת יוסף','נווה עוז','הדרים',
+               'מרכז','כרמי','שכונת ט\'','שכונת ז\'','שכונת ה\'']
+};
+
+function populateHoodSelect() {
+  const city = document.getElementById('fCity').value;
+  const sel  = document.getElementById('fHood');
+  sel.innerHTML = '<option value="">— בחר שכונה —</option>';
+  (ADMIN_HOODS[city] || []).forEach(h => {
+    const o = document.createElement('option');
+    o.value = h; o.textContent = h;
+    sel.appendChild(o);
+  });
+}
+
+// ── PROP PHOTOS ───────────────────────────────────────────────
+let propPhotos = [];
+
+function renderPropPhotos() {
+  const grid = document.getElementById('propPhotosGrid');
+  grid.textContent = '';
+  propPhotos.forEach((src, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'prop-photo-thumb';
+    const img = document.createElement('img');
+    img.src = src; img.alt = 'תמונת נכס';
+    const rm = document.createElement('button');
+    rm.className = 'prop-photo-remove';
+    rm.type = 'button';
+    rm.textContent = '✕';
+    rm.addEventListener('click', (function(idx){ return function(){ propPhotos.splice(idx,1); renderPropPhotos(); }; })(i));
+    wrap.appendChild(img);
+    wrap.appendChild(rm);
+    grid.appendChild(wrap);
+  });
+}
+
+function handlePropPhotos(e) {
+  const files = Array.from(e.target.files);
+  const remaining = 5 - propPhotos.length;
+  if (remaining <= 0) { showToast('מקסימום 5 תמונות'); e.target.value=''; return; }
+  files.slice(0, remaining).forEach(file => {
+    if (file.size > 2 * 1024 * 1024) { showToast(`"${file.name}" גדול מ-2MB, דלג`); return; }
+    const reader = new FileReader();
+    reader.onload = ev => { propPhotos.push(ev.target.result); renderPropPhotos(); };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+// ── AUTH ──────────────────────────────────────────────────────
+// ⚠️  אזהרת אבטחה: סיסמה בצד הקליינט גלויה ב-DevTools.
+//    לפרודקשן — העבר לשרת עם אימות אמיתי (Netlify Identity / Firebase Auth).
+const ADMIN_PASS = 'globes2024';
+let _loginAttempts = 0;
+let _loginLockedUntil = 0;
+
+function doLogin(){
+  const errEl = document.getElementById('loginErr');
+  const now = Date.now();
+  if(now < _loginLockedUntil){
+    const secs = Math.ceil((_loginLockedUntil - now) / 1000);
+    errEl.textContent = `יותר מדי ניסיונות. נסה שוב בעוד ${secs} שניות.`;
+    errEl.style.display = 'block';
+    return;
+  }
+  if(document.getElementById('pwInput').value===ADMIN_PASS){
+    _loginAttempts = 0;
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('adminLayout').style.display='flex';
+    init();
+  } else {
+    _loginAttempts++;
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwInput').focus();
+    if(_loginAttempts >= 3){
+      _loginLockedUntil = Date.now() + 30000; // נעילה 30 שניות
+      _loginAttempts = 0;
+      errEl.textContent = 'יותר מדי ניסיונות. נסה שוב בעוד 30 שניות.';
+    } else {
+      errEl.textContent = 'סיסמה שגויה, נסה שנית';
+    }
+    errEl.style.display='block';
+  }
+}
+function logout(){
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('adminLayout').style.display='none';
+  document.getElementById('pwInput').value='';
+}
+
+// ── DATA ──────────────────────────────────────────────────────
+let properties=[], agents=[], blogPosts=[];
+
+const DEFAULT_AGENTS=[
+  {id:1,name:'מאור בצלאל',title:'בעלים ומתווך נדל״ן — גלובס נכסים',phone:'054-802-6123',email:'info@globes-nechasim.co.il',years:4,spec:'השכרה, מכירה וניהול נכסים בתל אביב והמרכז',bio:'4 שנים בתחום התיווך · 100 עסקאות',photo:null,active:true},
+];
+
+async function init(){
+  const sp=localStorage.getItem('globes_properties');
+  if(sp){try{properties=JSON.parse(sp);}catch(e){await loadPropsFile();}}else{await loadPropsFile();}
+  const sa=localStorage.getItem('globes_agents');
+  if(sa){try{agents=JSON.parse(sa);}catch(e){agents=[...DEFAULT_AGENTS];saveAgents();}}else{agents=[...DEFAULT_AGENTS];saveAgents();}
+  const sb=localStorage.getItem('globes_blog');
+  if(sb){try{blogPosts=JSON.parse(sb);}catch(e){blogPosts=[];saveBlog();}}else{blogPosts=[];saveBlog();}
+  populateAgentSelect();
+  showPage('props',document.querySelector('[data-page="props"]'));
+}
+
+async function loadPropsFile(){
+  try{const r=await fetch('properties.json');properties=await r.json();saveProps();}catch(e){properties=[];}
+}
+
+function saveProps()  {localStorage.setItem('globes_properties',JSON.stringify(properties));localStorage.setItem('globes_data_version','globes-rentals-only-2026-06-20-v3');}
+function saveAgents() {localStorage.setItem('globes_agents',    JSON.stringify(agents));}
+function saveBlog()   {localStorage.setItem('globes_blog',      JSON.stringify(blogPosts));}
+
+// ── NAVIGATION ────────────────────────────────────────────────
+const PAGE_TITLES={props:'ניהול נכסים',agents:'ניהול סוכנים',blog:'בלוג שכונות',export:'ייצוא / ייבוא'};
+
+function showPage(page,el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  ['props','agents','blog','export'].forEach(p=>{
+    const el2=document.getElementById(p+'Page');
+    if(el2) el2.style.display=p===page?'block':'none';
+  });
+  document.getElementById('pageTitle').textContent=PAGE_TITLES[page]||'';
+  // topbar action button
+  const acts=document.getElementById('topbarActions');
+  if(page==='props')   acts.innerHTML='<button class="btn btn-blue" onclick="openPropDrawer()">➕ הוסף נכס חדש</button><button class="btn btn-ghost" onclick="window.open(\'index.html\',\'_blank\')">🌐 האתר</button>';
+  else if(page==='agents') acts.innerHTML='<button class="btn btn-blue" onclick="openAgentDrawer()">➕ הוסף סוכן</button>';
+  else if(page==='blog')   acts.innerHTML='<button class="btn btn-purple" onclick="openBlogDrawer()">✏️ פוסט חדש</button>';
+  else acts.innerHTML='';
+  renderStats(page);
+  if(page==='props')   renderTable();
+  if(page==='agents')  renderAgentsPage();
+  if(page==='blog')    renderBlogPage();
+}
+
+// ── STATS ─────────────────────────────────────────────────────
+function renderStats(page){
+  const sr=document.getElementById('statsRow');
+  if(page==='agents'){
+    const tot=agents.length, act=agents.filter(a=>a.active).length;
+    setStats([['👤',tot,'סה"כ סוכנים'],['✅',act,'פעילים'],['🏠',properties.length,'נכסים'],['📝',blogPosts.length,'פוסטים']]);
+  } else if(page==='blog'){
+    const tot=blogPosts.length, pub=blogPosts.filter(b=>b.active).length;
+    setStats([['📝',tot,'סה"כ פוסטים'],['✅',pub,'מפורסמים'],['📋',tot-pub,'טיוטות'],['🏘️',5,'שכונות']]);
+  } else {
+    const tot=properties.length, act=properties.filter(p=>p.active).length;
+    const sale=properties.filter(p=>p.type==='sale'||p.type==='commercial-sale').length;
+    const rent=properties.filter(p=>p.type==='rent'||p.type==='commercial-rent').length;
+    setStats([['🏘️',tot,'סה"כ נכסים'],['✅',act,'פעילים'],['💰',sale,'למכירה'],['🔑',rent,'להשכרה']]);
+  }
+}
+function setStats(items){
+  document.getElementById('statsRow').innerHTML=items.map(([icon,val,label])=>
+    `<div class="stat-card"><div class="sc-icon">${icon}</div><div class="sc-val">${val}</div><div class="sc-label">${label}</div></div>`
+  ).join('');
+}
+
+// ── PROPERTIES TABLE ──────────────────────────────────────────
+function renderTable(){
+  const search=document.getElementById('searchInput').value.toLowerCase();
+  const typeF=document.getElementById('typeFilter').value;
+  const filtered=properties.filter(p=>{
+    const ms=!search||p.title.toLowerCase().includes(search)||p.location.toLowerCase().includes(search);
+    const mt=!typeF||p.type===typeF;
+    return ms&&mt;
+  });
+  document.getElementById('propCount').textContent=filtered.length;
+  const tbody=document.getElementById('propsTableBody');
+  const empty=document.getElementById('emptyState');
+  if(!filtered.length){tbody.textContent='';empty.style.display='block';return;}
+  empty.style.display='none';
+  // Build rows using DOM to avoid innerHTML XSS
+  tbody.textContent='';
+  filtered.forEach(p=>{
+    const tr=document.createElement('tr');
+    const typeCls={'sale':'badge-sale','rent':'badge-rent','commercial-sale':'badge-commercial-sale','commercial-rent':'badge-commercial-rent'}[p.type]||'';
+    const typeNames={'sale':'למכירה','rent':'להשכרה','commercial-sale':'מסחרי למכירה','commercial-rent':'מסחרי להשכרה'};
+    tr.innerHTML=`
+      <td style="color:#94a3b8;font-size:.8rem">#${esc(p.id)}</td>
+      <td><div style="font-weight:700;font-size:.9rem">${esc(p.emoji||'🏠')} ${esc(p.title)}</div></td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap" id="tagcell-${p.id}"></div></td>
+      <td style="font-weight:700;color:var(--blue)">${esc(p.priceLabel)}</td>
+      <td style="color:#64748b;font-size:.85rem">📍 ${esc(p.location)}</td>
+      <td style="color:#64748b;font-size:.85rem">${p.hood?'🏘️ '+esc(p.hood):'<span style="color:#cbd5e1">—</span>'}</td>
+      <td><span class="badge ${typeCls}">${esc(typeNames[p.type]||p.type)}</span></td>
+      <td><span class="toggle-active" onclick="toggleActive(${p.id})" title="לחץ לשנות">${p.active?'✅':'❌'}</span></td>
+      <td><div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="editProp(${p.id})">✏️ עריכה</button>
+        <button class="btn btn-red   btn-sm" onclick="deleteProp(${p.id})">🗑️</button>
+      </div></td>`;
+    tbody.appendChild(tr);
+    // Add tags safely
+    const tagCell=tr.querySelector('#tagcell-'+p.id);
+    if(p.tags&&p.tags.length){
+      p.tags.forEach(t=>{const chip=document.createElement('span');chip.className='tag-chip';chip.style.fontSize='.68rem';chip.textContent=t;tagCell.appendChild(chip);});
+    } else {const dash=document.createElement('span');dash.style.color='#94a3b8';dash.style.fontSize='.78rem';dash.textContent='—';tagCell.appendChild(dash);}
+  });
+}
+
+function typeLabel(t){return{'sale':'למכירה','rent':'להשכרה','commercial-sale':'מסחרי למכירה','commercial-rent':'מסחרי להשכרה'}[t]||t;}
+
+function toggleActive(id){
+  const p=properties.find(x=>x.id===id);if(!p)return;
+  p.active=!p.active;saveProps();renderStats('props');renderTable();
+  showToast(p.active?'✅ הנכס הופעל':'❌ הנכס הושבת');
+}
+function deleteProp(id){
+  if(!confirm('למחוק נכס זה?'))return;
+  properties=properties.filter(p=>p.id!==id);
+  saveProps();renderStats('props');renderTable();showToast('🗑️ הנכס נמחק');
+}
+
+// ── PROPERTY DRAWER ───────────────────────────────────────────
+function openPropDrawer(prop){
+  currentTags=prop?[...(prop.tags||[])]:[];
+  propPhotos=prop?[...(prop.photos||[])]:[];
+  renderTagChips();renderTagSuggestions();renderPropPhotos();
+  document.getElementById('propDrawerTitle').textContent=prop?'✏️ עריכת נכס':'➕ הוסף נכס חדש';
+  if(prop){
+    document.getElementById('editId').value=prop.id;
+    document.getElementById('fTitle').value=prop.title||'';
+    document.getElementById('fType').value=prop.type||'sale';
+    document.getElementById('fPrice').value=prop.price||'';
+    document.getElementById('fLocation').value=prop.location||'';
+    document.getElementById('fLat').value=prop.lat||'';
+    document.getElementById('fLng').value=prop.lng||'';
+    document.getElementById('fRooms').value=prop.rooms||'';
+    document.getElementById('fBaths').value=prop.baths||'';
+    document.getElementById('fSqm').value=prop.sqm||'';
+    document.getElementById('fExtra').value=prop.extra||'';
+    document.getElementById('fDesc').value=prop.desc||'';
+    document.getElementById('fActive').value=prop.active?'true':'false';
+    // city + hood
+    document.getElementById('fCity').value=prop.city||'';
+    populateHoodSelect();
+    document.getElementById('fHood').value=prop.hood||'';
+    const sel=document.getElementById('fAgent');
+    const opt=[...sel.options].find(o=>o.textContent.startsWith(prop.agent?.name||'__'));
+    if(opt)sel.value=opt.value;
+    toggleRooms();
+  } else {
+    document.getElementById('editId').value='';
+    document.getElementById('propForm').reset();
+    document.getElementById('fHood').innerHTML='<option value="">— בחר שכונה —</option>';
+    currentTags=[];renderTagChips();
+  }
+  document.getElementById('propOverlay').classList.add('open');
+  document.getElementById('propDrawer').classList.add('open');
+}
+function editProp(id){const p=properties.find(x=>x.id===id);if(p)openPropDrawer(p);}
+function closePropDrawer(){document.getElementById('propOverlay').classList.remove('open');document.getElementById('propDrawer').classList.remove('open');}
+function toggleRooms(){
+  const t=document.getElementById('fType').value;
+  document.getElementById('residentialFields').style.display=t.startsWith('commercial')?'none':'block';
+  document.getElementById('priceSuffix').style.display=(t==='rent'||t==='commercial-rent')?'block':'none';
+}
+
+function populateAgentSelect(){
+  const sel=document.getElementById('fAgent');
+  sel.innerHTML='<option value="">— בחר סוכן —</option>'+
+    agents.filter(a=>a.active).map((a,i)=>`<option value="${i}">${esc(a.name)} — ${esc(a.title)}</option>`).join('');
+}
+
+function saveProp(e){
+  e.preventDefault();
+  const editId=document.getElementById('editId').value;
+  const type=document.getElementById('fType').value;
+  const price=document.getElementById('fPrice').value.trim();
+  const isRent=type==='rent'||type==='commercial-rent';
+  const agentIdx=document.getElementById('fAgent').value;
+  const selAgent=agentIdx!==''?agents.filter(a=>a.active)[parseInt(agentIdx)]:null;
+  const propData={
+    type,price,priceLabel:`₪ ${price}${isRent?' / לחודש':''}`,
+    title:document.getElementById('fTitle').value.trim(),
+    location:document.getElementById('fLocation').value.trim(),
+    lat:parseFloat(document.getElementById('fLat').value)||32.0853,
+    lng:parseFloat(document.getElementById('fLng').value)||34.7818,
+    rooms:parseInt(document.getElementById('fRooms').value)||null,
+    baths:parseInt(document.getElementById('fBaths').value)||null,
+    sqm:parseInt(document.getElementById('fSqm').value)||0,
+    extra:document.getElementById('fExtra').value.trim(),
+    emoji:type.startsWith('commercial')?'🏪':'🏠',
+    bg:`linear-gradient(135deg,${document.getElementById('fColor').value},#1976D2)`,
+    thumbs:[type.startsWith('commercial')?'🏪':'🏠','🛋️','🚿','🌅'],
+    photos:[...propPhotos],
+    city:document.getElementById('fCity').value.trim(),
+    hood:document.getElementById('fHood').value.trim(),
+    desc:document.getElementById('fDesc').value.trim(),
+    tags:[...currentTags],
+    agent:selAgent?{name:selAgent.name,title:selAgent.title,color:'#1565C0',init:selAgent.name[0],phone:selAgent.phone}:
+                   {name:'גלובס נכסים',title:'סוכן נכסים',color:'#1565C0',init:'ג',phone:'054-802-6123'},
+    active:document.getElementById('fActive').value==='true'
+  };
+  if(editId){const idx=properties.findIndex(p=>p.id===parseInt(editId));if(idx>=0)properties[idx]={...properties[idx],...propData};}
+  else{const maxId=properties.reduce((m,p)=>Math.max(m,p.id),0);properties.push({id:maxId+1,...propData});}
+  saveProps();renderStats('props');renderTable();closePropDrawer();
+  showToast(editId?'✅ הנכס עודכן':'✅ הנכס נוסף');
+}
+
+// ── GEOCODING ─────────────────────────────────────────────────
+async function geocodeLocation(){
+  const loc=document.getElementById('fLocation').value.trim();if(!loc)return;
+  const lat=document.getElementById('fLat').value,lng=document.getElementById('fLng').value;
+  if(lat&&lng&&parseFloat(lat)!==0&&parseFloat(lng)!==0)return;
+  const btn=document.getElementById('geoBtn'),status=document.getElementById('geoStatus');
+  btn.disabled=true;btn.textContent='⏳...';status.className='geo-status';status.textContent='';
+  try{
+    const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(loc+' ישראל')}&format=json&limit=1`,{headers:{'Accept-Language':'he'}});
+    const data=await res.json();
+    if(data?.length){
+      document.getElementById('fLat').value=parseFloat(data[0].lat).toFixed(6);
+      document.getElementById('fLng').value=parseFloat(data[0].lon).toFixed(6);
+      status.className='geo-status ok';status.textContent='✅ '+data[0].display_name.split(',').slice(0,2).join(',');
+    } else {status.className='geo-status err';status.textContent='❌ לא נמצא. הכנס קואורדינטות ידנית.';}
+  }catch(e){status.className='geo-status err';status.textContent='❌ שגיאת רשת.';}
+  finally{btn.disabled=false;btn.textContent='📍 אתר';}
+}
+document.getElementById('fLocation').addEventListener('input',()=>{
+  document.getElementById('geoStatus').className='geo-status';document.getElementById('geoStatus').textContent='';
+  document.getElementById('fLat').value='';document.getElementById('fLng').value='';
+});
+document.getElementById('fPrice').addEventListener('input', e => {
+  const n = e.target.value.replace(/[^0-9]/g, '');
+  e.target.value = n ? n.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '';
+});
+
+// ── TAGS ──────────────────────────────────────────────────────
+let currentTags=[];
+const TAG_PRESETS=['חניה','מרפסת','גינה','מחסן','בריכה','נוף לים','שיפוץ 2023','שיפוץ 2024','ממ"ד','מעלית','שמש','לובי','קומה גבוהה','דירת גן','יחידת דיור'];
+
+function renderTagChips(){
+  const wrap=document.getElementById('tagsWrap');
+  const input=document.getElementById('tagInput');
+  wrap.querySelectorAll('.tag-chip').forEach(el=>el.remove());
+  currentTags.forEach(t=>{
+    const chip=document.createElement('span');chip.className='tag-chip';
+    const txt=document.createTextNode(t);chip.appendChild(txt);
+    const btn=document.createElement('button');btn.type='button';btn.textContent='×';
+    btn.addEventListener('click',()=>removeTag(t));
+    chip.appendChild(btn);
+    wrap.insertBefore(chip,input);
+  });
+}
+function renderTagSuggestions(){
+  const avail=TAG_PRESETS.filter(t=>!currentTags.includes(t)).slice(0,8);
+  const sug=document.getElementById('tagSuggestions');
+  sug.textContent='';
+  avail.forEach(t=>{const s=document.createElement('span');s.className='tag-hint';s.textContent=t;s.addEventListener('click',()=>addTagDirect(t));sug.appendChild(s);});
+}
+function addTagDirect(t){if(!currentTags.includes(t)){currentTags.push(t);renderTagChips();renderTagSuggestions();}document.getElementById('tagInput').focus();}
+function handleTagKey(e){
+  if(e.key==='Enter'){e.preventDefault();addTag();}
+  if(e.key==='Backspace'&&!e.target.value&&currentTags.length){currentTags.pop();renderTagChips();renderTagSuggestions();}
+}
+function addTag(){const v=document.getElementById('tagInput').value.trim();if(v&&!currentTags.includes(v)){currentTags.push(v);renderTagChips();renderTagSuggestions();}document.getElementById('tagInput').value='';}
+function removeTag(t){currentTags=currentTags.filter(x=>x!==t);renderTagChips();renderTagSuggestions();}
+
+// ── AGENTS PAGE ───────────────────────────────────────────────
+function renderAgentsPage(){
+  const grid=document.getElementById('agentsGrid');
+  const empty=document.getElementById('agentsEmpty');
+  document.getElementById('agentCount').textContent=agents.length;
+  if(!agents.length){grid.textContent='';empty.style.display='block';return;}
+  empty.style.display='none';
+  grid.textContent='';
+  agents.forEach(a=>{
+    const card=document.createElement('div');
+    card.className='agent-card-admin'+(a.active?'':' dim');
+    // Avatar
+    const av=document.createElement('div');av.className='agent-avatar';
+    if(a.photo){const img=document.createElement('img');img.src=a.photo;img.alt=a.name;av.appendChild(img);}
+    else{av.textContent=a.name[0];}
+    card.appendChild(av);
+    // Info
+    const info=document.createElement('div');info.className='agent-card-info';
+    const name=document.createElement('div');name.className='agent-card-name';name.textContent=a.name;
+    const title=document.createElement('div');title.className='agent-card-title';title.textContent=a.title;
+    const meta=document.createElement('div');meta.className='agent-card-meta';
+    meta.textContent=(a.phone?'📞 '+a.phone+' ':'')+
+                     (a.email?'✉️ '+a.email+' ':'')+
+                     (a.years?'⭐ '+a.years+' שנות ניסיון ':'')+
+                     (a.spec?'🏷 '+a.spec:'');
+    const actions=document.createElement('div');actions.className='agent-card-actions';
+    const btnEdit=document.createElement('button');btnEdit.className='btn btn-ghost btn-sm';btnEdit.textContent='✏️ עריכה';btnEdit.onclick=()=>openAgentDrawer(a);
+    const btnToggle=document.createElement('button');btnToggle.className='btn btn-ghost btn-sm';btnToggle.textContent=a.active?'🔴 השבת':'🟢 הפעל';btnToggle.onclick=()=>toggleAgentActive(a.id);
+    const btnDel=document.createElement('button');btnDel.className='btn btn-red btn-sm';btnDel.textContent='🗑️';btnDel.onclick=()=>deleteAgent(a.id);
+    actions.appendChild(btnEdit);actions.appendChild(btnToggle);actions.appendChild(btnDel);
+    info.appendChild(name);info.appendChild(title);info.appendChild(meta);info.appendChild(actions);
+    card.appendChild(info);
+    grid.appendChild(card);
+  });
+}
+
+let agentPhotoData=null;
+
+function openAgentDrawer(agent){
+  agentPhotoData=null;
+  document.getElementById('agentDrawerTitle').textContent=agent?'✏️ עריכת סוכן':'➕ הוסף סוכן';
+  document.getElementById('agentForm').reset();
+  document.getElementById('aEditId').value='';
+  document.getElementById('photoPreviewWrap').style.display='none';
+  document.getElementById('photoPlaceholder').style.display='block';
+  document.getElementById('photoArea').classList.remove('has-photo');
+  if(agent){
+    document.getElementById('aEditId').value=agent.id;
+    document.getElementById('aName').value=agent.name||'';
+    document.getElementById('aTitle').value=agent.title||'';
+    document.getElementById('aPhone').value=agent.phone||'';
+    document.getElementById('aEmail').value=agent.email||'';
+    document.getElementById('aYears').value=agent.years||'';
+    document.getElementById('aSpec').value=agent.spec||'';
+    document.getElementById('aBio').value=agent.bio||'';
+    document.getElementById('aActive').value=agent.active?'true':'false';
+    if(agent.photo){
+      agentPhotoData=agent.photo;
+      document.getElementById('photoPreviewImg').src=agent.photo;
+      document.getElementById('photoPreviewWrap').style.display='block';
+      document.getElementById('photoPlaceholder').style.display='none';
+      document.getElementById('photoArea').classList.add('has-photo');
+    }
+  }
+  document.getElementById('agentOverlay').classList.add('open');
+  document.getElementById('agentDrawer').classList.add('open');
+}
+function closeAgentDrawer(){document.getElementById('agentOverlay').classList.remove('open');document.getElementById('agentDrawer').classList.remove('open');}
+function handlePhotoUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>2*1024*1024){alert('התמונה גדולה מדי. מקסימום 2MB.');return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    agentPhotoData=ev.target.result;
+    document.getElementById('photoPreviewImg').src=agentPhotoData;
+    document.getElementById('photoPreviewWrap').style.display='block';
+    document.getElementById('photoPlaceholder').style.display='none';
+    document.getElementById('photoArea').classList.add('has-photo');
+  };
+  reader.readAsDataURL(file);
+}
+function saveAgent(e){
+  e.preventDefault();
+  const editId=document.getElementById('aEditId').value;
+  const agentData={name:document.getElementById('aName').value.trim(),title:document.getElementById('aTitle').value.trim(),phone:document.getElementById('aPhone').value.trim(),email:document.getElementById('aEmail').value.trim(),years:parseInt(document.getElementById('aYears').value)||0,spec:document.getElementById('aSpec').value.trim(),bio:document.getElementById('aBio').value.trim(),photo:agentPhotoData,active:document.getElementById('aActive').value==='true'};
+  if(editId){const idx=agents.findIndex(a=>a.id===parseInt(editId));if(idx>=0)agents[idx]={...agents[idx],...agentData};}
+  else{const maxId=agents.reduce((m,a)=>Math.max(m,a.id),0);agents.push({id:maxId+1,...agentData});}
+  saveAgents();populateAgentSelect();renderAgentsPage();renderStats('agents');closeAgentDrawer();
+  showToast(editId?'✅ הסוכן עודכן':'✅ הסוכן נוסף');
+}
+function toggleAgentActive(id){
+  const a=agents.find(x=>x.id===id);if(!a)return;
+  a.active=!a.active;saveAgents();populateAgentSelect();renderAgentsPage();renderStats('agents');
+  showToast(a.active?'🟢 הסוכן הופעל':'🔴 הסוכן הושבת');
+}
+function deleteAgent(id){
+  if(!confirm('למחוק סוכן זה?'))return;
+  agents=agents.filter(a=>a.id!==id);saveAgents();populateAgentSelect();renderAgentsPage();renderStats('agents');
+  showToast('🗑️ הסוכן נמחק');
+}
+
+// ── BLOG ──────────────────────────────────────────────────────
+const HOODS={
+  florentin:        {label:'פלורנטין',      page:'florentin.html',       cls:'florentin'},
+  'neve-tzedek':    {label:'נווה צדק',      page:'neve-tzedek.html',     cls:'neve-tzedek'},
+  'kerem-hateimanim':{label:'כרם התימנים',  page:'kerem-hateimanim.html',cls:'kerem-hateimanim'},
+  'bat-yam':        {label:'בת ים',         page:'bat-yam.html',         cls:'bat-yam'},
+  'north-tel-aviv': {label:'צפון תל אביב',  page:'north-tel-aviv.html',  cls:'north-tel-aviv'},
+};
+
+function renderBlogPage(){
+  // Hood tiles
+  const hg=document.getElementById('hoodsGrid');hg.textContent='';
+  Object.entries(HOODS).forEach(([key,h])=>{
+    const count=blogPosts.filter(b=>b.neighborhood===key).length;
+    const a=document.createElement('a');a.className='hood-tile '+h.cls;a.href=h.page;a.target='_blank';
+    const cnt=document.createElement('div');cnt.className='hood-count';cnt.textContent=count;
+    const ttl=document.createElement('h4');ttl.textContent=h.label;
+    const sub=document.createElement('p');sub.textContent=count===0?'אין פוסטים':count===1?'פוסט אחד':count+' פוסטים';
+    a.appendChild(cnt);a.appendChild(ttl);a.appendChild(sub);hg.appendChild(a);
+  });
+  // Posts list
+  const hoodF=document.getElementById('hoodFilter').value;
+  const filtered=blogPosts.filter(b=>!hoodF||b.neighborhood===hoodF).slice().reverse();
+  document.getElementById('blogCount').textContent=filtered.length;
+  const list=document.getElementById('blogList');
+  const empty=document.getElementById('blogEmpty');
+  if(!filtered.length){list.textContent='';empty.style.display='block';return;}
+  empty.style.display='none';
+  list.textContent='';
+  filtered.forEach(b=>{
+    const h=HOODS[b.neighborhood]||{};
+    const dateStr=b.date?new Date(b.date).toLocaleDateString('he-IL'):'';
+    const item=document.createElement('div');item.className='blog-item';
+    const body=document.createElement('div');body.className='blog-item-body';
+    const t=document.createElement('div');t.className='blog-item-title';t.textContent=b.title;
+    const meta=document.createElement('div');meta.className='blog-item-meta';
+    const hbadge=document.createElement('span');hbadge.className='hood-badge hb-'+b.neighborhood;hbadge.textContent=h.label||b.neighborhood;
+    meta.appendChild(hbadge);
+    if(dateStr){const ds=document.createElement('span');ds.textContent='📅 '+dateStr;meta.appendChild(ds);}
+    const st=document.createElement('span');st.textContent=b.active?'✅ מפורסם':'📝 טיוטה';st.style.color=b.active?'#10b981':'#94a3b8';meta.appendChild(st);
+    body.appendChild(t);body.appendChild(meta);
+    if(b.excerpt){const ex=document.createElement('div');ex.className='blog-excerpt';ex.textContent=b.excerpt;body.appendChild(ex);}
+    item.appendChild(body);
+    const acts=document.createElement('div');acts.style.cssText='display:flex;gap:6px;flex-shrink:0';
+    const be=document.createElement('button');be.className='btn btn-ghost btn-sm';be.textContent='✏️';be.onclick=()=>openBlogDrawer(b);
+    const bt=document.createElement('button');bt.className='btn btn-ghost btn-sm';bt.textContent=b.active?'🔴':'🟢';bt.onclick=()=>toggleBlogActive(b.id);
+    const bd=document.createElement('button');bd.className='btn btn-red btn-sm';bd.textContent='🗑️';bd.onclick=()=>deleteBlogPost(b.id);
+    acts.appendChild(be);acts.appendChild(bt);acts.appendChild(bd);
+    item.appendChild(acts);list.appendChild(item);
+  });
+}
+
+function openBlogDrawer(post){
+  document.getElementById('blogDrawerTitle').textContent=post?'✏️ עריכת פוסט':'✏️ פוסט חדש';
+  document.getElementById('blogForm').reset();
+  document.getElementById('bEditId').value='';
+  document.getElementById('bDate').value=new Date().toISOString().split('T')[0];
+  if(post){
+    document.getElementById('bEditId').value=post.id;
+    document.getElementById('bHood').value=post.neighborhood||'';
+    document.getElementById('bTitle').value=post.title||'';
+    document.getElementById('bExcerpt').value=post.excerpt||'';
+    document.getElementById('bContent').value=post.content||'';
+    document.getElementById('bDate').value=post.date||'';
+    document.getElementById('bActive').value=post.active?'true':'false';
+  }
+  document.getElementById('blogOverlay').classList.add('open');
+  document.getElementById('blogDrawer').classList.add('open');
+}
+function closeBlogDrawer(){document.getElementById('blogOverlay').classList.remove('open');document.getElementById('blogDrawer').classList.remove('open');}
+function saveBlogPost(e){
+  e.preventDefault();
+  const editId=document.getElementById('bEditId').value;
+  const postData={neighborhood:document.getElementById('bHood').value,title:document.getElementById('bTitle').value.trim(),excerpt:document.getElementById('bExcerpt').value.trim(),content:document.getElementById('bContent').value.trim(),date:document.getElementById('bDate').value,active:document.getElementById('bActive').value==='true'};
+  if(editId){const idx=blogPosts.findIndex(b=>b.id===parseInt(editId));if(idx>=0)blogPosts[idx]={...blogPosts[idx],...postData};}
+  else{const maxId=blogPosts.reduce((m,b)=>Math.max(m,b.id),0);blogPosts.push({id:maxId+1,...postData});}
+  saveBlog();renderBlogPage();renderStats('blog');closeBlogDrawer();
+  showToast(editId?'✅ הפוסט עודכן':'✅ הפוסט נוסף');
+}
+function toggleBlogActive(id){
+  const b=blogPosts.find(x=>x.id===id);if(!b)return;
+  b.active=!b.active;saveBlog();renderBlogPage();renderStats('blog');
+  showToast(b.active?'✅ הפוסט פורסם':'📝 הועבר לטיוטה');
+}
+function deleteBlogPost(id){
+  if(!confirm('למחוק פוסט זה?'))return;
+  blogPosts=blogPosts.filter(b=>b.id!==id);saveBlog();renderBlogPage();renderStats('blog');
+  showToast('🗑️ הפוסט נמחק');
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────
+function exportJSON(type){
+  const data=type==='agents'?agents:type==='blog'?blogPosts:properties;
+  const name=type==='agents'?'agents.json':type==='blog'?'blog.json':'properties.json';
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  showToast('📥 '+name+' הורד');
+}
+function importJSON(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data)){alert('קובץ לא תקין');return;}
+      if(!confirm('ייבא '+data.length+' נכסים? פעולה זו תדרוס נתונים קיימים.'))return;
+      properties=data;saveProps();renderStats('props');renderTable();showToast('✅ הנתונים יובאו');
+    }catch(err){alert('שגיאה בקריאת הקובץ');}
+  };
+  reader.readAsText(file);e.target.value='';
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── KEYBOARD ─────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closePropDrawer();closeAgentDrawer();closeBlogDrawer();}
+});
+</script>
+</body>
+</html>

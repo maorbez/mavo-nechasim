@@ -6,7 +6,7 @@ const WA_NUMBER = '972548026123';
 const SITE_URL = window.location.href.split('?')[0];
 
 // ← החלף בכתובת המייל האמיתית של המשרד
-const CONTACT_EMAIL = 'maor.globes@gmail.com';
+const CONTACT_EMAIL = 'info@globes-nechasim.co.il';
 
 // ---- Security: HTML escaping to prevent XSS ----
 function esc(s) {
@@ -48,29 +48,11 @@ function waLink(p) {
 // ---- Load properties (localStorage → JSON file → hardcoded fallback) ----
 let properties = []; // single source of truth, filled on init
 
-const HARDCODED = [
-  { id:1,  type:'sale', price:'4,200,000', priceLabel:'₪ 4,200,000', title:'פנטהאוז עם נוף לים',           location:'תל אביב, הצפון הישן', lat:32.0973, lng:34.7712, rooms:5, baths:3, sqm:220, extra:'גג פרטי 80מ"ר',   emoji:'🏠', bg:'linear-gradient(135deg,#1a3a5c,#2d6a9f)', thumbs:['🏠','🛋️','🚿','🌅'], desc:'פנטהאוז יוקרתי בלב הצפון הישן. גג פרטי 80 מ"ר, נוף פנורמי לים, מטבח אירופאי, חניה כפולה.', agent:{name:'גלובס נכסים',title:'צרו קשר',color:'#1565C0',init:'ג',phone:'054-802-6123'}, active:true },
-  { id:2,  type:'sale', price:'3,500,000', priceLabel:'₪ 3,500,000', title:'דירת בוטיק בנווה צדק',         location:'תל אביב, נווה צדק',   lat:32.0578, lng:34.7627, rooms:4, baths:2, sqm:145, extra:'חצר פרטית',      emoji:'🏠', bg:'linear-gradient(135deg,#1b4332,#2d6a4f)', thumbs:['🏠','🌿','🛋️','🌅'], desc:'דירת בוטיק בנווה צדק ההיסטורי. תקרות גבוהות, ריצוף עץ מקורי, חצר פרטית. שיפוץ 2023.',    agent:{name:'גלובס נכסים',title:'צרו קשר',color:'#1565C0',init:'ג',phone:'054-802-6123'}, active:true },
-  { id:3,  type:'sale', price:'2,800,000', priceLabel:'₪ 2,800,000', title:'דירה מודרנית בפלורנטין',       location:'תל אביב, פלורנטין',   lat:32.0569, lng:34.7640, rooms:3, baths:2, sqm:108, extra:'מרפסת',          emoji:'🏠', bg:'linear-gradient(135deg,#92400e,#d97706)', thumbs:['🏠','🛋️','🍳','🏙️'], desc:'דירה מעוצבת בפלורנטין הצעירה. פריסה פתוחה, מטבח מאובזר, מרפסת עם נוף לעיר.',             agent:{name:'גלובס נכסים',title:'צרו קשר',color:'#1565C0',init:'ג',phone:'054-802-6123'}, active:true },
-  { id:4,  type:'sale', price:'3,100,000', priceLabel:'₪ 3,100,000', title:'דירת 4 חדרים בלב העיר',        location:'תל אביב, לב העיר',    lat:32.0800, lng:34.7800, rooms:4, baths:2, sqm:130, extra:'חניה + מחסן',    emoji:'🏠', bg:'linear-gradient(135deg,#312e81,#4f46e5)', thumbs:['🏠','🛋️','🚿','🌆'], desc:'דירה בבניין מטופח בלב תל אביב. קרוב לדיזנגוף ורוטשילד. מרפסת שמש, מחסן וחניה.',           agent:{name:'גלובס נכסים',title:'צרו קשר',color:'#1565C0',init:'ג',phone:'054-802-6123'}, active:true },
-  { id:5,  type:'sale', price:'5,500,000', priceLabel:'₪ 5,500,000', title:'וילה יוקרה ברמת אביב',         location:'תל אביב, רמת אביב',   lat:32.1120, lng:34.8020, rooms:6, baths:3, sqm:280, extra:'גינה + 3 חניות', emoji:'🏠', bg:'linear-gradient(135deg,#4a1942,#7b2d8b)', thumbs:['🏠','🌿','🛋️','🌅'], desc:'וילה מפוארת ברמת אביב היוקרתית. גינה פרטית, 3 חניות, קרוב לאוניברסיטת ת"א.',               agent:{name:'גלובס נכסים',title:'צרו קשר',color:'#1565C0',init:'ג',phone:'054-802-6123'}, active:true },
-  { id:6,  type:'sale', price:'2,400,000', priceLabel:'₪ 2,400,000', title:'דירת שיקום בכרם התימנים',      location:'תל אביב, כרם התימנים',lat:32.0630, lng:34.7655, rooms:3, baths:1, sqm:95,  extra:'תקרות גבוהות',  emoji:'🏠', bg:'linear-gradient(135deg,#7c2d12,#c2410c)', thumbs:['🏠','🛋️','🌸','☕'], desc:'דירה בבניין עתיק בכרם התימנים. תקרות גבוהות, קירות חשופים, פוטנציאל עיצובי עצום.',          agent:{name:'גלובס נכסים',title:'צרו קשר',color:'#1565C0',init:'ג',phone:'054-802-6123'}, active:true },
-  { id:7,  type:'sale', price:'1,850,000', priceLabel:'₪ 1,850,000', title:'דירת 4 חדרים בקוממיות',        location:'בת ים, קוממיות',      lat:32.0173, lng:34.7520, rooms:4, baths:2, sqm:115, extra:'נוף לים',        emoji:'🏠', bg:'linear-gradient(135deg,#164e63,#0e7490)', thumbs:['🏠','🛋️','🚿','🌊'], desc:'דירה מרווחת בקוממיות, בניין מטופח עם מעלית, נוף לים מהסלון. קרוב לגן ילדים ובי"ס.',        agent:{name:'גלובס נכסים',title:'צרו קשר',color:'#1565C0',init:'ג',phone:'054-802-6123'}, active:true },
-  { id:8,  type:'sale', price:'2,200,000', priceLabel:'₪ 2,200,000', title:'דירת גן בגן רווה',              location:'בת ים, גן רווה',      lat:32.0230, lng:34.7450, rooms:5, baths:2, sqm:140, extra:'גינה 120מ"ר',   emoji:'🏠', bg:'linear-gradient(135deg,#1b4332,#2d6a4f)', thumbs:['🏠','🌿','🛋️','🌸'], desc:'דירת גן מרהיבה בגן רווה. גינה פרטית 120 מ"ר, כניסה נפרדת, קרוב לים ולפארק.',               agent:{name:'גלובס נכסים',title:'צרו קשר',color:'#1565C0',init:'ג',phone:'054-802-6123'}, active:true },
-  { id:9,  type:'sale', price:'1,650,000', priceLabel:'₪ 1,650,000', title:'דירה משופצת ברמת יוסף',        location:'בת ים, רמת יוסף',     lat:32.0140, lng:34.7545, rooms:3, baths:1, sqm:85,  extra:'כניסה מיידית',  emoji:'🏠', bg:'linear-gradient(135deg,#065f46,#059669)', thumbs:['🏠','🛋️','🍳','🚿'], desc:'דירה משופצת לחלוטין ברמת יוסף. שיפוץ מלא 2024, מטבח חדש, חלונות חדשים, מעלית.',             agent:{name:'גלובס נכסים',title:'צרו קשר',color:'#1565C0',init:'ג',phone:'054-802-6123'}, active:true },
-  { id:10, type:'sale', price:'1,900,000', priceLabel:'₪ 1,900,000', title:'דירת 4 חדרים, מרכז בת ים',     location:'בת ים, מרכז',         lat:32.0250, lng:34.7515, rooms:4, baths:1, sqm:105, extra:'מרפסת שמש',     emoji:'🏠', bg:'linear-gradient(135deg,#1565C0,#1976D2)', thumbs:['🏠','🛋️','🌅','☀️'], desc:'דירה אטרקטיבית במרכז בת ים, קרוב לים ומסחר. בניין מטופח, קרוב לרכבת ולאוטובוסים.',           agent:{name:'גלובס נכסים',title:'צרו קשר',color:'#1565C0',init:'ג',phone:'054-802-6123'}, active:true }
-];
+const HARDCODED = [];
 
-const DATA_VERSION = 'ta-batya-v1'; // bump this to force-clear old localStorage data
+const DATA_VERSION = 'globes-rentals-only-2026-06-20-v3'; // bump this to force-clear old localStorage data
 
 async function loadProperties() {
-  // 0. Try Supabase (live database — source of truth)
-  if (window.fetchPropertiesFromDB) {
-    try {
-      const db = await window.fetchPropertiesFromDB();
-      if (Array.isArray(db) && db.length > 0) return db;
-    } catch (e) { /* fall through to static data */ }
-  }
   // 1. Try localStorage (from admin panel) — skip if data version mismatch
   const storedVersion = localStorage.getItem('globes_data_version');
   if (storedVersion !== DATA_VERSION) {
@@ -91,8 +73,7 @@ async function loadProperties() {
     const r = await fetch('properties.json');
     if (r.ok) {
       const data = await r.json();
-      const arr = Array.isArray(data) ? data : (data.properties || []);
-      return arr.filter(p => p.active !== false);
+      return data.filter(p => p.active !== false);
     }
   } catch(e) {}
   // 3. Hardcoded fallback (COPY — not same reference!)
@@ -275,44 +256,45 @@ function filterByNeighborhood(el, hood) {
 function openPropertyModal(p) {
   const overlay = document.getElementById('propModalOverlay');
 
-  // Gallery (photos + optional videos; image main click opens a fullscreen lightbox)
+  // Gallery
   const main = document.getElementById('galleryMain');
-  const thumbsEl = document.getElementById('galleryThumbs');
   main.style.background = p.bg;
   main.style.opacity = '1';
+
+  const hasPhotos = p.photos && p.photos.length > 0;
+
+  if (hasPhotos) {
+    // show real photo as main image
+    main.textContent = '';
+    main.style.fontSize = '';
+    main.style.backgroundImage = `url(${p.photos[0]})`;
+    main.style.backgroundSize = 'cover';
+    main.style.backgroundPosition = 'center';
+  } else {
+    main.textContent = (p.thumbs && p.thumbs[0]) || p.emoji || '🏠';
+    main.style.fontSize = '7rem';
+    main.style.backgroundImage = '';
+  }
+
+  const thumbsEl = document.getElementById('galleryThumbs');
   thumbsEl.textContent = '';
-
-  const media = (p.photos && p.photos.length > 0) ? p.photos.slice() : [];
-  _galleryImages = media.filter(u => !isVideoUrl(u));   // images only, for the lightbox
-
-  if (media.length > 0) {
-    const firstShown = media.find(u => !isVideoUrl(u)) || media[0];
-    showGalleryItem(main, firstShown);
-    media.forEach((src) => {
-      const vid = isVideoUrl(src);
+  if (hasPhotos) {
+    p.photos.forEach((src, i) => {
       const d = document.createElement('div');
-      d.className = 'gallery-thumb' + (src === firstShown ? ' active' : '') + (vid ? ' is-video' : '');
+      d.className = 'gallery-thumb' + (i === 0 ? ' active' : '');
+      d.style.backgroundImage = `url(${src})`;
+      d.style.backgroundSize = 'cover';
+      d.style.backgroundPosition = 'center';
       d.style.fontSize = '0';
-      if (vid) {
-        d.style.background = '#000';
-      } else {
-        d.style.backgroundImage = `url(${src})`;
-        d.style.backgroundSize = 'cover';
-        d.style.backgroundPosition = 'center';
-      }
-      d.addEventListener('click', function () {
+      d.addEventListener('click', function() {
         document.querySelectorAll('.gallery-thumb').forEach(x => x.classList.remove('active'));
         this.classList.add('active');
-        showGalleryItem(main, src);
+        main.style.backgroundImage = `url(${src})`;
+        main.textContent = '';
       });
       thumbsEl.appendChild(d);
     });
   } else {
-    main.classList.remove('is-video');
-    main.dataset.lightbox = '';
-    main.textContent = (p.thumbs && p.thumbs[0]) || p.emoji || '🏠';
-    main.style.fontSize = '7rem';
-    main.style.backgroundImage = '';
     (p.thumbs || [p.emoji]).forEach((t, i) => {
       const d = document.createElement('div');
       d.className = 'gallery-thumb' + (i === 0 ? ' active' : '');
@@ -390,96 +372,6 @@ function switchImg(el, emoji) {
   setTimeout(() => { main.textContent = emoji; main.style.opacity = '1'; }, 150);
 }
 
-// ---- Photos + video gallery / fullscreen lightbox ----
-let _galleryImages = [];   // image URLs of the open property (for lightbox navigation)
-let _lbIndex = 0;
-
-function isVideoUrl(u) {
-  return /youtube\.com|youtu\.be|vimeo\.com|\.mp4(\?|$)|\.webm(\?|$)|\.mov(\?|$)/i.test(u || '');
-}
-
-// Build a safe DOM player node (no innerHTML — avoids injection)
-function buildVideoNode(src) {
-  let m;
-  if ((m = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/))) {
-    const f = document.createElement('iframe');
-    f.src = 'https://www.youtube.com/embed/' + m[1];
-    f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
-    f.allowFullscreen = true;
-    f.style.cssText = 'width:100%;height:100%;border:0;display:block';
-    return f;
-  }
-  if ((m = src.match(/vimeo\.com\/(\d+)/))) {
-    const f = document.createElement('iframe');
-    f.src = 'https://player.vimeo.com/video/' + m[1];
-    f.allow = 'autoplay; fullscreen; picture-in-picture';
-    f.allowFullscreen = true;
-    f.style.cssText = 'width:100%;height:100%;border:0;display:block';
-    return f;
-  }
-  const v = document.createElement('video');
-  v.src = src; v.controls = true; v.playsInline = true;
-  v.style.cssText = 'width:100%;height:100%;object-fit:cover;background:#000;display:block';
-  return v;
-}
-
-// Show one media item in the gallery main area
-function showGalleryItem(main, src) {
-  main.innerHTML = '';
-  main.style.opacity = '1';
-  if (isVideoUrl(src)) {
-    main.classList.add('is-video');
-    main.style.backgroundImage = '';
-    main.style.cursor = 'default';
-    main.dataset.lightbox = '';
-    main.appendChild(buildVideoNode(src));
-  } else {
-    main.classList.remove('is-video');
-    main.style.backgroundImage = `url(${src})`;
-    main.style.backgroundSize = 'cover';
-    main.style.backgroundPosition = 'center';
-    main.style.cursor = 'zoom-in';
-    main.dataset.lightbox = src;
-  }
-}
-
-function openLightbox(src) {
-  const imgs = _galleryImages.length ? _galleryImages : [src];
-  _lbIndex = Math.max(0, imgs.indexOf(src));
-  const lb = document.getElementById('lightbox');
-  if (!lb) return;
-  document.getElementById('lightboxImg').src = imgs[_lbIndex];
-  document.getElementById('lbCounter').textContent = (_lbIndex + 1) + ' / ' + imgs.length;
-  lb.classList.add('open');
-}
-function lightboxNav(dir, ev) {
-  if (ev) ev.stopPropagation();
-  const imgs = _galleryImages;
-  if (imgs.length < 2) return;
-  _lbIndex = (_lbIndex + dir + imgs.length) % imgs.length;
-  document.getElementById('lightboxImg').src = imgs[_lbIndex];
-  document.getElementById('lbCounter').textContent = (_lbIndex + 1) + ' / ' + imgs.length;
-}
-function closeLightbox() {
-  const lb = document.getElementById('lightbox');
-  if (lb) lb.classList.remove('open');
-}
-
-// Wire the gallery main image → fullscreen lightbox, plus keyboard nav (attach once)
-(function wireLightbox() {
-  const gm = document.getElementById('galleryMain');
-  if (gm) gm.addEventListener('click', function () {
-    if (this.dataset.lightbox) openLightbox(this.dataset.lightbox);
-  });
-  document.addEventListener('keydown', function (e) {
-    const lb = document.getElementById('lightbox');
-    if (!lb || !lb.classList.contains('open')) return;
-    if (e.key === 'Escape') closeLightbox();
-    else if (e.key === 'ArrowRight') lightboxNav(1);
-    else if (e.key === 'ArrowLeft') lightboxNav(-1);
-  });
-})();
-
 function closeModal(e) {
   if (e.target === document.getElementById('propModalOverlay')) closeModalBtn();
 }
@@ -492,31 +384,26 @@ function closeModalBtn() {
 async function submitModalForm(e) {
   e.preventDefault();
   const form = e.target;
-  if (form.querySelector('[name="_honey"]')?.value) {   // honeypot: bots fill it → drop silently
-    closeModalBtn(); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); return;
-  }
   const btn = form.querySelector('button[type="submit"]');
   const origText = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'שולח...';
   try {
-    const val = sel => (form.querySelector(sel)?.value || '').trim();
     const payload = {
       _subject: 'פנייה על נכס — גלובס נכסים',
-      name:    val('[name="name"]'),
-      phone:   val('[name="phone"]'),
-      email:   val('[name="email"]') || 'לא צוין',
-      interest: val('[name="interest"]'),
-      property: document.getElementById('modalFormSub')?.textContent || '',
-      message: val('[name="message"]') || 'לא צוין',
-      marketing_consent: form.querySelector('[name="marketingConsent"]')?.checked ? 'כן' : 'לא',
+      name:    form.querySelector('[name="name"]').value,
+      phone:   form.querySelector('[name="phone"]').value,
+      email:   form.querySelector('[name="email"]').value || 'לא צוין',
+      interest: form.querySelector('[name="interest"]').value,
+      property: document.getElementById('modalFormSub').textContent,
+      message: form.querySelector('[name="message"]').value || 'לא צוין',
     };
     const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (res.ok) { saveLeadToDB(payload); closeModalBtn(); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
+    if (res.ok) { closeModalBtn(); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
     else { showToast('שגיאה בשליחה — נסה שוב.'); }
   } catch { showToast('שגיאה בשליחה — נסה שוב.'); }
   finally { btn.disabled = false; btn.textContent = origText; }
@@ -600,14 +487,6 @@ function scrollToContact() {
   document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
 }
 
-function quickSearch(e) {
-  if (e) e.preventDefault();
-  const input = document.getElementById('navSearchInput');
-  const q = (input && input.value || '').trim();
-  if (!q) { window.location.href = 'search.html'; return; }
-  window.location.href = 'search.html?q=' + encodeURIComponent(q);
-}
-
 function doSearch() {
   const selects = document.querySelectorAll('.search-fields select');
   const city = selects[0].value;
@@ -624,23 +503,16 @@ function doSearch() {
   const roomsSelect = document.querySelector('.room-select');
   const rooms = roomsSelect ? roomsSelect.value : 'all';
 
-  // Max price — selects[2] holds options like "עד 2,000,000 ₪"
-  const priceMax = selects[2] ? (selects[2].value.replace(/[^0-9]/g, '')) : '';
-
   if (city && city !== 'בחר עיר...') url += `city=${encodeURIComponent(city)}&`;
   if (rooms && rooms !== 'all') url += `rooms=${rooms}&`;
-  if (priceMax) url += `priceMax=${priceMax}&`;
   url += `type=${typeParam}`;
-
+  
   window.location.href = url;
 }
 
 async function submitForm(e) {
   e.preventDefault();
   const form = e.target;
-  if (form.querySelector('[name="_honey"]')?.value) {   // honeypot: bots fill it → drop silently
-    showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); return;
-  }
   const btn = form.querySelector('button[type="submit"]');
   const origText = btn.textContent;
   btn.disabled = true;
@@ -660,35 +532,10 @@ async function submitForm(e) {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (res.ok) { saveLeadToDB(payload); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
+    if (res.ok) { showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
     else { showToast('שגיאה בשליחה — נסה שוב.'); }
   } catch { showToast('שגיאה בשליחה — נסה שוב.'); }
   finally { btn.disabled = false; btn.textContent = origText; }
-}
-
-// Backup every lead into Supabase (in addition to the email). Silent no-op until the leads table exists.
-async function saveLeadToDB(p) {
-  try {
-    if (!window.SUPABASE_URL || !window.SUPABASE_KEY) return;
-    await fetch(window.SUPABASE_URL + '/rest/v1/leads', {
-      method: 'POST',
-      headers: {
-        apikey: window.SUPABASE_KEY,
-        Authorization: 'Bearer ' + window.SUPABASE_KEY,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal'
-      },
-      body: JSON.stringify({
-        name: p.name || '',
-        phone: p.phone || '',
-        email: (p.email && p.email !== 'לא צוין') ? p.email : '',
-        subject: p.subject || p.interest || '',
-        message: (p.message && p.message !== 'לא צוין') ? p.message : '',
-        property: p.property || '',
-        consent: p.marketing_consent === 'כן'
-      })
-    });
-  } catch (_) { /* email already sent; DB backup is best-effort */ }
 }
 
 function showToast(msg) {
@@ -929,24 +776,15 @@ function renderPropertiesGrid(props) {
     propImg.className = 'prop-img';
     propImg.style.background = p.bg || 'linear-gradient(135deg,#1565C0,#1976D2)';
 
-    // real photo if available (first non-video image; videos play inside the modal)
-    const cardImg = (p.photos || []).find(u => !isVideoUrl(u));
-    const hasVideo = (p.photos || []).some(isVideoUrl);
-    if (cardImg) {
+    // real photo if available
+    if (p.photos && p.photos.length > 0) {
       const realImg = document.createElement('img');
-      realImg.src = cardImg;
+      realImg.src = p.photos[0];
       realImg.alt = p.title || '';
       realImg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0';
       propImg.style.position = 'relative';
       propImg.style.overflow = 'hidden';
       propImg.appendChild(realImg);
-    }
-    if (hasVideo) {
-      const vb = document.createElement('div');
-      vb.className = 'prop-video-badge';
-      vb.textContent = '▶ סרטון';
-      propImg.style.position = 'relative';
-      propImg.appendChild(vb);
     }
 
     const badge = document.createElement('div');
@@ -976,8 +814,8 @@ function renderPropertiesGrid(props) {
 
     const iconBig = document.createElement('div');
     iconBig.className = 'prop-icon-big';
-    // hide emoji if a real photo exists (video-only listings still show the emoji)
-    if (!cardImg) iconBig.textContent = p.emoji || '🏠';
+    // hide emoji if real photo exists
+    if (!(p.photos && p.photos.length > 0)) iconBig.textContent = p.emoji || '🏠';
     propImg.appendChild(iconBig);
 
     const dot = document.createElement('div');
@@ -1125,22 +963,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Build neighborhood filters
   buildNeighborhoodFilters(properties);
 
-  // Lazy-init the map only when it scrolls into view (keeps initial load + hero smooth)
-  const mapEl = document.getElementById('mainMap');
-  if (mapEl) {
-    if ('IntersectionObserver' in window) {
-      let mapInited = false;
-      const mapObserver = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && !mapInited) {
-          mapInited = true;
-          initMap(properties);
-          mapObserver.disconnect();
-        }
-      }, { rootMargin: '250px' });
-      mapObserver.observe(mapEl);
-    } else {
-      initMap(properties);
-    }
+  // Init map with loaded properties
+  if (document.getElementById('mainMap')) {
+    initMap(properties);
   }
 
   // Extract gold from logo (remove blue background via Canvas)
@@ -1163,4 +988,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (lmb) lmb.textContent = "טען עוד נכסים";
   initLazySections();
 
+  // Ctrl+Shift+A → open admin
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'A') window.open('admin.html', '_blank');
+  });
 });

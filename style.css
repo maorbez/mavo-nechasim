@@ -175,24 +175,6 @@ html.site-ltr .section-title { text-transform: capitalize; }
 .navbar.scrolled .logo-sub { color: var(--text-muted); }
 
 .nav-links { display: flex; align-items: center; gap: 4px; flex: 1; justify-content: center; }
-.nav-search {
-  display: flex; align-items: center; gap: 7px;
-  background: rgba(255,255,255,.14);
-  border: 1px solid rgba(255,255,255,.25);
-  border-radius: 50px; padding: 7px 14px; color: #fff;
-  transition: background .2s, border-color .2s; max-width: 240px;
-}
-.nav-search:focus-within { background: rgba(255,255,255,.22); border-color: var(--gold, #F5B731); }
-.nav-search svg { flex-shrink: 0; opacity: .85; }
-.nav-search input {
-  background: transparent; border: none; outline: none; color: #fff;
-  font-family: inherit; font-size: .85rem; width: 100%;
-}
-.nav-search input::placeholder { color: rgba(255,255,255,.65); }
-.navbar.scrolled .nav-search { background: rgba(15,27,45,.06); border-color: rgba(15,27,45,.15); color: #0f1b2d; }
-.navbar.scrolled .nav-search input { color: #0f1b2d; }
-.navbar.scrolled .nav-search input::placeholder { color: #64748b; }
-@media (max-width: 980px) { .nav-search { display: none; } }
 .nav-links a {
   color: rgba(255,255,255,.85);
   text-decoration: none;
@@ -323,8 +305,8 @@ select option {
 
 .hero-content {
   position: relative; z-index: 2;
-  padding-top: 60px;
-  padding-bottom: 8px;
+  padding-top: 120px;
+  padding-bottom: 40px;
 }
 /* Mobile: content starts near navbar, hero fills viewport, scroll hint at bottom */
 @media (max-width: 768px) {
@@ -346,7 +328,7 @@ select option {
   font-weight: 600;
   padding: 8px 18px;
   border-radius: 50px;
-  margin-bottom: 16px;
+  margin-bottom: 28px;
 }
 .badge-dot {
   width: 8px; height: 8px;
@@ -363,40 +345,14 @@ select option {
   font-weight: 900;
   color: var(--white);
   line-height: 1.1;
-  margin-bottom: 14px;
+  margin-bottom: 24px;
 }
 .hero-subtitle {
   font-size: 1.15rem;
   color: rgba(255,255,255,.75);
   max-width: 560px;
   line-height: 1.7;
-  margin-bottom: 26px;
-}
-/* Short viewports: compact the WHOLE hero so it fits down to the wave without scrolling */
-@media (min-width: 769px) and (max-height: 860px) {
-  .hero-content { padding-top: 48px; }
-  .hero-badge { margin-bottom: 8px; }
-  .hero-title { font-size: clamp(1.8rem, 3.6vw, 2.6rem); margin-bottom: 8px; }
-  .hero-subtitle { margin-bottom: 12px; font-size: 1rem; }
-  .search-fields { padding: 14px 20px; gap: 10px; }
-  .hero-stats { padding: 10px 0; }
-  .stat-num { font-size: 1.9rem; }
-  .stat-divider { height: 38px; }
-}
-@media (min-width: 769px) and (max-height: 760px) {
-  .hero-content { padding-top: 38px; padding-bottom: 0; }
-  .hero-badge { margin-bottom: 8px; font-size: .73rem; padding: 5px 12px; }
-  .hero-title { font-size: clamp(1.55rem, 2.9vw, 1.95rem); margin-bottom: 8px; }
-  .hero-subtitle { display: none; }            /* hide on short screens to make room */
-  .search-tabs { padding: 4px; }
-  .tab { padding: 7px; font-size: .84rem; }
-  .search-fields { padding: 11px 16px; gap: 9px; }
-  .field-group label { font-size: .69rem; }
-  .field-group select, .field-group input { padding: 7px 10px; font-size: .85rem; }
-  .search-btn { padding: 8px 22px; }
-  .hero-tags { margin-top: 14px; gap: 12px; }
-  .hero-scroll-hint { margin: 7px auto 14px; }
-  .hero-wave-bottom { height: 26px; }
+  margin-bottom: 48px;
 }
 
 /* Neighborhood English Name — giant background watermark, anchored to the right */
@@ -416,7 +372,7 @@ select option {
   z-index: 1;
 }
 /* Hero content must sit above the watermark and pushed higher */
-.hero-content { position: relative; z-index: 2; padding-top: 78px; }
+.hero-content { position: relative; z-index: 2; padding-top: 110px; }
 
 /* Neighborhood pages: content flows from top, compact hero */
 .hero:has(.hood-breadcrumb) {
@@ -644,8 +600,7 @@ select option {
 
 .hero-tags {
   display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
-  margin-top: 14px;
-  margin-bottom: 30px;
+  margin-top: 24px;
   color: rgba(255,255,255,.6);
   font-size: .85rem;
 }
@@ -663,12 +618,11 @@ select option {
 
 /* Hero Stats Bar */
 .hero-stats {
-  position: relative; z-index: 6;
-  margin-top: auto;
+  position: relative; z-index: 2;
   background: rgba(255,255,255,.06);
   border-top: 1px solid rgba(255,255,255,.1);
   backdrop-filter: blur(10px);
-  padding: 14px 0;
+  padding: 24px 0;
 }
 .hero-stats-inner {
   display: flex; align-items: center; justify-content: center;
@@ -677,7 +631,7 @@ select option {
 }
 .stat-item {
   display: flex; flex-direction: column; align-items: center;
-  padding: 8px 48px;
+  padding: 16px 48px;
 }
 .stat-num {
   font-size: 2.4rem;
@@ -688,23 +642,6 @@ select option {
 .stat-suffix { font-size: 1.4rem; font-weight: 700; color: var(--gold); }
 .stat-label { font-size: .8rem; color: rgba(255,255,255,.65); margin-top: 4px; font-weight: 500; }
 .stat-divider { width: 1px; height: 50px; background: rgba(255,255,255,.15); }
-
-/* Stats compaction for short viewports — placed AFTER base stats rules so it wins the cascade */
-@media (min-width: 769px) and (max-height: 860px) {
-  .hero-stats { padding: 9px 0; }
-  .stat-item { padding: 5px 40px; }
-  .stat-num { font-size: 1.9rem; }
-  .stat-suffix { font-size: 1.1rem; }
-  .stat-divider { height: 34px; }
-}
-@media (min-width: 769px) and (max-height: 760px) {
-  .hero-stats { padding: 5px 0; margin-bottom: 10px; }
-  .stat-item { padding: 2px 36px; }
-  .stat-num { font-size: 1.45rem; }
-  .stat-suffix { font-size: .9rem; }
-  .stat-label { font-size: .65rem; margin-top: 1px; }
-  .stat-divider { height: 22px; }
-}
 
 /* ============================
    PROPERTIES
@@ -1036,6 +973,11 @@ select option {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 28px;
+}
+.agents-grid-single {
+  max-width: 420px;
+  margin: 0 auto;
+  grid-template-columns: 1fr;
 }
 .agent-card {
   background: var(--white);
@@ -1380,22 +1322,6 @@ select option {
   flex-shrink: 0;
 }
 
-.pf-all-link {
-  display: inline-block;
-  color: var(--gold);
-  font-size: .88rem;
-  font-weight: 600;
-  text-decoration: none;
-  margin: 16px 0 18px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255,255,255,.12);
-  transition: opacity .2s;
-}
-
-.pf-all-link:hover {
-  opacity: .8;
-}
-
 /* Contact column */
 .pf-contact-items {
   display: flex;
@@ -1703,72 +1629,6 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
 }
 .gallery-thumb.active { border-color: var(--gold); }
 .gallery-thumb:hover { border-color: var(--white); }
-.gallery-thumb { position: relative; }
-.gallery-thumb.is-video::after {
-  content: '▶'; position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: .95rem; text-shadow: 0 1px 4px rgba(0,0,0,.85); pointer-events: none;
-}
-.gallery-main.is-video { cursor: default; }
-
-/* Card "video available" badge */
-.prop-video-badge {
-  position: absolute; bottom: 12px; left: 12px; z-index: 3;
-  background: rgba(0,0,0,.7); color: #fff;
-  border-radius: 50px; padding: 4px 11px; font-size: .72rem; font-weight: 600;
-  display: flex; align-items: center; gap: 4px; pointer-events: none;
-  backdrop-filter: blur(4px);
-}
-
-/* Honeypot anti-spam field — clipped to 1px (NOT left:-9999px, which broke mobile scroll).
-   Stays in the DOM so bots fill it, but adds zero overflow. */
-.hp-field {
-  position: absolute !important;
-  width: 1px !important; height: 1px !important;
-  padding: 0 !important; margin: 0 !important; border: 0 !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  clip-path: inset(50%) !important;
-  white-space: nowrap !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-/* Fullscreen image lightbox */
-.lightbox {
-  position: fixed; inset: 0; z-index: 10000;
-  background: rgba(0,0,0,.92);
-  display: none; align-items: center; justify-content: center;
-}
-.lightbox.open { display: flex; }
-.lb-img {
-  max-width: 92vw; max-height: 86vh; object-fit: contain;
-  border-radius: 8px; box-shadow: 0 12px 60px rgba(0,0,0,.6);
-}
-.lb-close {
-  position: absolute; top: 18px; right: 24px;
-  width: 46px; height: 46px; border: none; border-radius: 50%;
-  background: rgba(255,255,255,.14); color: #fff; font-size: 1.9rem; line-height: 1;
-  cursor: pointer; transition: background .2s;
-}
-.lb-nav {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  width: 54px; height: 54px; border: none; border-radius: 50%;
-  background: rgba(255,255,255,.14); color: #fff; font-size: 2.2rem; line-height: 1;
-  cursor: pointer; transition: background .2s;
-}
-.lb-close:hover, .lb-nav:hover { background: rgba(255,255,255,.28); }
-.lb-prev { left: 20px; }
-.lb-next { right: 20px; }
-.lb-counter {
-  position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
-  color: rgba(255,255,255,.85); font-size: .9rem; letter-spacing: .04em;
-}
-@media (max-width: 768px) {
-  .lb-nav { width: 44px; height: 44px; font-size: 1.8rem; }
-  .lb-prev { left: 8px; } .lb-next { right: 8px; }
-  .lb-close { top: 10px; right: 12px; }
-}
 .gallery-badge {
   position: absolute; top: 16px; right: 16px;
   font-size: .75rem; font-weight: 700; letter-spacing: .06em;
@@ -1982,6 +1842,14 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   .agents-grid::-webkit-scrollbar,
   .team-grid::-webkit-scrollbar { display: none; }
   .agent-card, .team-card { flex: 0 0 82vw; max-width: 300px; scroll-snap-align: start; }
+  .agents-grid-single {
+    display: grid;
+    overflow: visible;
+    max-width: 360px;
+    margin: 0 auto;
+    padding-inline: 0;
+  }
+  .agents-grid-single .agent-card { flex: none; max-width: none; }
   .testimonials-grid { grid-template-columns: 1fr; }
   .footer-links { grid-template-columns: repeat(2, 1fr); gap: 24px; }
   .footer-inner { grid-template-columns: 1fr; gap: 24px; padding-bottom: 32px; }
@@ -2046,37 +1914,6 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   .hero-stats .stat-label { font-size: 0.58rem; margin-top: 3px; opacity: 0.7; line-height: 1.1; }
   .prop-modal { border-radius: 16px; }
   .modal-right { border-radius: 0 0 16px 16px; }
-}
-
-/* Short phones / small windows (<769px wide & short): compact the hero so the whole
-   thing — search box, stats, "גלול למטה" hint AND the wave — fits on the first screen.
-   (Desktop already has max-height tiers gated to min-width:769px; this covers below that.) */
-@media (max-width: 768px) and (max-height: 800px) {
-  .hero-content { padding-top: 14px; padding-bottom: 8px; }
-  .hero-badge { margin-bottom: 6px; }
-  .hero-title { font-size: 1.5rem; margin-bottom: 6px; }
-  .hero-subtitle { display: none; }            /* hide on short screens to make room */
-  .hero-tags { margin-top: 6px; gap: 6px; }
-  .search-fields { padding: 10px; gap: 7px; }
-  .field-group label { font-size: .64rem; }
-  .field-group select, .field-group input { padding: 6px 9px; font-size: .82rem; }
-  .search-tabs { padding: 3px; }
-  .tab { padding: 6px 4px; }
-  .hero-stats { margin-bottom: 10px; }
-  .stat-item { padding: 8px 20px; }
-  .hero-scroll-hint { margin: 0 auto 48px; }
-}
-
-/* Tiny / very short screens (old Androids, landscape): squeeze the last ~30px */
-@media (max-width: 768px) and (max-height: 680px) {
-  .hero-content { padding-top: 8px; }
-  .hero-badge { margin-bottom: 4px; }
-  .hero-title { font-size: 1.32rem; margin-bottom: 4px; }
-  .hero-tags { margin-top: 4px; }
-  .search-fields { padding: 8px; gap: 6px; }
-  .tab { padding: 5px 4px; }
-  .stat-item { padding: 5px 18px; }
-  .hero-scroll-hint { margin: 0 auto 44px; }
 }
 
 /* ============================
@@ -2148,7 +1985,7 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   bottom: -1px;            /* -1px hides any sub-pixel seam to next section */
   left: 0;
   width: 100%;
-  height: 36px;
+  height: 60px;
   z-index: 5;
   pointer-events: none;
   display: block;
@@ -2219,34 +2056,33 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   50%      { transform: translateX(-50%) translateY(8px); opacity: .4; }
 }
 .hero-scroll-hint {
-  position: relative;
-  margin: 10px auto 50px;      /* below the stats, clear above the 36px wave */
-  align-self: center;
-  display: flex; flex-direction: row; align-items: center; gap: 5px;
-  color: rgba(255,255,255,.7); font-size: .78rem; white-space: nowrap;
-  text-shadow: 0 1px 6px rgba(0,0,0,.4);   /* stays readable even near the wave edge */
+  position: absolute;
+  bottom: 32px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: rgba(255,255,255,.6); font-size: .72rem;
   animation: scrollBounce 1.8s ease-in-out infinite;
   cursor: pointer;
   text-decoration: none;
   z-index: 10;
 }
-.hero-scroll-hint svg { width: 18px; height: 18px; }
+.hero-scroll-hint svg { width: 22px; height: 22px; }
 /* Mobile: scroll hint flows naturally between content and stats grid */
 @media (max-width: 768px) {
   .hero-wave-bottom { height: 40px; }
-  /* Scroll hint sits just below the stats, with enough room to clear the 40px wave */
+  /* Scroll hint becomes inline flow item (not absolute) — sits between content and stats */
   .hero-scroll-hint {
     position: relative;
     bottom: auto;
     left: auto;
     transform: none;
-    margin: 0 auto 52px;          /* 52 > 40px wave → text never lands on the white */
+    margin: 0 auto 12px;
     align-self: center;
-    z-index: 6;
+    z-index: 4;
     animation: scrollBounceFlow 1.8s ease-in-out infinite;
   }
-  /* Small gap from the stats bar to the hint right beneath it */
-  .hero-stats { margin-bottom: 14px; }
+  /* Stats end above the wave with breathing room */
+  .hero-stats { margin-bottom: 50px; }
 }
 @keyframes scrollBounceFlow {
   0%, 100% { transform: translateY(0); opacity: .8; }

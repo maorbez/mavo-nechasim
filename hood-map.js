@@ -6,21 +6,10 @@
 (function () {
   'use strict';
 
-  const DATA_VERSION = 'ta-batya-v1';
+  const DATA_VERSION = 'globes-rentals-only-2026-06-20-v3';
 
   // Hardcoded fallback — kept in sync with app.js HARDCODED list
-  const HARDCODED = [
-    { id:1,  type:'sale', price:'4,200,000', priceLabel:'₪ 4,200,000', title:'פנטהאוז עם נוף לים',           location:'תל אביב, הצפון הישן', lat:32.0973, lng:34.7712, rooms:5, baths:3, sqm:220, extra:'גג פרטי 80מ"ר',   emoji:'🏠', active:true },
-    { id:2,  type:'sale', price:'3,500,000', priceLabel:'₪ 3,500,000', title:'דירת בוטיק בנווה צדק',         location:'תל אביב, נווה צדק',   lat:32.0578, lng:34.7627, rooms:4, baths:2, sqm:145, extra:'חצר פרטית',      emoji:'🏠', active:true },
-    { id:3,  type:'sale', price:'2,800,000', priceLabel:'₪ 2,800,000', title:'דירה מודרנית בפלורנטין',       location:'תל אביב, פלורנטין',   lat:32.0569, lng:34.7640, rooms:3, baths:2, sqm:108, extra:'מרפסת',          emoji:'🏠', active:true },
-    { id:4,  type:'sale', price:'3,100,000', priceLabel:'₪ 3,100,000', title:'דירת 4 חדרים בלב העיר',        location:'תל אביב, לב העיר',    lat:32.0800, lng:34.7800, rooms:4, baths:2, sqm:130, extra:'חניה + מחסן',    emoji:'🏠', active:true },
-    { id:5,  type:'sale', price:'5,500,000', priceLabel:'₪ 5,500,000', title:'וילה יוקרה ברמת אביב',         location:'תל אביב, רמת אביב',   lat:32.1120, lng:34.8020, rooms:6, baths:3, sqm:280, extra:'גינה + 3 חניות', emoji:'🏠', active:true },
-    { id:6,  type:'sale', price:'2,400,000', priceLabel:'₪ 2,400,000', title:'דירת שיקום בכרם התימנים',      location:'תל אביב, כרם התימנים',lat:32.0630, lng:34.7655, rooms:3, baths:1, sqm:95,  extra:'תקרות גבוהות',  emoji:'🏠', active:true },
-    { id:7,  type:'sale', price:'1,850,000', priceLabel:'₪ 1,850,000', title:'דירת 4 חדרים בקוממיות',        location:'בת ים, קוממיות',      lat:32.0173, lng:34.7520, rooms:4, baths:2, sqm:115, extra:'נוף לים',        emoji:'🏠', active:true },
-    { id:8,  type:'sale', price:'2,200,000', priceLabel:'₪ 2,200,000', title:'דירת גן בגן רווה',              location:'בת ים, גן רווה',      lat:32.0230, lng:34.7450, rooms:5, baths:2, sqm:140, extra:'גינה 120מ"ר',   emoji:'🏠', active:true },
-    { id:9,  type:'sale', price:'1,650,000', priceLabel:'₪ 1,650,000', title:'דירה משופצת ברמת יוסף',        location:'בת ים, רמת יוסף',     lat:32.0140, lng:34.7545, rooms:3, baths:1, sqm:85,  extra:'כניסה מיידית',  emoji:'🏠', active:true },
-    { id:10, type:'sale', price:'1,900,000', priceLabel:'₪ 1,900,000', title:'דירת 4 חדרים, מרכז בת ים',     location:'בת ים, מרכז',         lat:32.0250, lng:34.7515, rooms:4, baths:1, sqm:105, extra:'מרפסת שמש',     emoji:'🏠', active:true }
-  ];
+  const HARDCODED = [];
 
   async function loadProperties() {
     // 1. Try localStorage first (synced with admin/main page)

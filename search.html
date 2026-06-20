@@ -4,9 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>חיפוש נכסים | גלובס נכסים</title>
-  <link rel="icon" href="favicon.ico" sizes="any" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
-  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
@@ -87,13 +84,6 @@
       background: var(--white); border-radius: var(--radius);
       box-shadow: var(--shadow); padding: 24px;
       position: sticky; top: 76px;
-      max-height: calc(100vh - 96px); overflow-y: auto;
-    }
-    .filter-toggle {
-      display: none; width: 100%; margin-bottom: 14px;
-      background: var(--gold, #F5B731); color: #1a1a1a; border: none;
-      border-radius: 12px; padding: 13px; font-family: inherit;
-      font-weight: 800; font-size: .95rem; cursor: pointer;
     }
     .panel-title {
       font-size: 1rem; font-weight: 800; margin-bottom: 20px;
@@ -103,8 +93,6 @@
     .panel-title svg { color: var(--blue); }
 
     .filter-group { margin-bottom: 22px; }
-    .amenity-cb { display:flex; align-items:center; gap:8px; margin-top:9px; font-size:.92rem; color:#334155; cursor:pointer; }
-    .amenity-cb input { width:auto; margin:0; accent-color: var(--gold, #F5B731); }
     .filter-label {
       display: block; font-size: .8rem; font-weight: 700;
       color: var(--text-muted); text-transform: uppercase;
@@ -330,9 +318,7 @@
     /* ---- RESPONSIVE ---- */
     @media (max-width: 900px) {
       .page-layout { grid-template-columns: 1fr; }
-      .filter-panel { position: static; max-height: none; overflow: visible; }
-      .filter-toggle { display: block; }
-      .filter-panel.collapsed { display: none; }
+      .filter-panel { position: static; }
       .results-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 600px) {
@@ -365,10 +351,8 @@
 <!-- ========== PAGE ========== -->
 <div class="page-layout">
 
-  <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()">⚙ הצג סינונים</button>
-
   <!-- ===== FILTER PANEL ===== -->
-  <aside class="filter-panel collapsed" id="filterPanel">
+  <aside class="filter-panel">
     <div class="panel-title">
       <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
       סינון חיפוש
@@ -426,14 +410,6 @@
       </div>
     </div>
 
-    <!-- Amenities -->
-    <div class="filter-group">
-      <span class="filter-label">מאפיינים</span>
-      <label class="amenity-cb"><input type="checkbox" id="amElevator" onchange="applyFilters()"> מעלית</label>
-      <label class="amenity-cb"><input type="checkbox" id="amShelter" onchange="applyFilters()"> ממ״ד / מקלט</label>
-      <label class="amenity-cb"><input type="checkbox" id="amParking" onchange="applyFilters()"> חנייה</label>
-    </div>
-
     <button class="reset-filters" onclick="resetAll()">
       ✕ נקה סינון
     </button>
@@ -458,27 +434,15 @@
 
 </div>
 
-<script src="db.js?v=1"></script>
 <script>
 // ============================================
 // SEARCH PAGE — Globes Nechasim
 // ============================================
 
 const WA = '972548026123';
-const DATA_VERSION = 'ta-batya-v1';
+const DATA_VERSION = 'globes-rentals-only-2026-06-20-v3';
 
-const HARDCODED = [
-  { id:1,  type:'sale', price:'4,200,000', priceLabel:'₪ 4,200,000', title:'פנטהאוז עם נוף לים',           location:'תל אביב, הצפון הישן', lat:32.0973, lng:34.7712, rooms:5, baths:3, sqm:220, extra:'גג פרטי 80מ"ר',   emoji:'🏠', bg:'linear-gradient(135deg,#1a3a5c,#2d6a9f)', agent:{name:'גלובס נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:2,  type:'sale', price:'3,500,000', priceLabel:'₪ 3,500,000', title:'דירת בוטיק בנווה צדק',         location:'תל אביב, נווה צדק',   lat:32.0578, lng:34.7627, rooms:4, baths:2, sqm:145, extra:'חצר פרטית',      emoji:'🏠', bg:'linear-gradient(135deg,#1b4332,#2d6a4f)', agent:{name:'גלובס נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:3,  type:'sale', price:'2,800,000', priceLabel:'₪ 2,800,000', title:'דירה מודרנית בפלורנטין',       location:'תל אביב, פלורנטין',   lat:32.0569, lng:34.7640, rooms:3, baths:2, sqm:108, extra:'מרפסת',          emoji:'🏠', bg:'linear-gradient(135deg,#92400e,#d97706)', agent:{name:'גלובס נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:4,  type:'sale', price:'3,100,000', priceLabel:'₪ 3,100,000', title:'דירת 4 חדרים בלב העיר',        location:'תל אביב, לב העיר',    lat:32.0800, lng:34.7800, rooms:4, baths:2, sqm:130, extra:'חניה + מחסן',    emoji:'🏠', bg:'linear-gradient(135deg,#312e81,#4f46e5)', agent:{name:'גלובס נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:5,  type:'sale', price:'5,500,000', priceLabel:'₪ 5,500,000', title:'וילה יוקרה ברמת אביב',         location:'תל אביב, רמת אביב',   lat:32.1120, lng:34.8020, rooms:6, baths:3, sqm:280, extra:'גינה + 3 חניות', emoji:'🏠', bg:'linear-gradient(135deg,#4a1942,#7b2d8b)', agent:{name:'גלובס נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:6,  type:'sale', price:'2,400,000', priceLabel:'₪ 2,400,000', title:'דירת שיקום בכרם התימנים',      location:'תל אביב, כרם התימנים',lat:32.0630, lng:34.7655, rooms:3, baths:1, sqm:95,  extra:'תקרות גבוהות',  emoji:'🏠', bg:'linear-gradient(135deg,#7c2d12,#c2410c)', agent:{name:'גלובס נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:7,  type:'sale', price:'1,850,000', priceLabel:'₪ 1,850,000', title:'דירת 4 חדרים בקוממיות',        location:'בת ים, קוממיות',      lat:32.0173, lng:34.7520, rooms:4, baths:2, sqm:115, extra:'נוף לים',        emoji:'🏠', bg:'linear-gradient(135deg,#164e63,#0e7490)', agent:{name:'גלובס נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:8,  type:'sale', price:'2,200,000', priceLabel:'₪ 2,200,000', title:'דירת גן בגן רווה',              location:'בת ים, גן רווה',      lat:32.0230, lng:34.7450, rooms:5, baths:2, sqm:140, extra:'גינה 120מ"ר',   emoji:'🏠', bg:'linear-gradient(135deg,#1b4332,#2d6a4f)', agent:{name:'גלובס נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:9,  type:'sale', price:'1,650,000', priceLabel:'₪ 1,650,000', title:'דירה משופצת ברמת יוסף',        location:'בת ים, רמת יוסף',     lat:32.0140, lng:34.7545, rooms:3, baths:1, sqm:85,  extra:'כניסה מיידית',  emoji:'🏠', bg:'linear-gradient(135deg,#065f46,#059669)', agent:{name:'גלובס נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:10, type:'sale', price:'1,900,000', priceLabel:'₪ 1,900,000', title:'דירת 4 חדרים, מרכז בת ים',     location:'בת ים, מרכז',         lat:32.0250, lng:34.7515, rooms:4, baths:1, sqm:105, extra:'מרפסת שמש',     emoji:'🏠', bg:'linear-gradient(135deg,#1565C0,#1976D2)', agent:{name:'גלובס נכסים',color:'#1565C0',init:'ג'}, active:true }
-];
+const HARDCODED = [];
 
 let allProps = [];
 let activeType = 'all';
@@ -488,12 +452,6 @@ let activeRooms  = 'all';
 
 // ---- Load data ----
 async function loadData() {
-  if (window.fetchPropertiesFromDB) {
-    try {
-      const db = await window.fetchPropertiesFromDB();
-      if (Array.isArray(db) && db.length > 0) { allProps = db; return; }
-    } catch (e) { /* fall through */ }
-  }
   const stored = localStorage.getItem('globes_properties');
   if (stored) {
     try {
@@ -503,7 +461,7 @@ async function loadData() {
   }
   try {
     const r = await fetch('properties.json');
-    if (r.ok) { const d = await r.json(); const a = Array.isArray(d) ? d : (d.properties || []); allProps = a.filter(p => p.active !== false); return; }
+    if (r.ok) { const d = await r.json(); allProps = d.filter(p => p.active !== false); return; }
   } catch(e) {}
   allProps = HARDCODED.filter(p => p.active !== false);
 }
@@ -563,11 +521,7 @@ function renderHoods(cityMap, preSelected) {
       const label = document.createElement('label');
       label.className = 'hood-cb';
       label.htmlFor = id;
-      const cb = document.createElement('input');
-      cb.type = 'checkbox'; cb.id = id; cb.value = hood;
-      cb.addEventListener('change', () => toggleHood(cb, hood));
-      label.appendChild(cb);
-      label.appendChild(document.createTextNode(hood));
+      label.innerHTML = `<input type="checkbox" id="${id}" value="${hood}" onchange="toggleHood(this,'${hood}')"/>${hood}`;
       hl.appendChild(label);
     });
   });
@@ -593,13 +547,6 @@ function setRooms(btn) {
   applyFilters();
 }
 
-function toggleFilters() {
-  const panel = document.getElementById('filterPanel');
-  const btn = document.getElementById('filterToggle');
-  const open = panel.classList.toggle('collapsed') === false;
-  if (btn) btn.textContent = open ? '✕ סגור סינונים' : '⚙ הצג סינונים';
-}
-
 function resetAll() {
   activeType = 'all'; activeCities.clear(); activeHoods.clear(); activeRooms = 'all';
   document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
@@ -609,8 +556,6 @@ function resetAll() {
   document.querySelector('.room-pill[data-rooms="all"]').classList.add('active');
   document.getElementById('priceMin').value = '';
   document.getElementById('priceMax').value = '';
-  ['amElevator','amShelter','amParking'].forEach(id => { const el=document.getElementById(id); if(el) el.checked=false; });
-  window.__q = '';
   buildFilters();
   applyFilters();
 }
@@ -631,13 +576,6 @@ function applyFilters() {
     if (activeCities.size > 0 && !activeCities.has(city)) return false;
     if (activeHoods.size > 0 && !activeHoods.has(hood)) return false;
     if (pNum < priceMin || pNum > priceMax) return false;
-    if (document.getElementById('amElevator')?.checked && !p.hasElevator) return false;
-    if (document.getElementById('amShelter')?.checked && !p.hasShelter) return false;
-    if (document.getElementById('amParking')?.checked && !p.hasParking) return false;
-    if (window.__q) {
-      const hay = ((p.title||'') + ' ' + (p.location||'') + ' ' + (p.desc||'')).toLowerCase();
-      if (!hay.includes(window.__q.toLowerCase())) return false;
-    }
     if (activeRooms !== 'all') {
       const r = parseFloat(activeRooms);
       if (activeRooms === '5') { if ((p.rooms || 0) < 5) return false; }
@@ -656,9 +594,6 @@ function applyFilters() {
 }
 
 function numPrice(p) { return parseInt((p.price||'0').replace(/[^0-9]/g,'')) || 0; }
-
-// XSS-safe escaping for any DB-sourced field injected into innerHTML
-function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 // ---- Render ----
 function renderResults(props) {
@@ -680,37 +615,36 @@ function renderResults(props) {
   const typeLabel = {sale:'למכירה', rent:'להשכרה', 'commercial-sale':'מסחרי למכירה', 'commercial-rent':'מסחרי להשכרה'};
   grid.innerHTML = props.map(p => {
     const featLine = p.rooms
-      ? `<span class="res-tag">🛏 ${esc(p.rooms)} חד'</span><span class="res-tag">🚿 ${esc(p.baths)} אמב'</span><span class="res-tag">📐 ${esc(p.sqm)} מ"ר</span><span class="res-tag">✅ ${esc(p.extra)}</span>`
-      : `<span class="res-tag">📐 ${esc(p.sqm)} מ"ר</span><span class="res-tag">✅ ${esc(p.extra)}</span>`;
+      ? `<span class="res-tag">🛏 ${p.rooms} חד'</span><span class="res-tag">🚿 ${p.baths} אמב'</span><span class="res-tag">📐 ${p.sqm} מ"ר</span><span class="res-tag">✅ ${p.extra}</span>`
+      : `<span class="res-tag">📐 ${p.sqm} מ"ר</span><span class="res-tag">✅ ${p.extra}</span>`;
     const ag = p.agent || {};
-    const pid = Number(p.id) || 0;
     const waMsg = encodeURIComponent(`שלום, אני מעוניין בנכס: ${p.title} — ${p.location}`);
     return `
-      <div class="res-card" onclick="openProp(${pid})">
-        <div class="res-img" style="background:${esc(p.bg)};position:relative;overflow:hidden">
-          ${(p.photos&&p.photos.length)?`<img src="${esc(p.photos[0])}" alt="${esc(p.title)}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">`:`<div class="res-emoji">${esc(p.emoji||'🏠')}</div>`}
-          <div class="res-badge ${esc(p.type)}">${typeLabel[p.type]||''}</div>
+      <div class="res-card" onclick="openProp(${p.id})">
+        <div class="res-img" style="background:${p.bg}">
+          <div class="res-emoji">${p.emoji||'🏠'}</div>
+          <div class="res-badge ${p.type}">${typeLabel[p.type]||''}</div>
           <div class="res-avail"></div>
         </div>
         <div class="res-body">
-          <div class="res-price">${esc(p.priceLabel||('₪ '+p.price))}</div>
-          <div class="res-title">${esc(p.title)}</div>
+          <div class="res-price">${p.priceLabel||('₪ '+p.price)}</div>
+          <div class="res-title">${p.title}</div>
           <div class="res-loc">
             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            ${esc(p.location)}
+            ${p.location}
           </div>
           <div class="res-tags">${featLine}</div>
           <div class="res-footer">
             <div class="res-agent">
-              <div class="res-avatar" style="background:${esc(ag.color||'#1565C0')}">${esc(ag.init||'ג')}</div>
-              ${esc(ag.name||'סוכן')}
+              <div class="res-avatar" style="background:${ag.color||'#1565C0'}">${ag.init||'ג'}</div>
+              ${ag.name||'סוכן'}
             </div>
             <div class="res-actions">
               <a href="https://wa.me/${WA}?text=${waMsg}" class="res-wa" target="_blank" onclick="event.stopPropagation()">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
                 וואטסאפ
               </a>
-              <a href="index.html?prop=${pid}" class="res-detail" onclick="event.stopPropagation()">פרטים</a>
+              <a href="index.html?prop=${p.id}" class="res-detail" onclick="event.stopPropagation()">פרטים</a>
             </div>
           </div>
         </div>
@@ -730,9 +664,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Prefill from URL params (e.g. ?city=תל אביב&type=sale)
   const p = new URLSearchParams(window.location.search);
-  if (p.get('q')) { window.__q = p.get('q'); applyFilters(); }
-  if (p.get('priceMax')) { document.getElementById('priceMax').value = p.get('priceMax'); applyFilters(); }
-  if (p.get('priceMin')) { document.getElementById('priceMin').value = p.get('priceMin'); applyFilters(); }
   if (p.get('type')) {
     const btn = document.querySelector(`.type-btn[data-type="${p.get('type')}"]`);
     if (btn) setType(btn);
