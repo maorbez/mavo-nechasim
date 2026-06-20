@@ -290,6 +290,7 @@ function openPropertyModal(p) {
         d.style.backgroundPosition = 'center';
       }
       d.addEventListener('click', function () {
+        if (vid) { openLightbox(src); return; }   // video → fullscreen player at original size
         document.querySelectorAll('.gallery-thumb').forEach(x => x.classList.remove('active'));
         this.classList.add('active');
         showGalleryItem(main, src);
@@ -388,11 +389,11 @@ function isVideoUrl(u) {
 }
 
 // Build a safe DOM player node (no innerHTML — avoids injection)
-function buildVideoNode(src) {
+function buildVideoNode(src, autoplay) {
   let m;
   if ((m = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/))) {
     const f = document.createElement('iframe');
-    f.src = 'https://www.youtube.com/embed/' + m[1];
+    f.src = 'https://www.youtube.com/embed/' + m[1] + (autoplay ? '?autoplay=1' : '');
     f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
     f.allowFullscreen = true;
     f.style.cssText = 'width:100%;height:100%;border:0;display:block';
@@ -400,7 +401,7 @@ function buildVideoNode(src) {
   }
   if ((m = src.match(/vimeo\.com\/(\d+)/))) {
     const f = document.createElement('iframe');
-    f.src = 'https://player.vimeo.com/video/' + m[1];
+    f.src = 'https://player.vimeo.com/video/' + m[1] + (autoplay ? '?autoplay=1' : '');
     f.allow = 'autoplay; fullscreen; picture-in-picture';
     f.allowFullscreen = true;
     f.style.cssText = 'width:100%;height:100%;border:0;display:block';
@@ -408,6 +409,7 @@ function buildVideoNode(src) {
   }
   const v = document.createElement('video');
   v.src = src; v.controls = true; v.playsInline = true;
+  if (autoplay) v.autoplay = true;
   v.style.cssText = 'width:100%;height:100%;object-fit:cover;background:#000;display:block';
   return v;
 }
@@ -433,16 +435,39 @@ function showGalleryItem(main, src) {
 }
 
 function openLightbox(src) {
-  const imgs = _galleryImages.length ? _galleryImages : [src];
-  _lbIndex = Math.max(0, imgs.indexOf(src));
   const lb = document.getElementById('lightbox');
   if (!lb) return;
-  document.getElementById('lightboxImg').src = imgs[_lbIndex];
-  document.getElementById('lbCounter').textContent = (_lbIndex + 1) + ' / ' + imgs.length;
+  const imgEl = document.getElementById('lightboxImg');
+  const counter = document.getElementById('lbCounter');
+  const prev = lb.querySelector('.lb-video'); if (prev) prev.remove();
+  if (isVideoUrl(src)) {
+    // video → play large, original aspect ratio, no image nav
+    imgEl.style.display = 'none';
+    lb.querySelectorAll('.lb-nav').forEach(n => n.style.display = 'none');
+    counter.textContent = '';
+    const node = buildVideoNode(src, true);
+    node.classList.add('lb-video');
+    if (node.tagName === 'VIDEO') {
+      node.style.cssText = 'max-width:94vw;max-height:88vh;width:auto;height:auto;border-radius:8px;background:#000;display:block';
+    } else {
+      node.style.cssText = 'width:min(94vw,1100px);aspect-ratio:16/9;max-height:88vh;border:0;border-radius:8px;background:#000;display:block';
+    }
+    lb.insertBefore(node, counter);
+    lb.classList.add('open');
+    if (node.tagName === 'VIDEO') { try { node.play(); } catch (e) {} }
+    return;
+  }
+  imgEl.style.display = '';
+  lb.querySelectorAll('.lb-nav').forEach(n => n.style.display = '');
+  const imgs = _galleryImages.length ? _galleryImages : [src];
+  _lbIndex = Math.max(0, imgs.indexOf(src));
+  imgEl.src = imgs[_lbIndex];
+  counter.textContent = (_lbIndex + 1) + ' / ' + imgs.length;
   lb.classList.add('open');
 }
 function lightboxNav(dir, ev) {
   if (ev) ev.stopPropagation();
+  if (document.querySelector('#lightbox .lb-video')) return;   // no image-nav while a video is open
   const imgs = _galleryImages;
   if (imgs.length < 2) return;
   _lbIndex = (_lbIndex + dir + imgs.length) % imgs.length;
@@ -451,7 +476,11 @@ function lightboxNav(dir, ev) {
 }
 function closeLightbox() {
   const lb = document.getElementById('lightbox');
-  if (lb) lb.classList.remove('open');
+  if (!lb) return;
+  const vid = lb.querySelector('.lb-video');
+  if (vid) { try { if (vid.pause) vid.pause(); } catch (e) {} vid.remove(); }
+  const imgEl = document.getElementById('lightboxImg'); if (imgEl) imgEl.style.display = '';
+  lb.classList.remove('open');
 }
 
 // Wire the gallery main image → fullscreen lightbox, plus keyboard nav (attach once)
