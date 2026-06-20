@@ -132,7 +132,7 @@
   <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-  <link rel="stylesheet" href="style.css?v=67" />
+  <link rel="stylesheet" href="style.css?v=68" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -505,6 +505,7 @@
           </h3>
           <p class="modal-form-sub" id="modalFormSub"></p>
           <form onsubmit="submitModalForm(event)">
+            <input type="text" name="_honey" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
             <div class="mform-group">
               <input type="text" name="name" placeholder="שם מלא *" required />
             </div>
@@ -796,6 +797,7 @@
       <div class="contact-form-wrap">
         <form class="contact-form" onsubmit="submitForm(event)">
           <h3>השאר פרטים</h3>
+          <input type="text" name="_honey" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
           <div class="form-row">
             <div class="form-group">
               <label>שם מלא *</label>
@@ -1103,8 +1105,17 @@
 <!-- Scroll to top -->
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
+<!-- Fullscreen image lightbox -->
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()" aria-label="סגור">×</button>
+  <button class="lb-nav lb-prev" onclick="lightboxNav(-1,event)" aria-label="הקודם">‹</button>
+  <img class="lb-img" id="lightboxImg" alt="תצוגת תמונה מלאה" />
+  <button class="lb-nav lb-next" onclick="lightboxNav(1,event)" aria-label="הבא">›</button>
+  <div class="lb-counter" id="lbCounter"></div>
+</div>
+
 <script src="db.js?v=1"></script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 <script type="text/javascript">
 function googleTranslateElementInit() {
   // If Hebrew is the saved/default language, clear googtrans cookie RIGHT before GT reads it

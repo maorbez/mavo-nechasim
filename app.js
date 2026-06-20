@@ -275,45 +275,44 @@ function filterByNeighborhood(el, hood) {
 function openPropertyModal(p) {
   const overlay = document.getElementById('propModalOverlay');
 
-  // Gallery
+  // Gallery (photos + optional videos; image main click opens a fullscreen lightbox)
   const main = document.getElementById('galleryMain');
+  const thumbsEl = document.getElementById('galleryThumbs');
   main.style.background = p.bg;
   main.style.opacity = '1';
-
-  const hasPhotos = p.photos && p.photos.length > 0;
-
-  if (hasPhotos) {
-    // show real photo as main image
-    main.textContent = '';
-    main.style.fontSize = '';
-    main.style.backgroundImage = `url(${p.photos[0]})`;
-    main.style.backgroundSize = 'cover';
-    main.style.backgroundPosition = 'center';
-  } else {
-    main.textContent = (p.thumbs && p.thumbs[0]) || p.emoji || '🏠';
-    main.style.fontSize = '7rem';
-    main.style.backgroundImage = '';
-  }
-
-  const thumbsEl = document.getElementById('galleryThumbs');
   thumbsEl.textContent = '';
-  if (hasPhotos) {
-    p.photos.forEach((src, i) => {
+
+  const media = (p.photos && p.photos.length > 0) ? p.photos.slice() : [];
+  _galleryImages = media.filter(u => !isVideoUrl(u));   // images only, for the lightbox
+
+  if (media.length > 0) {
+    const firstShown = media.find(u => !isVideoUrl(u)) || media[0];
+    showGalleryItem(main, firstShown);
+    media.forEach((src) => {
+      const vid = isVideoUrl(src);
       const d = document.createElement('div');
-      d.className = 'gallery-thumb' + (i === 0 ? ' active' : '');
-      d.style.backgroundImage = `url(${src})`;
-      d.style.backgroundSize = 'cover';
-      d.style.backgroundPosition = 'center';
+      d.className = 'gallery-thumb' + (src === firstShown ? ' active' : '') + (vid ? ' is-video' : '');
       d.style.fontSize = '0';
-      d.addEventListener('click', function() {
+      if (vid) {
+        d.style.background = '#000';
+      } else {
+        d.style.backgroundImage = `url(${src})`;
+        d.style.backgroundSize = 'cover';
+        d.style.backgroundPosition = 'center';
+      }
+      d.addEventListener('click', function () {
         document.querySelectorAll('.gallery-thumb').forEach(x => x.classList.remove('active'));
         this.classList.add('active');
-        main.style.backgroundImage = `url(${src})`;
-        main.textContent = '';
+        showGalleryItem(main, src);
       });
       thumbsEl.appendChild(d);
     });
   } else {
+    main.classList.remove('is-video');
+    main.dataset.lightbox = '';
+    main.textContent = (p.thumbs && p.thumbs[0]) || p.emoji || '🏠';
+    main.style.fontSize = '7rem';
+    main.style.backgroundImage = '';
     (p.thumbs || [p.emoji]).forEach((t, i) => {
       const d = document.createElement('div');
       d.className = 'gallery-thumb' + (i === 0 ? ' active' : '');
@@ -391,6 +390,96 @@ function switchImg(el, emoji) {
   setTimeout(() => { main.textContent = emoji; main.style.opacity = '1'; }, 150);
 }
 
+// ---- Photos + video gallery / fullscreen lightbox ----
+let _galleryImages = [];   // image URLs of the open property (for lightbox navigation)
+let _lbIndex = 0;
+
+function isVideoUrl(u) {
+  return /youtube\.com|youtu\.be|vimeo\.com|\.mp4(\?|$)|\.webm(\?|$)|\.mov(\?|$)/i.test(u || '');
+}
+
+// Build a safe DOM player node (no innerHTML — avoids injection)
+function buildVideoNode(src) {
+  let m;
+  if ((m = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/))) {
+    const f = document.createElement('iframe');
+    f.src = 'https://www.youtube.com/embed/' + m[1];
+    f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
+    f.allowFullscreen = true;
+    f.style.cssText = 'width:100%;height:100%;border:0;display:block';
+    return f;
+  }
+  if ((m = src.match(/vimeo\.com\/(\d+)/))) {
+    const f = document.createElement('iframe');
+    f.src = 'https://player.vimeo.com/video/' + m[1];
+    f.allow = 'autoplay; fullscreen; picture-in-picture';
+    f.allowFullscreen = true;
+    f.style.cssText = 'width:100%;height:100%;border:0;display:block';
+    return f;
+  }
+  const v = document.createElement('video');
+  v.src = src; v.controls = true; v.playsInline = true;
+  v.style.cssText = 'width:100%;height:100%;object-fit:cover;background:#000;display:block';
+  return v;
+}
+
+// Show one media item in the gallery main area
+function showGalleryItem(main, src) {
+  main.innerHTML = '';
+  main.style.opacity = '1';
+  if (isVideoUrl(src)) {
+    main.classList.add('is-video');
+    main.style.backgroundImage = '';
+    main.style.cursor = 'default';
+    main.dataset.lightbox = '';
+    main.appendChild(buildVideoNode(src));
+  } else {
+    main.classList.remove('is-video');
+    main.style.backgroundImage = `url(${src})`;
+    main.style.backgroundSize = 'cover';
+    main.style.backgroundPosition = 'center';
+    main.style.cursor = 'zoom-in';
+    main.dataset.lightbox = src;
+  }
+}
+
+function openLightbox(src) {
+  const imgs = _galleryImages.length ? _galleryImages : [src];
+  _lbIndex = Math.max(0, imgs.indexOf(src));
+  const lb = document.getElementById('lightbox');
+  if (!lb) return;
+  document.getElementById('lightboxImg').src = imgs[_lbIndex];
+  document.getElementById('lbCounter').textContent = (_lbIndex + 1) + ' / ' + imgs.length;
+  lb.classList.add('open');
+}
+function lightboxNav(dir, ev) {
+  if (ev) ev.stopPropagation();
+  const imgs = _galleryImages;
+  if (imgs.length < 2) return;
+  _lbIndex = (_lbIndex + dir + imgs.length) % imgs.length;
+  document.getElementById('lightboxImg').src = imgs[_lbIndex];
+  document.getElementById('lbCounter').textContent = (_lbIndex + 1) + ' / ' + imgs.length;
+}
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  if (lb) lb.classList.remove('open');
+}
+
+// Wire the gallery main image → fullscreen lightbox, plus keyboard nav (attach once)
+(function wireLightbox() {
+  const gm = document.getElementById('galleryMain');
+  if (gm) gm.addEventListener('click', function () {
+    if (this.dataset.lightbox) openLightbox(this.dataset.lightbox);
+  });
+  document.addEventListener('keydown', function (e) {
+    const lb = document.getElementById('lightbox');
+    if (!lb || !lb.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    else if (e.key === 'ArrowRight') lightboxNav(1);
+    else if (e.key === 'ArrowLeft') lightboxNav(-1);
+  });
+})();
+
 function closeModal(e) {
   if (e.target === document.getElementById('propModalOverlay')) closeModalBtn();
 }
@@ -403,6 +492,9 @@ function closeModalBtn() {
 async function submitModalForm(e) {
   e.preventDefault();
   const form = e.target;
+  if (form.querySelector('[name="_honey"]')?.value) {   // honeypot: bots fill it → drop silently
+    closeModalBtn(); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); return;
+  }
   const btn = form.querySelector('button[type="submit"]');
   const origText = btn.textContent;
   btn.disabled = true;
@@ -424,7 +516,7 @@ async function submitModalForm(e) {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (res.ok) { closeModalBtn(); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
+    if (res.ok) { saveLeadToDB(payload); closeModalBtn(); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
     else { showToast('שגיאה בשליחה — נסה שוב.'); }
   } catch { showToast('שגיאה בשליחה — נסה שוב.'); }
   finally { btn.disabled = false; btn.textContent = origText; }
@@ -546,6 +638,9 @@ function doSearch() {
 async function submitForm(e) {
   e.preventDefault();
   const form = e.target;
+  if (form.querySelector('[name="_honey"]')?.value) {   // honeypot: bots fill it → drop silently
+    showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); return;
+  }
   const btn = form.querySelector('button[type="submit"]');
   const origText = btn.textContent;
   btn.disabled = true;
@@ -565,10 +660,35 @@ async function submitForm(e) {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (res.ok) { showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
+    if (res.ok) { saveLeadToDB(payload); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
     else { showToast('שגיאה בשליחה — נסה שוב.'); }
   } catch { showToast('שגיאה בשליחה — נסה שוב.'); }
   finally { btn.disabled = false; btn.textContent = origText; }
+}
+
+// Backup every lead into Supabase (in addition to the email). Silent no-op until the leads table exists.
+async function saveLeadToDB(p) {
+  try {
+    if (!window.SUPABASE_URL || !window.SUPABASE_KEY) return;
+    await fetch(window.SUPABASE_URL + '/rest/v1/leads', {
+      method: 'POST',
+      headers: {
+        apikey: window.SUPABASE_KEY,
+        Authorization: 'Bearer ' + window.SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({
+        name: p.name || '',
+        phone: p.phone || '',
+        email: (p.email && p.email !== 'לא צוין') ? p.email : '',
+        subject: p.subject || p.interest || '',
+        message: (p.message && p.message !== 'לא צוין') ? p.message : '',
+        property: p.property || '',
+        consent: p.marketing_consent === 'כן'
+      })
+    });
+  } catch (_) { /* email already sent; DB backup is best-effort */ }
 }
 
 function showToast(msg) {
@@ -809,15 +929,24 @@ function renderPropertiesGrid(props) {
     propImg.className = 'prop-img';
     propImg.style.background = p.bg || 'linear-gradient(135deg,#1565C0,#1976D2)';
 
-    // real photo if available
-    if (p.photos && p.photos.length > 0) {
+    // real photo if available (first non-video image; videos play inside the modal)
+    const cardImg = (p.photos || []).find(u => !isVideoUrl(u));
+    const hasVideo = (p.photos || []).some(isVideoUrl);
+    if (cardImg) {
       const realImg = document.createElement('img');
-      realImg.src = p.photos[0];
+      realImg.src = cardImg;
       realImg.alt = p.title || '';
       realImg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0';
       propImg.style.position = 'relative';
       propImg.style.overflow = 'hidden';
       propImg.appendChild(realImg);
+    }
+    if (hasVideo) {
+      const vb = document.createElement('div');
+      vb.className = 'prop-video-badge';
+      vb.textContent = '▶ סרטון';
+      propImg.style.position = 'relative';
+      propImg.appendChild(vb);
     }
 
     const badge = document.createElement('div');
@@ -847,8 +976,8 @@ function renderPropertiesGrid(props) {
 
     const iconBig = document.createElement('div');
     iconBig.className = 'prop-icon-big';
-    // hide emoji if real photo exists
-    if (!(p.photos && p.photos.length > 0)) iconBig.textContent = p.emoji || '🏠';
+    // hide emoji if a real photo exists (video-only listings still show the emoji)
+    if (!cardImg) iconBig.textContent = p.emoji || '🏠';
     propImg.appendChild(iconBig);
 
     const dot = document.createElement('div');
