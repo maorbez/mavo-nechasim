@@ -50,7 +50,7 @@ let properties = []; // single source of truth, filled on init
 
 const HARDCODED = []; // demo data removed — real listings come from Supabase (fallback: properties.json)
 
-const DATA_VERSION = 'ta-batya-arnon16-2026-06-21-v1'; // bump this to force-clear old localStorage data
+const DATA_VERSION = 'bar-yochai-72-2026-06-21-v2'; // bump this to force-clear old localStorage data
 
 async function loadProperties() {
   // 0. Try Supabase (live database — source of truth)
