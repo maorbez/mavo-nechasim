@@ -783,5 +783,46 @@
       "phone": "054-802-6123"
     },
     "active": true
+  },
+  {
+    "id": 39,
+    "type": "rent",
+    "price": "6,800",
+    "priceLabel": "₪ 6,800 / חודש",
+    "title": "להשכרה · צפון הישן ליד הים · 2.5 חדרים · ₪6800 · מרפסת",
+    "location": "תל אביב, הצפון הישן ליד הים",
+    "lat": 32.0841284,
+    "lng": 34.7705445,
+    "rooms": 2.5,
+    "baths": 1,
+    "sqm": "",
+    "extra": "מרפסת | מטבח עם גז | קרוב לים",
+    "emoji": "🏠",
+    "bg": "linear-gradient(135deg,#1565C0,#0a0f1e)",
+    "thumbs": [
+      "🏠",
+      "🛋️",
+      "🌊",
+      "🌅"
+    ],
+    "photos": [
+      "https://media.postify.co.il/postify157/arnon16_site/1-img_6a36658515e01.jpg",
+      "https://media.postify.co.il/postify157/arnon16_site/2-img_6a366586a70f6.jpg",
+      "https://media.postify.co.il/postify157/arnon16_site/3-img_6a3665889ade4.jpg",
+      "https://media.postify.co.il/postify157/arnon16_site/4-img_6a36658b0cb38.jpg",
+      "https://media.postify.co.il/postify157/arnon16_site/5-img_6a36658c68f8f.jpg",
+      "https://media.postify.co.il/postify157/arnon16_site/6-img_6a36658db7602.jpg",
+      "https://media.postify.co.il/postify157/arnon16_site/7-img_6a36658f013a1.jpg"
+    ],
+    "videos": [],
+    "desc": "דירת 2.5 חדרים מרווחת ומוארת בצפון הישן ליד הים, קומת קרקע כמה מדרגות מעל הקרקע, עם מרפסת ומטבח עם גז בבניין מסודר. מתאימה לשותפים עם בעל דירה נוח וזמין לטווח ארוך. כניסה: 1.8. לפרטים ותיאום סיור: מאור בצלאל 054-802-6123.",
+    "agent": {
+      "name": "מאור בצלאל",
+      "title": "גלובס נכסים",
+      "color": "#1565C0",
+      "init": "מ",
+      "phone": "054-802-6123"
+    },
+    "active": true
   }
 ]
