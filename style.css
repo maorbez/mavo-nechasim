@@ -2024,11 +2024,11 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   .footer-links { grid-template-columns: repeat(2, 1fr); gap: 20px; }
   .footer-col h4 { font-size: .78rem; margin-bottom: 10px; }
   .footer-col a { font-size: .78rem; margin-bottom: 6px; }
-  /* Hero stats: ultra-compact 4-column horizontal row (saves height vs 2x2) */
+  /* Hero stats: ultra-compact 3-column horizontal row (saves height vs 2x2) */
   .hero-stats { display: block; padding: 0 !important; }
   .hero-stats-inner {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 0;
     padding: 0;
   }
