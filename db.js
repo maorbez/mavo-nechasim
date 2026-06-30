@@ -7,7 +7,9 @@ window.SUPABASE_KEY = '***REMOVED***';
 // ממיר שורת מסד נתונים למבנה שהאתר מצפה לו
 window.mapDbRow = function (r) {
   return {
-    id: r.id,
+    // ?prop= uses the canonical "מספר נכס" (public_id) from Notion when present,
+    // falling back to the raw Supabase id so nothing breaks before backfill.
+    id: (r.public_id != null ? r.public_id : r.id),
     type: r.type,
     title: r.title,
     price: r.price,
