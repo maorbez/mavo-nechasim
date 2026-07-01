@@ -7,14 +7,10 @@ window.SUPABASE_KEY = '***REMOVED***';
 // ממיר שורת מסד נתונים למבנה שהאתר מצפה לו
 window.mapDbRow = function (r) {
   return {
-    // ?prop= uses the canonical "מספר נכס" (Notion). Priority:
-    //   1) public_id column (if ever added)  2) the "מספר נכס: #N" embedded in the
-    //   description by the data pipeline      3) raw Supabase id (fallback).
-    id: (function () {
-      if (r.public_id != null) return r.public_id;
-      var m = (r.description || '').match(/מספר נכס:\s*#?\s*(\d+)/);
-      return m ? parseInt(m[1], 10) : r.id;
-    })(),
+    // ?prop= uses the Supabase row id as the public property number.
+    // To give a listing a specific public number, just set its id in Supabase —
+    // no parsing, no extra column, no Notion sync needed.
+    id: r.id,
     type: r.type,
     title: r.title,
     price: r.price,
