@@ -2,7 +2,8 @@
 // גלובס נכסים — חיבור ל-Supabase (קריאת נכסים)
 // ============================================
 window.SUPABASE_URL = 'https://tnkiwgewdancvmkhzlwz.supabase.co';
-window.SUPABASE_KEY = '***REMOVED***';
+// This is the browser-safe Supabase publishable/anon key used for public read-only listing access.
+window.SUPABASE_KEY = 'sb_publishable_vuUxH_RK_QqsRRGyUM165w_MQV4uq4j';
 
 // ממיר שורת מסד נתונים למבנה שהאתר מצפה לו
 window.mapDbRow = function (r) {
