@@ -468,7 +468,10 @@
       "🚿",
       "🌅"
     ],
-    "photos": [],
+    "photos": [
+      "https://tnkiwgewdancvmkhzlwz.supabase.co/storage/v1/object/public/property-photos/allenby-83/01_cover.jpg",
+      "https://tnkiwgewdancvmkhzlwz.supabase.co/storage/v1/object/public/property-photos/allenby-83/02_tour_a1f6b7bcd33e.mp4"
+    ],
     "desc": "דירת 5 חדרים בלב העיר להשכרה דרך גלובס נכסים. מאפיינים: חדש. לפרטים, תמונות ותיאום סיור: מאור בצלאל 054-802-6123.",
     "agent": {
       "name": "מאור בצלאל",
