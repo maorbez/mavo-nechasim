@@ -1,5 +1,5 @@
 // ============================
-// Globes Nechasim — App Logic
+// Mavo Nechasim — App Logic
 // ============================
 
 const WA_NUMBER = '972548026123';
@@ -41,7 +41,7 @@ function waLink(p) {
     `${featLine}\n\n` +
     `🔗 לצפייה בנכס:\n${propUrl}\n\n` +
     `🗺 ניווט בוויז:\nhttps://waze.com/ul?ll=${p.lat},${p.lng}&navigate=yes\n\n` +
-    `📞 גלובס נכסים | 054-802-6123`;
+    `📞 מבוא נכסים | 054-802-6123`;
   return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
 }
 
@@ -520,7 +520,7 @@ async function submitModalForm(e) {
   try {
     const val = sel => (form.querySelector(sel)?.value || '').trim();
     const payload = {
-      _subject: 'פנייה על נכס — גלובס נכסים',
+      _subject: 'פנייה על נכס — מבוא נכסים',
       name:    val('[name="name"]'),
       phone:   val('[name="phone"]'),
       email:   val('[name="email"]') || 'לא צוין',
@@ -665,7 +665,7 @@ async function submitForm(e) {
   btn.textContent = 'שולח...';
   try {
     const payload = {
-      _subject: 'פנייה חדשה מאתר גלובס נכסים',
+      _subject: 'פנייה חדשה מאתר מבוא נכסים',
       name:    form.querySelector('[name="name"]').value,
       phone:   form.querySelector('[name="phone"]').value,
       email:   form.querySelector('[name="email"]').value || 'לא צוין',
@@ -1053,7 +1053,7 @@ function renderPropertiesGrid(props) {
     agAv.style.background = (p.agent && p.agent.color) || '#1565C0';
     agAv.textContent = (p.agent && p.agent.init) || 'ג';
     const agName = document.createElement('span');
-    agName.textContent = (p.agent && p.agent.name) || 'גלובס נכסים';
+    agName.textContent = (p.agent && p.agent.name) || 'מבוא נכסים';
     agMini.appendChild(agAv); agMini.appendChild(agName);
 
     const actions = document.createElement('div');

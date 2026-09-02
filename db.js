@@ -1,5 +1,5 @@
 // ============================================
-// גלובס נכסים — חיבור ל-Supabase (קריאת נכסים)
+// מבוא נכסים — חיבור ל-Supabase (קריאת נכסים)
 // ============================================
 window.SUPABASE_URL = 'https://tnkiwgewdancvmkhzlwz.supabase.co';
 // This is the browser-safe Supabase publishable/anon key used for public read-only listing access.
@@ -31,7 +31,7 @@ window.mapDbRow = function (r) {
     hasShelter: r.has_shelter === true,
     hasParking: r.has_parking === true,
     thumbs: ['🏠', '🛋️', '🚿', '🌅'],
-    agent: { name: 'גלובס נכסים', title: 'צרו קשר', color: '#1565C0', init: 'ג', phone: '054-802-6123' },
+    agent: { name: 'מבוא נכסים', title: 'צרו קשר', color: '#1565C0', init: 'ג', phone: '054-802-6123' },
     active: r.active !== false
   };
 };

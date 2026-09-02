@@ -1,5 +1,5 @@
 /**
- * components.js — Globes Nechasim Shared Components v1
+ * components.js — Mavo Nechasim Shared Components v1
  *
  * Single source of truth for the contact section.
  * To update the form (field labels, consent text, options) — edit ONLY this file.
@@ -114,7 +114,7 @@
 
     /* consent */
     var cb   = el('input', { type: 'checkbox', id: 'marketingConsent', name: 'marketingConsent' });
-    var cSpan = el('span', {}, ['אני מסכים/ה לקבל עדכוני נכסים, הצעות ותוכן שיווקי מגלובס נכסים (ניתן לביטול בכל עת).']);
+    var cSpan = el('span', {}, ['אני מסכים/ה לקבל עדכוני נכסים, הצעות ותוכן שיווקי ממבוא נכסים (ניתן לביטול בכל עת).']);
     var cLabel = el('label', { className: 'consent-label' }, [cb, cSpan]);
     var privLink = el('a', { href: 'privacy.html', target: '_blank' }, ['מדיניות הפרטיות']);
     var cNote = el('p', { className: 'consent-note' });

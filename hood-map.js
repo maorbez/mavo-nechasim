@@ -1,5 +1,5 @@
 // ============================
-// Globes Nechasim — Neighborhood Map (shared)
+// Mavo Nechasim — Neighborhood Map (shared)
 // Loads ALL office properties and renders them on a neighborhood page map.
 // Highlights properties in the current neighborhood.
 // ============================

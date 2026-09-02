@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ניהול | גלובס נכסים</title>
+  <title>ניהול | מבוא נכסים</title>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -202,7 +202,7 @@
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <img src="logo.png" class="login-logo" alt="לוגו" />
-    <h2>ניהול גלובס נכסים</h2>
+    <h2>ניהול מבוא נכסים</h2>
     <p>פאנל ניהול פנימי</p>
     <input type="password" class="login-input" id="pwInput" placeholder="הזן סיסמה..." onkeydown="if(event.key==='Enter')doLogin()" />
     <button class="login-btn" onclick="doLogin()">כניסה</button>
@@ -216,7 +216,7 @@
   <div class="sidebar">
     <div class="sidebar-logo">
       <img src="logo.png" alt="לוגו" />
-      <span>גלובס נכסים</span>
+      <span>מבוא נכסים</span>
     </div>
     <div class="sidebar-nav">
       <div class="nav-item active" data-page="props"   onclick="showPage('props',this)">🏠 נכסים</div>
@@ -440,7 +440,7 @@
       <div class="form-section-title">פרטי הסוכן</div>
       <div class="form-grid">
         <div class="form-group"><label>שם מלא *</label><input type="text" id="aName" placeholder="מאור בצלאל" required /></div>
-        <div class="form-group"><label>תפקיד *</label><input type="text" id="aTitle" placeholder="גלובס נכסים" required /></div>
+        <div class="form-group"><label>תפקיד *</label><input type="text" id="aTitle" placeholder="מבוא נכסים" required /></div>
         <div class="form-group"><label>טלפון</label><input type="tel" id="aPhone" placeholder="054-802-6123" /></div>
         <div class="form-group"><label>אימייל</label><input type="email" id="aEmail" placeholder="info@globes-nechasim.co.il" /></div>
         <div class="form-group"><label>שנות ניסיון</label><input type="number" id="aYears" placeholder="8" min="0" max="50" /></div>
@@ -603,7 +603,7 @@ function logout(){
 let properties=[], agents=[], blogPosts=[];
 
 const DEFAULT_AGENTS=[
-  {id:1,name:'מאור בצלאל',title:'בעלים ומתווך נדל״ן — גלובס נכסים',phone:'054-802-6123',email:'info@globes-nechasim.co.il',years:4,spec:'השכרה, מכירה וניהול נכסים בתל אביב והמרכז',bio:'4 שנים בתחום התיווך · 100 עסקאות',photo:null,active:true},
+  {id:1,name:'מאור בצלאל',title:'בעלים ומתווך נדל״ן — מבוא נכסים',phone:'054-802-6123',email:'info@globes-nechasim.co.il',years:4,spec:'השכרה, מכירה וניהול נכסים בתל אביב והמרכז',bio:'4 שנים בתחום התיווך · 100 עסקאות',photo:null,active:true},
 ];
 
 async function init(){
@@ -803,7 +803,7 @@ function saveProp(e){
     desc:document.getElementById('fDesc').value.trim(),
     tags:[...currentTags],
     agent:selAgent?{name:selAgent.name,title:selAgent.title,color:'#1565C0',init:selAgent.name[0],phone:selAgent.phone}:
-                   {name:'גלובס נכסים',title:'סוכן נכסים',color:'#1565C0',init:'ג',phone:'054-802-6123'},
+                   {name:'מבוא נכסים',title:'סוכן נכסים',color:'#1565C0',init:'ג',phone:'054-802-6123'},
     active:document.getElementById('fActive').value==='true'
   };
   if(editId){const idx=properties.findIndex(p=>p.id===parseInt(editId));if(idx>=0)properties[idx]={...properties[idx],...propData};}
