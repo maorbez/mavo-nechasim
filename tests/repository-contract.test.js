@@ -61,10 +61,24 @@ test('migration requires an explicit immutable office number', function () {
   assert.match(sql, /alter column id drop identity if exists/i);
   assert.match(sql, /add column if not exists updated_at timestamptz not null default now\(\)/i);
   assert.match(sql, /check \(id > 0\)/i);
+  assert.match(sql, /new\.office_property_id is null or btrim\(new\.office_property_id\) = ''/i);
+  assert.match(sql, /before insert on public\.properties/i);
   assert.match(sql, /old\.office_property_id is not null/i);
   assert.match(sql, /before update of id, office_property_id/i);
   assert.match(sql, /revoke all privileges .* anon, authenticated/i);
   assert.doesNotMatch(read('db.js'), /select=\*/);
+});
+
+test('browser projection exactly matches the anonymous column grant', function () {
+  const db = require('../db.js');
+  const sql = read('supabase/migrations/20260903150000_office_canonical_publication.sql');
+  const match = sql.match(/grant select \(([\s\S]*?)\) on table public\.properties to anon, authenticated;/i);
+  assert.ok(match, 'anonymous column grant is missing');
+  const grantedColumns = match[1].split(',').map(function (column) { return column.trim(); });
+  assert.deepEqual(grantedColumns, db.PUBLIC_PROPERTY_COLUMNS);
+  assert.ok(!grantedColumns.includes('office_property_id'));
+  assert.ok(!grantedColumns.includes('office_updated_at'));
+  assert.ok(!grantedColumns.includes('updated_at'));
 });
 
 test('null square-meter values are omitted from rendering', function () {

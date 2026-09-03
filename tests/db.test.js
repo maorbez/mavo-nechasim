@@ -30,6 +30,8 @@ test('Supabase reader uses active rows, stable ordering, and office id unchanged
   });
 
   assert.match(request.url, /active=eq\.true&order=id\.asc$/);
+  assert.match(request.url, /\?select=id,type,price,price_label,/);
+  assert.doesNotMatch(request.url, /select=\*/);
   assert.equal(request.init.cache, 'no-store');
   assert.equal(rows[0].id, 49);
   assert.equal(rows[0].title, 'סלמה 117');

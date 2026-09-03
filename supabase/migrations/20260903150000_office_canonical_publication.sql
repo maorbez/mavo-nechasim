@@ -21,12 +21,33 @@ alter table public.properties
   add constraint properties_positive_office_number check (id > 0) not valid;
 alter table public.properties validate constraint properties_positive_office_number;
 
+create or replace function public.require_property_office_link()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.office_property_id is null or btrim(new.office_property_id) = '' then
+    raise exception 'new properties require an Office CRM office_property_id';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists properties_require_office_link on public.properties;
+create trigger properties_require_office_link
+  before insert on public.properties
+  for each row execute function public.require_property_office_link();
+
 create or replace function public.reject_property_id_change()
 returns trigger
 language plpgsql
 set search_path = ''
 as $$
 begin
+  if new.office_property_id is not null and btrim(new.office_property_id) = '' then
+    raise exception 'properties.office_property_id cannot be blank';
+  end if;
   if old.id is distinct from new.id then
     raise exception 'properties.id is the immutable Office CRM property_number';
   end if;

@@ -7,6 +7,7 @@ This contract is for agents and server publishers. The Office CRM is the authori
 - Office CRM first creates `office_crm_properties` and allocates a persistent, immutable, positive numeric `property_number`.
 - The publisher must send that exact value as Supabase `public.properties.id`.
 - `office_property_id` stores the stable internal Office CRM row identifier for idempotency.
+- Every new Supabase row must include a nonblank `office_property_id`. Historical rows may remain null until an authoritative one-time backfill; after linkage, it is immutable.
 - `supabase_property_id` in Office CRM is a legacy publication mirror. It may be populated only from a verified Supabase publication receipt and must equal `property_number`.
 - Never infer or allocate identity from listing text, address, order, count, `max(id)`, or a Supabase-generated value.
 
