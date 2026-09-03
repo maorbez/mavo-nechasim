@@ -3,7 +3,7 @@
 // ============================
 
 const WA_NUMBER = '972548026123';
-const SITE_URL = window.location.href.split('?')[0];
+const SITE_URL = window.MAVO_PUBLIC_SITE_URL || 'https://maorbez.github.io/mavo-nechasim/';
 
 // ← החלף בכתובת המייל האמיתית של המשרד
 const CONTACT_EMAIL = 'maor.globes@gmail.com';
@@ -18,6 +18,10 @@ function esc(s) {
     .replace(/'/g, '&#39;');
 }
 
+function hasDisplayValue(value) {
+  return value !== null && value !== undefined && String(value).trim() !== '';
+}
+
 // ---- City → neighborhoods map for dynamic filter grouping ----
 const CITY_HOODS = {
   'תל אביב': ['הצפון הישן','הצפון החדש','פלורנטין','נווה צדק','כרם התימנים',
@@ -30,9 +34,12 @@ const CITY_HOODS = {
 
 // ---- WhatsApp rich message ----
 function waLink(p) {
-  const featLine = p.rooms
-    ? `🛏 ${p.rooms} חדרים | 🚿 ${p.baths} אמבטיות | 📐 ${p.sqm} מ"ר`
-    : `📐 ${p.sqm} מ"ר | ✅ ${p.extra}`;
+  const features = [];
+  if (hasDisplayValue(p.rooms)) features.push(`🛏 ${p.rooms} חדרים`);
+  if (hasDisplayValue(p.baths)) features.push(`🚿 ${p.baths} אמבטיות`);
+  if (hasDisplayValue(p.sqm)) features.push(`📐 ${p.sqm} מ"ר`);
+  if (hasDisplayValue(p.extra)) features.push(`✅ ${p.extra}`);
+  const featLine = features.join(' | ');
   const propUrl = `${SITE_URL}?prop=${p.id}`;
   const msg =
     `${p.emoji} *${p.title}*\n` +
@@ -45,47 +52,15 @@ function waLink(p) {
   return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
 }
 
-// ---- Load properties (localStorage → JSON file → hardcoded fallback) ----
+// ---- Load properties through the shared read-only inventory client ----
 let properties = []; // single source of truth, filled on init
 
-const HARDCODED = []; // demo data removed — real listings come from Supabase (fallback: properties.json)
-
-const DATA_VERSION = 'bar-yochai-72-2026-06-21-v2'; // bump this to force-clear old localStorage data
-
 async function loadProperties() {
-  // 0. Try Supabase (live database — source of truth)
-  if (window.fetchPropertiesFromDB) {
-    try {
-      const db = await window.fetchPropertiesFromDB();
-      if (Array.isArray(db) && db.length > 0) return db;
-    } catch (e) { /* fall through to static data */ }
+  if (!window.loadMavoProperties) {
+    throw new Error('db.js must load before app.js');
   }
-  // 1. Try localStorage (from admin panel) — skip if data version mismatch
-  const storedVersion = localStorage.getItem('globes_data_version');
-  if (storedVersion !== DATA_VERSION) {
-    localStorage.removeItem('globes_properties');
-    localStorage.setItem('globes_data_version', DATA_VERSION);
-  }
-
-  const stored = localStorage.getItem('globes_properties');
-  if (stored) {
-    try {
-      const data = JSON.parse(stored);
-      if (Array.isArray(data) && data.length > 0)
-        return data.filter(p => p.active !== false);
-    } catch(e) {}
-  }
-  // 2. Try properties.json file
-  try {
-    const r = await fetch('properties.json');
-    if (r.ok) {
-      const data = await r.json();
-      const arr = Array.isArray(data) ? data : (data.properties || []);
-      return arr.filter(p => p.active !== false);
-    }
-  } catch(e) {}
-  // 3. Hardcoded fallback (COPY — not same reference!)
-  return HARDCODED.filter(p => p.active !== false).map(p => ({...p}));
+  const result = await window.loadMavoProperties();
+  return result.properties;
 }
 
 // ============================
@@ -323,9 +298,13 @@ function openPropertyModal(p) {
   document.getElementById('modalLocation').innerHTML =
     `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${esc(p.location)}`;
 
-  document.getElementById('modalFeatures').innerHTML = p.rooms
-    ? `<span>🛏 ${esc(p.rooms)} חדרים</span><span>🚿 ${esc(p.baths)} אמבטיות</span><span>📐 ${esc(p.sqm)} מ"ר</span><span>✅ ${esc(p.extra)}</span>`
-    : `<span>📐 ${esc(p.sqm)} מ"ר</span><span>✅ ${esc(p.extra)}</span><span>${esc(p.emoji)} נדל"ן מסחרי</span>`;
+  const modalFeatures = [];
+  if (hasDisplayValue(p.rooms)) modalFeatures.push(`<span>🛏 ${esc(p.rooms)} חדרים</span>`);
+  if (hasDisplayValue(p.baths)) modalFeatures.push(`<span>🚿 ${esc(p.baths)} אמבטיות</span>`);
+  if (hasDisplayValue(p.sqm)) modalFeatures.push(`<span>📐 ${esc(p.sqm)} מ"ר</span>`);
+  if (hasDisplayValue(p.extra)) modalFeatures.push(`<span>✅ ${esc(p.extra)}</span>`);
+  if (!p.rooms) modalFeatures.push(`<span>${esc(p.emoji)} נדל"ן מסחרי</span>`);
+  document.getElementById('modalFeatures').innerHTML = modalFeatures.join('');
 
   document.getElementById('modalDesc').textContent = p.desc || '';
 
@@ -1033,11 +1012,11 @@ function renderPropertiesGrid(props) {
     const addSpan = txt => { const s = document.createElement('span'); s.textContent = txt; feats.appendChild(s); };
     if (!isComm && p.rooms) {
       addSpan('🛏 ' + p.rooms + ' חדרים');
-      addSpan('🚿 ' + (p.baths || 1) + ' אמבטיות');
-      addSpan('📐 ' + p.sqm + ' מ"ר');
+      if (hasDisplayValue(p.baths)) addSpan('🚿 ' + p.baths + ' אמבטיות');
+      if (hasDisplayValue(p.sqm)) addSpan('📐 ' + p.sqm + ' מ"ר');
       if (p.extra) addSpan('🏠 ' + p.extra);
     } else {
-      addSpan('📐 ' + p.sqm + ' מ"ר');
+      if (hasDisplayValue(p.sqm)) addSpan('📐 ' + p.sqm + ' מ"ר');
       if (p.extra) addSpan('✅ ' + p.extra);
     }
     body.appendChild(feats);
@@ -1134,7 +1113,7 @@ function initLazySections() {
 // INIT
 // ============================
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load properties (localStorage → JSON → hardcoded)
+  // Live Supabase is authoritative; degraded snapshots are always disclosed in the UI.
   properties = await loadProperties();
 
   // Dynamically render property cards from data (replaces hardcoded HTML cards)

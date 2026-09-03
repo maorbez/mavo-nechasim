@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://0526586562.co.il/sitemap.xml
+Sitemap: https://maorbez.github.io/mavo-nechasim/sitemap.xml

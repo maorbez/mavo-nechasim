@@ -327,7 +327,8 @@
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
 <script src="components.js?v=1"></script>
-<script src="hood-map.js?v=1"></script>
+<script src="db.js?v=6"></script>
+<script src="hood-map.js?v=2"></script>
 <!-- Fullscreen image lightbox -->
 <div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
   <button class="lb-close" onclick="closeLightbox()" aria-label="סגור">×</button>
@@ -337,7 +338,7 @@
   <div class="lb-counter" id="lbCounter"></div>
 </div>
 
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
 <script>
 function filterProps(btn, type) {
   document.querySelectorAll('.filter-btn').forEach(t => t.classList.remove('active'));

@@ -1,0 +1,7 @@
+{
+  "name": "mavo-nechasim-public-catalog",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.js && node --check db.js && node --check app.js && node --check hood-map.js"
+  }
+}

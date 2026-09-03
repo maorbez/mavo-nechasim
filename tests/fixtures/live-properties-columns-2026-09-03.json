@@ -1,0 +1,23 @@
+[
+  "active",
+  "baths",
+  "bg",
+  "created_at",
+  "description",
+  "emoji",
+  "extra",
+  "has_elevator",
+  "has_parking",
+  "has_shelter",
+  "id",
+  "lat",
+  "lng",
+  "location",
+  "photos",
+  "price",
+  "price_label",
+  "rooms",
+  "sqm",
+  "title",
+  "type"
+]

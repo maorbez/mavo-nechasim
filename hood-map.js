@@ -6,36 +6,12 @@
 (function () {
   'use strict';
 
-  const DATA_VERSION = 'globes-rentals-only-2026-06-20-v3';
-
-  // Hardcoded fallback — kept in sync with app.js HARDCODED list
-  const HARDCODED = [];
-
   async function loadProperties() {
-    // 1. Try localStorage first (synced with admin/main page)
-    try {
-      const v = localStorage.getItem('globes_data_version');
-      if (v !== DATA_VERSION) {
-        localStorage.removeItem('globes_properties');
-        localStorage.setItem('globes_data_version', DATA_VERSION);
-      }
-      const stored = localStorage.getItem('globes_properties');
-      if (stored) {
-        const data = JSON.parse(stored);
-        if (Array.isArray(data) && data.length > 0)
-          return data.filter(p => p.active !== false);
-      }
-    } catch(e) {}
-    // 2. Try properties.json
-    try {
-      const r = await fetch('properties.json');
-      if (r.ok) {
-        const data = await r.json();
-        return data.filter(p => p.active !== false);
-      }
-    } catch(e) {}
-    // 3. Hardcoded fallback
-    return HARDCODED.filter(p => p.active !== false).map(p => ({...p}));
+    if (!window.loadMavoProperties) {
+      throw new Error('db.js must load before hood-map.js');
+    }
+    const result = await window.loadMavoProperties();
+    return result.properties;
   }
 
   function typeColor(type) {

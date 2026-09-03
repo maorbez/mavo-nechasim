@@ -458,27 +458,13 @@
 
 </div>
 
-<script src="db.js?v=5"></script>
+<script src="db.js?v=6"></script>
 <script>
 // ============================================
 // SEARCH PAGE — Mavo Nechasim
 // ============================================
 
 const WA = '972548026123';
-const DATA_VERSION = 'ta-batya-v1';
-
-const HARDCODED = [
-  { id:1,  type:'sale', price:'4,200,000', priceLabel:'₪ 4,200,000', title:'פנטהאוז עם נוף לים',           location:'תל אביב, הצפון הישן', lat:32.0973, lng:34.7712, rooms:5, baths:3, sqm:220, extra:'גג פרטי 80מ"ר',   emoji:'🏠', bg:'linear-gradient(135deg,#1a3a5c,#2d6a9f)', agent:{name:'מבוא נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:2,  type:'sale', price:'3,500,000', priceLabel:'₪ 3,500,000', title:'דירת בוטיק בנווה צדק',         location:'תל אביב, נווה צדק',   lat:32.0578, lng:34.7627, rooms:4, baths:2, sqm:145, extra:'חצר פרטית',      emoji:'🏠', bg:'linear-gradient(135deg,#1b4332,#2d6a4f)', agent:{name:'מבוא נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:3,  type:'sale', price:'2,800,000', priceLabel:'₪ 2,800,000', title:'דירה מודרנית בפלורנטין',       location:'תל אביב, פלורנטין',   lat:32.0569, lng:34.7640, rooms:3, baths:2, sqm:108, extra:'מרפסת',          emoji:'🏠', bg:'linear-gradient(135deg,#92400e,#d97706)', agent:{name:'מבוא נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:4,  type:'sale', price:'3,100,000', priceLabel:'₪ 3,100,000', title:'דירת 4 חדרים בלב העיר',        location:'תל אביב, לב העיר',    lat:32.0800, lng:34.7800, rooms:4, baths:2, sqm:130, extra:'חניה + מחסן',    emoji:'🏠', bg:'linear-gradient(135deg,#312e81,#4f46e5)', agent:{name:'מבוא נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:5,  type:'sale', price:'5,500,000', priceLabel:'₪ 5,500,000', title:'וילה יוקרה ברמת אביב',         location:'תל אביב, רמת אביב',   lat:32.1120, lng:34.8020, rooms:6, baths:3, sqm:280, extra:'גינה + 3 חניות', emoji:'🏠', bg:'linear-gradient(135deg,#4a1942,#7b2d8b)', agent:{name:'מבוא נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:6,  type:'sale', price:'2,400,000', priceLabel:'₪ 2,400,000', title:'דירת שיקום בכרם התימנים',      location:'תל אביב, כרם התימנים',lat:32.0630, lng:34.7655, rooms:3, baths:1, sqm:95,  extra:'תקרות גבוהות',  emoji:'🏠', bg:'linear-gradient(135deg,#7c2d12,#c2410c)', agent:{name:'מבוא נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:7,  type:'sale', price:'1,850,000', priceLabel:'₪ 1,850,000', title:'דירת 4 חדרים בקוממיות',        location:'בת ים, קוממיות',      lat:32.0173, lng:34.7520, rooms:4, baths:2, sqm:115, extra:'נוף לים',        emoji:'🏠', bg:'linear-gradient(135deg,#164e63,#0e7490)', agent:{name:'מבוא נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:8,  type:'sale', price:'2,200,000', priceLabel:'₪ 2,200,000', title:'דירת גן בגן רווה',              location:'בת ים, גן רווה',      lat:32.0230, lng:34.7450, rooms:5, baths:2, sqm:140, extra:'גינה 120מ"ר',   emoji:'🏠', bg:'linear-gradient(135deg,#1b4332,#2d6a4f)', agent:{name:'מבוא נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:9,  type:'sale', price:'1,650,000', priceLabel:'₪ 1,650,000', title:'דירה משופצת ברמת יוסף',        location:'בת ים, רמת יוסף',     lat:32.0140, lng:34.7545, rooms:3, baths:1, sqm:85,  extra:'כניסה מיידית',  emoji:'🏠', bg:'linear-gradient(135deg,#065f46,#059669)', agent:{name:'מבוא נכסים',color:'#1565C0',init:'ג'}, active:true },
-  { id:10, type:'sale', price:'1,900,000', priceLabel:'₪ 1,900,000', title:'דירת 4 חדרים, מרכז בת ים',     location:'בת ים, מרכז',         lat:32.0250, lng:34.7515, rooms:4, baths:1, sqm:105, extra:'מרפסת שמש',     emoji:'🏠', bg:'linear-gradient(135deg,#1565C0,#1976D2)', agent:{name:'מבוא נכסים',color:'#1565C0',init:'ג'}, active:true }
-];
 
 let allProps = [];
 let activeType = 'all';
@@ -488,24 +474,9 @@ let activeRooms  = 'all';
 
 // ---- Load data ----
 async function loadData() {
-  if (window.fetchPropertiesFromDB) {
-    try {
-      const db = await window.fetchPropertiesFromDB();
-      if (Array.isArray(db) && db.length > 0) { allProps = db; return; }
-    } catch (e) { /* fall through */ }
-  }
-  const stored = localStorage.getItem('globes_properties');
-  if (stored) {
-    try {
-      const d = JSON.parse(stored);
-      if (Array.isArray(d) && d.length > 0) { allProps = d.filter(p => p.active !== false); return; }
-    } catch(e) {}
-  }
-  try {
-    const r = await fetch('properties.json');
-    if (r.ok) { const d = await r.json(); const a = Array.isArray(d) ? d : (d.properties || []); allProps = a.filter(p => p.active !== false); return; }
-  } catch(e) {}
-  allProps = HARDCODED.filter(p => p.active !== false);
+  if (!window.loadMavoProperties) throw new Error('db.js must load before search page logic');
+  const result = await window.loadMavoProperties();
+  allProps = result.properties;
 }
 
 // ---- Build city + hood pills from data ----
@@ -659,6 +630,7 @@ function numPrice(p) { return parseInt((p.price||'0').replace(/[^0-9]/g,'')) || 
 
 // XSS-safe escaping for any DB-sourced field injected into innerHTML
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function hasDisplayValue(value){ return value !== null && value !== undefined && String(value).trim() !== ''; }
 
 // ---- Render ----
 function renderResults(props) {
@@ -679,9 +651,12 @@ function renderResults(props) {
 
   const typeLabel = {sale:'למכירה', rent:'להשכרה', 'commercial-sale':'מסחרי למכירה', 'commercial-rent':'מסחרי להשכרה'};
   grid.innerHTML = props.map(p => {
-    const featLine = p.rooms
-      ? `<span class="res-tag">🛏 ${esc(p.rooms)} חד'</span><span class="res-tag">🚿 ${esc(p.baths)} אמב'</span><span class="res-tag">📐 ${esc(p.sqm)} מ"ר</span><span class="res-tag">✅ ${esc(p.extra)}</span>`
-      : `<span class="res-tag">📐 ${esc(p.sqm)} מ"ר</span><span class="res-tag">✅ ${esc(p.extra)}</span>`;
+    const featureTags = [];
+    if (hasDisplayValue(p.rooms)) featureTags.push(`<span class="res-tag">🛏 ${esc(p.rooms)} חד'</span>`);
+    if (hasDisplayValue(p.baths)) featureTags.push(`<span class="res-tag">🚿 ${esc(p.baths)} אמב'</span>`);
+    if (hasDisplayValue(p.sqm)) featureTags.push(`<span class="res-tag">📐 ${esc(p.sqm)} מ"ר</span>`);
+    if (hasDisplayValue(p.extra)) featureTags.push(`<span class="res-tag">✅ ${esc(p.extra)}</span>`);
+    const featLine = featureTags.join('');
     const ag = p.agent || {};
     const pid = Number(p.id) || 0;
     const waMsg = encodeURIComponent(`שלום, אני מעוניין בנכס: ${p.title} — ${p.location}`);
