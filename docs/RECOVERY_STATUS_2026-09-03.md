@@ -69,6 +69,6 @@ The latest direct Scoutr provider evidence above is dated `2026-09-02`. At the 2
 - Exact deep link `/?prop=13` opened the matching listing modal.
 - Simulated live-provider failure is covered by a browser-context test and renders a visible Hebrew degraded-state notice.
 - Commit `3a183d57b26918c2869ad05a48dbb803c77e136b` was pushed to `master`; its GitHub Pages build reported `built`, and live browser readback confirmed 25 cards, no degraded banner, no `null מ״ר`, and a working `?prop=13` modal.
-- The latest GitHub Pages build was read again through the GitHub provider API: build `1191937808` for commit `f91046596cc890acb3b9e7a67295aa447b5a91bd` reported `built`, created `2026-09-03T11:56:56Z` and completed `2026-09-03T11:57:30Z`. The public deep-link origin returned HTTP 200 with `Last-Modified: Thu, 03 Sep 2026 11:57:29 GMT`.
+- The runtime-bearing GitHub Pages build was read again through the GitHub provider API before this documentation-only update: build `1191937808` for commit `f91046596cc890acb3b9e7a67295aa447b5a91bd` reported `built`, created `2026-09-03T11:56:56Z` and completed `2026-09-03T11:57:30Z`. The public deep-link origin returned HTTP 200 with `Last-Modified: Thu, 03 Sep 2026 11:57:29 GMT`.
 - The fresh Supabase public read after that build returned rows 58 and 59 with 10 and 15 media items respectively, matching the ledger hashes above; row 59 returned the exact fractional value `4.5`.
 - Railway production was not changed by this site release; Office CRM deployment is recorded in its own Railway project Wiki.
