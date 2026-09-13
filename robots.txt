@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://maorbez.github.io/mavo-nechasim/sitemap.xml
+Sitemap: https://mavorealestate.com/sitemap.xml

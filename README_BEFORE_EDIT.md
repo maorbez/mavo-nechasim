@@ -4,11 +4,11 @@
 
 | Surface | Provider-backed identity | Current public address | Responsibility |
 | --- | --- | --- | --- |
-| Office CRM | Railway project `content-illumination`, service `globes-bot` | `https://globes-bot-production.up.railway.app/office/crm` | Creates the office record and allocates `property_number` |
+| Office CRM | Railway project `mavo-properties`, service `mavo-office` | `https://mavo-office-production.up.railway.app/office/crm` | Creates the office record and allocates `property_number` |
 | Public inventory | Supabase project ref `tnkiwgewdancvmkhzlwz` | Data API; not a human-facing site | Stores the exact office number as `public.properties.id` |
-| Public catalog | GitHub Pages repository `maorbez/mavo-nechasim` | `https://maorbez.github.io/mavo-nechasim/` | Read-only property display and stable `?prop=` links |
+| Public catalog | GitHub Pages repository `maorbez/mavo-nechasim` | `https://mavorealestate.com/` | Read-only property display and stable `?prop=` links |
 
-As verified on 2026-09-03, the Railway project has no custom domain. Its generated domain above is the current provider-reported office URL. The separate `globes-whatsapp-bot` Railway project is legacy/separate and is not the Office CRM authority.
+The office branding and generated address were updated in September 2026; old office URLs remain aliases. The public catalog uses its purchased domain on GitHub Pages; domain activation and HTTPS must be verified separately from these source settings. The separate WhatsApp bot service is not the Office CRM authority.
 
 ## Non-negotiable identity rule
 

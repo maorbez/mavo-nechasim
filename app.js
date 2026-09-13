@@ -3,7 +3,7 @@
 // ============================
 
 const WA_NUMBER = '972548026123';
-const SITE_URL = window.MAVO_PUBLIC_SITE_URL || 'https://maorbez.github.io/mavo-nechasim/';
+const SITE_URL = window.MAVO_PUBLIC_SITE_URL || 'https://mavorealestate.com/';
 
 // ← החלף בכתובת המייל האמיתית של המשרד
 const CONTACT_EMAIL = 'maor.globes@gmail.com';

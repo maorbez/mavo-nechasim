@@ -12,7 +12,7 @@
   const DEFAULT_SUPABASE_URL = 'https://tnkiwgewdancvmkhzlwz.supabase.co';
   // Browser-safe publishable key. Never put a service-role key in this repository.
   const DEFAULT_SUPABASE_KEY = 'sb_publishable_vuUxH_RK_QqsRRGyUM165w_MQV4uq4j';
-  const PUBLIC_SITE_URL = 'https://maorbez.github.io/mavo-nechasim/';
+  const PUBLIC_SITE_URL = 'https://mavorealestate.com/';
   const STATUS_ID = 'mavo-data-status';
   const PUBLIC_PROPERTY_COLUMNS = [
     'id', 'type', 'price', 'price_label', 'title', 'location', 'rooms', 'baths', 'sqm',

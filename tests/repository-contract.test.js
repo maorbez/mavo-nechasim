@@ -37,10 +37,12 @@ test('canonical public URLs no longer point to retired origins', function () {
   const searchableFiles = publicPages.concat(['app.js', 'db.js', 'sitemap.xml', 'robots.txt', 'supabase/config.toml']);
   for (const file of searchableFiles) {
     const content = read(file);
+    if (file !== 'supabase/config.toml') assert.doesNotMatch(content, /maorbez\.github\.io\/mavo-nechasim/, file);
     assert.doesNotMatch(content, /0526586562\.co\.il/, file);
     assert.doesNotMatch(content, /maorbez\.github\.io\/globes-site/, file);
   }
-  assert.match(read('sitemap.xml'), /https:\/\/maorbez\.github\.io\/mavo-nechasim\//);
+  assert.match(read('sitemap.xml'), /https:\/\/mavorealestate\.com\//);
+  assert.equal(read('CNAME').trim(), 'mavorealestate.com');
 });
 
 test('search has no fabricated hardcoded listing fallback', function () {

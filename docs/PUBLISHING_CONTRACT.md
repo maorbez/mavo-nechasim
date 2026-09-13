@@ -40,7 +40,7 @@ The server publisher then receives the Office CRM record and writes an explicit 
 5. Read the Supabase row back and verify its id, office id, listing fields, photos, and inactive state.
 6. Set `active=true` and `published_at` only after the readback passes.
 7. Read the public projection back again through the anonymous API. Internal fields such as `office_property_id` are not exposed to the browser.
-8. Open `https://maorbez.github.io/mavo-nechasim/?prop=<property_number>` and verify the exact listing is shown.
+8. Open `https://mavorealestate.com/?prop=<property_number>` and verify the exact listing is shown.
 9. Store the real publication receipt in Office CRM, then verify it using `GET /office/crm/properties/{property_id}/publication-readback`.
 
 No step may mark the Office record published merely because a request returned 2xx. If a readback fails, leave the listing inactive and record an actionable failure; do not synthesize a receipt.
@@ -57,7 +57,7 @@ The readback response exposes the office save/status, canonical number provenanc
 - A successful empty live result is authoritative and displays no stale listings.
 - When the live API fails, the site may show `properties.json` or browser cache only with a visible degraded-state notice.
 - If neither live data nor a saved snapshot is usable, the site displays no listings and a visible unavailable-state notice.
-- All public deep links use the canonical GitHub Pages origin and the exact office number: `?prop=<property_number>`.
+- All public deep links use the canonical public domain (hosted on GitHub Pages) and the exact office number: `?prop=<property_number>`.
 
 ## Recovery debt
 
