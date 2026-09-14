@@ -1690,10 +1690,18 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   transition: all .4s;
 }
 .gallery-thumbs {
-  position: absolute; bottom: 12px; right: 12px;
+  position: absolute; bottom: 12px; right: 12px; left: 12px;
   display: flex; gap: 6px;
+  overflow-x: auto; overflow-y: hidden;
+  padding: 5px 2px 8px;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
+  scrollbar-width: thin;
 }
 .gallery-thumb {
+  flex: 0 0 52px;
+  padding: 0;
   width: 52px; height: 38px; border-radius: 6px;
   border: 2px solid rgba(255,255,255,.4);
   cursor: pointer; overflow: hidden;
@@ -1756,10 +1764,14 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   width: 54px; height: 54px; border: none; border-radius: 50%;
   background: rgba(255,255,255,.14); color: #fff; font-size: 2.2rem; line-height: 1;
   cursor: pointer; transition: background .2s;
+  direction: ltr; /* Do not mirror arrow glyphs through Unicode bidi. */
 }
+.lb-nav, .lb-close, .gallery-thumb { touch-action: manipulation; user-select: none; }
 .lb-close:hover, .lb-nav:hover { background: rgba(255,255,255,.28); }
 .lb-prev { left: 20px; }
 .lb-next { right: 20px; }
+.lightbox[data-rtl="true"] .lb-prev { left: auto; right: 20px; }
+.lightbox[data-rtl="true"] .lb-next { right: auto; left: 20px; }
 .lb-counter {
   position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
   color: rgba(255,255,255,.85); font-size: .9rem; letter-spacing: .04em;
@@ -1767,6 +1779,8 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
 @media (max-width: 768px) {
   .lb-nav { width: 44px; height: 44px; font-size: 1.8rem; }
   .lb-prev { left: 8px; } .lb-next { right: 8px; }
+  .lightbox[data-rtl="true"] .lb-prev { right: 8px; }
+  .lightbox[data-rtl="true"] .lb-next { left: 8px; }
   .lb-close { top: 10px; right: 12px; }
 }
 .gallery-badge {

@@ -252,9 +252,11 @@ function openPropertyModal(p) {
   if (media.length > 0) {
     const firstShown = media.find(u => !isVideoUrl(u)) || media[0];
     showGalleryItem(main, firstShown);
-    media.forEach((src) => {
+    media.forEach((src, index) => {
       const vid = isVideoUrl(src);
-      const d = document.createElement('div');
+      const d = document.createElement('button');
+      d.type = 'button';
+      d.setAttribute('aria-label', `${vid ? 'סרטון' : 'תמונה'} ${index + 1} מתוך ${media.length}`);
       d.className = 'gallery-thumb' + (src === firstShown ? ' active' : '') + (vid ? ' is-video' : '');
       d.style.fontSize = '0';
       if (vid) {
@@ -269,6 +271,7 @@ function openPropertyModal(p) {
         document.querySelectorAll('.gallery-thumb').forEach(x => x.classList.remove('active'));
         this.classList.add('active');
         showGalleryItem(main, src);
+        this.scrollIntoView({ block: 'nearest', inline: 'nearest' });
       });
       thumbsEl.appendChild(d);
     });
@@ -416,6 +419,10 @@ function showGalleryItem(main, src) {
 function openLightbox(src) {
   const lb = document.getElementById('lightbox');
   if (!lb) return;
+  const rtl = getComputedStyle(lb).direction === 'rtl';
+  lb.dataset.rtl = String(rtl);
+  lb.querySelector('.lb-prev').textContent = rtl ? '›' : '‹';
+  lb.querySelector('.lb-next').textContent = rtl ? '‹' : '›';
   const imgEl = document.getElementById('lightboxImg');
   const counter = document.getElementById('lbCounter');
   const prev = lb.querySelector('.lb-video'); if (prev) prev.remove();
@@ -464,6 +471,18 @@ function closeLightbox() {
 
 // Wire the gallery main image → fullscreen lightbox, plus keyboard nav (attach once)
 (function wireLightbox() {
+  // Suppress double-tap zoom on controls, without suppressing either click
+  // or disabling pinch zoom for the page/image.
+  const lbControls = document.querySelectorAll('.lb-nav, .lb-close');
+  lbControls.forEach(control => control.addEventListener('dblclick', e => e.preventDefault()));
+  const thumbs = document.getElementById('galleryThumbs');
+  if (thumbs) thumbs.addEventListener('wheel', e => {
+    if (e.ctrlKey || e.deltaX || !e.deltaY || thumbs.scrollWidth <= thumbs.clientWidth) return;
+    const before = thumbs.scrollLeft;
+    const direction = getComputedStyle(thumbs).direction === 'rtl' ? -1 : 1;
+    thumbs.scrollLeft += e.deltaY * direction;
+    if (thumbs.scrollLeft !== before) e.preventDefault();
+  }, { passive: false });
   const gm = document.getElementById('galleryMain');
   if (gm) gm.addEventListener('click', function () {
     if (this.dataset.lightbox) openLightbox(this.dataset.lightbox);
@@ -472,8 +491,11 @@ function closeLightbox() {
     const lb = document.getElementById('lightbox');
     if (!lb || !lb.classList.contains('open')) return;
     if (e.key === 'Escape') closeLightbox();
-    else if (e.key === 'ArrowRight') lightboxNav(1);
-    else if (e.key === 'ArrowLeft') lightboxNav(-1);
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const forwardKey = getComputedStyle(lb).direction === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
+      lightboxNav(e.key === forwardKey ? 1 : -1);
+    }
   });
 })();
 
