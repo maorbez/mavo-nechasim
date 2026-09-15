@@ -481,13 +481,13 @@ async function loadData() {
 
 // ---- Build city + hood pills from data ----
 function buildFilters() {
-  const cityMap = {};
+  const cityMap = Object.create(null);
   allProps.forEach(p => {
     const parts = p.location.split(',');
-    if (parts.length < 2) return;
-    const city = parts[0].trim(), hood = parts[1].trim();
+    const city = parts[0].trim(), hood = (parts[1] || '').trim();
+    if (!city) return;
     if (!cityMap[city]) cityMap[city] = new Set();
-    cityMap[city].add(hood);
+    if (hood) cityMap[city].add(hood);
   });
 
   // Cities
