@@ -21,3 +21,7 @@ Rollback source: d2c7d2963f070d636f84981e281af2813b31f9d6 (verified remote maste
 The original source ZIP is restore-verified: 63 entries, SHA-256 4aa3ab4dc496b0c65fe276217c4db564222a594e68fe85eb31894221227592f0. It is stored in the owner's local artifacts and Google Drive. No database or external media changes are part of this release.
 
 If production fails verification, revert the release commit with a new commit on master, push normally, wait for the Pages build and confirm public index/app/style hashes against the rollback source. Do not force-push or alter the inventory provider.
+
+## Production readback and media follow-up
+
+Pages run 36192297294 deployed 1f5a244 successfully; production browser and exact asset readback passed. A subsequent media-availability check found the upstream MOV for public property 13 returned HTTP 404. Videos are still selected first; failed direct-video loads now fall back to an image with a visible unavailable notice in the gallery, and an image in map previews. No upstream URLs or Office records were modified. A rendered player is not proof the upstream video plays.

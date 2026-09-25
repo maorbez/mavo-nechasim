@@ -243,3 +243,5 @@ body:not([data-city]) .hero-scroll-hint{opacity:.55}
 .mavo-map-preview-tooltip{left:0;right:auto}
 
 .mavo-map-preview-photo video,.mavo-map-preview-photo iframe{position:absolute;width:100%;height:100%;object-fit:cover;inset:0;border:0;background:#242424}
+
+.gallery-media-notice{position:absolute;bottom:12px;right:12px;padding:7px 12px;border-radius:8px;background:#F8F3E9E6;color:#242424;font:13px Heebo,sans-serif}

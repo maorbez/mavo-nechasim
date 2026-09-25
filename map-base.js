@@ -35,7 +35,14 @@
       } else {
         media = document.createElement('img'); media.alt = property.title || 'תמונת הנכס'; media.src = url; media.decoding = 'async';
       }
-      media.onerror = function () { media.remove(); };
+      media.onerror = function () {
+        media.remove();
+        const fallback = safeMedia.find(value => !videoPattern.test(value));
+        if (videoPattern.test(url) && fallback) {
+          const image = document.createElement('img'); image.alt = property.title || 'תמונת הנכס'; image.src = fallback;
+          image.onerror = () => image.remove(); photo.appendChild(image);
+        }
+      };
       photo.appendChild(media);
     }
     const body = document.createElement('div'); body.className = 'mavo-map-preview-body';

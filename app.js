@@ -399,7 +399,16 @@ function showGalleryItem(main, src) {
     main.style.backgroundImage = '';
     main.style.cursor = 'default';
     main.dataset.lightbox = '';
-    main.appendChild(buildVideoNode(src));
+    const player = buildVideoNode(src);
+    player.addEventListener('error', () => {
+      if (_galleryImages.length) showGalleryItem(main, _galleryImages[0]);
+      else main.replaceChildren();
+      const notice = document.createElement('div');
+      notice.className = 'gallery-media-notice';
+      notice.textContent = 'הסרטון אינו זמין כרגע';
+      main.appendChild(notice);
+    }, {once:true});
+    main.appendChild(player);
   } else {
     main.classList.remove('is-video');
     main.style.backgroundImage = `url(${src})`;
