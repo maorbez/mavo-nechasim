@@ -4,9 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>חיפוש נכסים | מבוא נכסים</title>
-  <link rel="icon" href="favicon.ico" sizes="any" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
-  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
@@ -340,6 +337,10 @@
       .type-toggle { grid-template-columns: 1fr 1fr 1fr; }
     }
   </style>
+<link rel="stylesheet" href="brand.css?v=26">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=8">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=8">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=8">
 </head>
 <body>
 
@@ -351,7 +352,7 @@
       בית
     </a>
     <a href="index.html" class="topbar-logo">
-      <img src="logo.png" alt="מבוא נכסים" style="width:40px; height:auto; border-radius:8px;">
+      <img src="assets/brand/symbol-transparent-light.svg" alt="מבוא נכסים" style="width:40px; height:auto; border-radius:8px;">
       <div class="topbar-logo-text">
         <span class="tl-main">מבוא נכסים</span>
         <span class="tl-sub">מומחים בנדל"ן</span>
@@ -369,6 +370,7 @@
 
   <!-- ===== FILTER PANEL ===== -->
   <aside class="filter-panel collapsed" id="filterPanel">
+    <label class="filter-label" for="queryInput">שכונה, עיר או מספר נכס</label><input id="queryInput" class="query-input" type="search" placeholder="למשל פלורנטין" oninput="window.__q=this.value;applyFilters()">
     <div class="panel-title">
       <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
       סינון חיפוש
@@ -380,7 +382,7 @@
       <div class="type-toggle">
         <button class="type-btn active" data-type="all" onclick="setType(this)">הכל</button>
         <button class="type-btn" data-type="sale" onclick="setType(this)">למכירה</button>
-        <button class="type-btn" data-type="rent" onclick="setType(this)">להשכרה</button>
+        <button class="type-btn" data-type="rent" onclick="setType(this)">להשכרה</button><button class="type-btn" data-type="commercial" onclick="setType(this)">מסחרי</button>
       </div>
     </div>
 
@@ -416,6 +418,8 @@
       <span class="filter-label">חדרים</span>
       <div class="rooms-pills">
         <button class="room-pill active" data-rooms="all" onclick="setRooms(this)">הכל</button>
+        <button class="room-pill" data-rooms="1" onclick="setRooms(this)">1</button>
+        <button class="room-pill" data-rooms="1.5" onclick="setRooms(this)">1.5</button>
         <button class="room-pill" data-rooms="2" onclick="setRooms(this)">2</button>
         <button class="room-pill" data-rooms="2.5" onclick="setRooms(this)">2.5</button>
         <button class="room-pill" data-rooms="3" onclick="setRooms(this)">3</button>
@@ -458,6 +462,7 @@
 
 </div>
 
+<script src="catalog.js?v=1"></script>
 <script src="db.js?v=6"></script>
 <script>
 // ============================================
@@ -483,8 +488,7 @@ async function loadData() {
 function buildFilters() {
   const cityMap = Object.create(null);
   allProps.forEach(p => {
-    const parts = p.location.split(',');
-    const city = parts[0].trim(), hood = (parts[1] || '').trim();
+    const {city,hood}=MavoCatalog.location(p);
     if (!city) return;
     if (!cityMap[city]) cityMap[city] = new Set();
     if (hood) cityMap[city].add(hood);
@@ -530,13 +534,14 @@ function renderHoods(cityMap, preSelected) {
       hl.appendChild(lbl);
     }
     hoods.forEach(hood => {
-      const id = `hood_${hood}`;
+      const key=city+'|'+hood; const id = 'hood_'+encodeURIComponent(key);
       const label = document.createElement('label');
       label.className = 'hood-cb';
       label.htmlFor = id;
       const cb = document.createElement('input');
-      cb.type = 'checkbox'; cb.id = id; cb.value = hood;
-      cb.addEventListener('change', () => toggleHood(cb, hood));
+      cb.type = 'checkbox'; cb.id = id; cb.value = key;
+      cb.checked=!!preSelected?.has(key);if(cb.checked){activeHoods.add(key);label.className+=' checked';}
+      cb.addEventListener('change', () => toggleHood(cb, key));
       label.appendChild(cb);
       label.appendChild(document.createTextNode(hood));
       hl.appendChild(label);
@@ -582,6 +587,8 @@ function resetAll() {
   document.getElementById('priceMax').value = '';
   ['amElevator','amShelter','amParking'].forEach(id => { const el=document.getElementById(id); if(el) el.checked=false; });
   window.__q = '';
+  const query=document.getElementById('queryInput');if(query)query.value='';
+  history.replaceState(null,'',location.pathname);
   buildFilters();
   applyFilters();
 }
@@ -593,21 +600,18 @@ function applyFilters() {
   const sort = document.getElementById('sortSelect').value;
 
   let results = allProps.filter(p => {
-    const pNum = parseInt(p.price.replace(/[^0-9]/g,'')) || 0;
-    const parts = p.location.split(',');
-    const city = parts[0]?.trim() || '';
-    const hood = parts[1]?.trim() || '';
+    const pNum = parseInt(String(p.price||'').replace(/[^0-9]/g,'')) || 0;
+    const {city,hood}=MavoCatalog.location(p);
 
-    if (activeType !== 'all' && p.type !== activeType) return false;
+    if (!MavoCatalog.matchesType(p, activeType)) return false;
     if (activeCities.size > 0 && !activeCities.has(city)) return false;
-    if (activeHoods.size > 0 && !activeHoods.has(hood)) return false;
+    if (activeHoods.size > 0 && !activeHoods.has(city+'|'+hood)) return false;
     if (pNum < priceMin || pNum > priceMax) return false;
     if (document.getElementById('amElevator')?.checked && !p.hasElevator) return false;
     if (document.getElementById('amShelter')?.checked && !p.hasShelter) return false;
     if (document.getElementById('amParking')?.checked && !p.hasParking) return false;
     if (window.__q) {
-      const hay = ((p.title||'') + ' ' + (p.location||'') + ' ' + (p.desc||'')).toLowerCase();
-      if (!hay.includes(window.__q.toLowerCase())) return false;
+      if (!MavoCatalog.matchesQuery(p,window.__q)) return false;
     }
     if (activeRooms !== 'all') {
       const r = parseFloat(activeRooms);
@@ -626,7 +630,7 @@ function applyFilters() {
   renderResults(results);
 }
 
-function numPrice(p) { return parseInt((p.price||'0').replace(/[^0-9]/g,'')) || 0; }
+function numPrice(p) { return parseInt(String(p.price||'0').replace(/[^0-9]/g,'')) || 0; }
 
 // XSS-safe escaping for any DB-sourced field injected into innerHTML
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -661,9 +665,9 @@ function renderResults(props) {
     const pid = Number(p.id) || 0;
     const waMsg = encodeURIComponent(`שלום, אני מעוניין בנכס: ${p.title} — ${p.location}`);
     return `
-      <div class="res-card" onclick="openProp(${pid})">
+      <div class="res-card" onclick="openProp(${pid})" tabindex="0" role="link" onkeydown="if(event.target===this && event.key==='Enter')openProp(${pid})">
         <div class="res-img" style="background:${esc(p.bg)};position:relative;overflow:hidden">
-          ${(p.photos&&p.photos.length)?`<img src="${esc(p.photos[0])}" alt="${esc(p.title)}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">`:`<div class="res-emoji">${esc(p.emoji||'🏠')}</div>`}
+          ${(p.photos||[]).find(u=>!(/\.(mp4|mov|webm)(?:[?#]|$)/i.test(u)))?`<img src="${esc((p.photos||[]).find(u=>!(/\.(mp4|mov|webm)(?:[?#]|$)/i.test(u))))}" alt="${esc(p.title)}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">`:`<div class="res-emoji">${esc(p.emoji||'🏠')}</div>`}
           <div class="res-badge ${esc(p.type)}">${typeLabel[p.type]||''}</div>
           <div class="res-avail"></div>
         </div>
@@ -705,21 +709,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Prefill from URL params (e.g. ?city=תל אביב&type=sale)
   const p = new URLSearchParams(window.location.search);
-  if (p.get('q')) { window.__q = p.get('q'); applyFilters(); }
+  if (p.get('q')) { window.__q = p.get('q'); document.getElementById('queryInput').value=window.__q; }
   if (p.get('priceMax')) { document.getElementById('priceMax').value = p.get('priceMax'); applyFilters(); }
   if (p.get('priceMin')) { document.getElementById('priceMin').value = p.get('priceMin'); applyFilters(); }
   if (p.get('type')) {
-    const btn = document.querySelector(`.type-btn[data-type="${p.get('type')}"]`);
+    const btn = [...document.querySelectorAll('.type-btn')].find(b=>b.dataset.type===p.get('type'));
     if (btn) setType(btn);
   }
   if (p.get('city')) {
     const pill = [...document.querySelectorAll('.city-pill')].find(b => b.textContent === p.get('city'));
     if (pill) pill.click();
+    else activeCities.add(MavoCatalog.cityName(p.get('city')));
+  }
+  if (p.get('hood')) {
+    const hood=MavoCatalog.hoodName(p.get('hood'));
+    const city=MavoCatalog.cityName(p.get('city'));
+    // Retain even an empty requested area: never silently broaden to all listings.
+    activeHoods.clear();
+    if(city)activeHoods.add(city+'|'+hood);
+    else for(const c of Object.keys(window._cityMap))activeHoods.add(c+'|'+hood);
+    if(!activeHoods.size)activeHoods.add('|'+hood);
+    document.querySelectorAll('.hood-cb input').forEach(cb=>{cb.checked=activeHoods.has(cb.value);});
   }
   if (p.get('rooms')) {
-    const btn = document.querySelector(`.room-pill[data-rooms="${p.get('rooms')}"]`);
+    const btn = [...document.querySelectorAll('.room-pill')].find(b=>b.dataset.rooms===p.get('rooms'));
     if (btn) setRooms(btn);
   }
+  applyFilters();
 });
 </script>
 </body>

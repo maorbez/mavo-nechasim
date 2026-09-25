@@ -123,12 +123,17 @@
 }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="icon" href="favicon.ico" sizes="any" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
-  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="stylesheet" href="style.css?v=73" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="assets/maps/maplibre-gl.css">
+<script src="assets/maps/maplibre-gl.js"></script>
+<script src="assets/maps/leaflet-maplibre-gl.js"></script>
+<script src="map-base.js?v=26"></script>
+<link rel="stylesheet" href="brand.css?v=26">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=8">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=8">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=8">
 </head>
 <body>
 
@@ -136,8 +141,8 @@
 <header class="navbar" id="navbar">
   <div class="container nav-inner">
     <a href="#" class="logo">
-      <img src="logo.png" class="logo-img" alt="מבוא נכסים" style="width:52px; height:auto; border-radius:12px;">
-      <div class="logo-text">
+      <img src="assets/brand/symbol-transparent.svg" class="logo-img brand-symbol-dark" alt="מבוא נכסים" style="width:52px; height:auto; border-radius:12px;"><img src="assets/brand/symbol-transparent-light.svg" class="logo-img brand-symbol-light" alt="" aria-hidden="true" style="width:52px; height:auto; border-radius:12px;">
+      <img src="assets/brand/symbol-transparent-gold.svg" class="logo-img brand-symbol-gold" alt="" aria-hidden="true"><div class="logo-text">
         <span class="logo-main">מבוא נכסים</span>
         <span class="logo-sub">מומחים בנדל"ן</span>
       </div>
@@ -172,6 +177,7 @@
     <a href="#about" onclick="toggleMenu()">אודות</a>
     <a href="#services" onclick="toggleMenu()">שירותים</a>
     <a href="#contact" onclick="toggleMenu()">צור קשר</a>
+    <a href="#contact" class="mobile-publish" onclick="toggleMenu()">פרסם נכס</a>
     <div style="padding: 8px 16px 16px; display: flex; justify-content: center; border-top: 1px solid #f1f5f9;">
       <a href="tel:0548026123" class="mobile-phone" translate="no">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
@@ -202,103 +208,18 @@
     </h1>
     <p class="hero-subtitle">מבוא נכסים — דירות למכירה ולהשכרה בתל אביב ובבת ים. חפשו נכס שמתאים לכם ופנו אלינו לפרטים ולתיאום ביקור.</p>
 
-    <!-- Search Box -->
-    <div class="search-box glass">
-      <div class="search-tabs">
-        <button class="tab active" onclick="setTab(this,'sale')">למכירה</button>
-        <button class="tab" onclick="setTab(this,'rent')">להשכרה</button>
-        <button class="tab" onclick="setTab(this,'commercial')">מסחרי</button>
-      </div>
+    <form class="search-box glass" onsubmit="event.preventDefault();doSearch()">
+      <div class="search-tabs"><button type="button" data-type="all" class="tab active" onclick="setTab(this,'all')">כל הנכסים</button><button type="button" data-type="sale" class="tab" onclick="setTab(this,'sale')">למכירה</button><button type="button" data-type="rent" class="tab" onclick="setTab(this,'rent')">להשכרה</button><button type="button" data-type="commercial" class="tab" onclick="setTab(this,'commercial')">מסחרי</button></div>
       <div class="search-fields">
-        <div class="field-group">
-          <label>עיר / אזור</label>
-          <select>
-            <option value="">בחר עיר...</option>
-            <option value="תל אביב">תל אביב</option>
-            <option value="בת ים">בת ים</option>
-            <option value="ירושלים">ירושלים</option>
-            <option value="חיפה">חיפה</option>
-            <option value="ראשון לציון">ראשון לציון</option>
-            <option value="פתח תקוה">פתח תקוה</option>
-            <option value="נתניה">נתניה</option>
-            <option value="באר שבע">באר שבע</option>
-            <option value="רמת גן">רמת גן</option>
-            <option value="אשדוד">אשדוד</option>
-            <option value="הרצליה">הרצליה</option>
-          </select>
-        </div>
-        <div class="field-group">
-          <label>סוג נכס</label>
-          <select>
-            <option value="">כל הסוגים</option>
-            <option>דירה</option>
-            <option>בית פרטי</option>
-            <option>פנטהאוז</option>
-            <option>דופלקס</option>
-            <option>גן/קרקע</option>
-            <option>מסחרי</option>
-          </select>
-        </div>
-        <div class="field-group">
-          <label>מחיר מקסימלי</label>
-          <select>
-            <option value="">ללא הגבלה</option>
-            <option>עד 1,000,000 ₪</option>
-            <option>עד 2,000,000 ₪</option>
-            <option>עד 3,000,000 ₪</option>
-            <option>עד 5,000,000 ₪</option>
-            <option>עד 10,000,000 ₪</option>
-          </select>
-        </div>
-        <div class="field-group">
-          <label>חדרים</label>
-          <select class="room-select">
-            <option value="all">הכל</option>
-            <option value="2">2</option>
-            <option value="2.5">2.5</option>
-            <option value="3">3</option>
-            <option value="3.5">3.5</option>
-            <option value="4">4</option>
-            <option value="4.5">4.5</option>
-            <option value="5">5+</option>
-          </select>
-        </div>
-        <button class="search-btn" onclick="doSearch()">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-          חפש
-        </button>
+        <div class="field-group"><label for="heroCity">עיר</label><select id="heroCity"><option value="">כל הערים</option></select></div>
+        <div class="field-group"><label for="heroHood">שכונה</label><select id="heroHood"><option value="">כל השכונות</option></select></div>
+        <div class="field-group"><label for="heroBudget">תקציב עד</label><input id="heroBudget" type="number" min="0" inputmode="numeric" placeholder="ללא הגבלה"></div>
+        <div class="field-group"><label for="heroRooms">חדרים</label><select id="heroRooms"><option value="all">הכל</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option><option>3.5</option><option>4</option><option>4.5</option><option value="5">5 ומעלה</option></select></div>
+        <button type="submit" class="search-btn">חיפוש נכסים ←</button>
       </div>
-    </div>
-
-    <div class="hero-tags">
-      <a href="search.html" style="color:var(--gold,#F5B731); font-weight:700; text-decoration:none;">⚙ כל הסינונים ←</a>
-      <span>שכונות מבוקשות:</span>
-      <a href="neve-tzedek.html">נווה צדק</a>
-      <a href="florentin.html">פלורנטין</a>
-      <a href="north-tel-aviv.html">הצפון הישן</a>
-      <a href="kerem-hateimanim.html">כרם התימנים</a>
-      <a href="bat-yam.html">בת ים</a>
-    </div>
+    </form>
+    <p class="hero-local-link"><a href="#neighborhoods">או להכיר את השכונות ↓</a></p>
   </div>
-
-  <div class="hero-stats">
-    <div class="container hero-stats-inner">
-      <div class="stat-item">
-        <span class="stat-label">נכסים למכירה</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-label">נכסים להשכרה</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-label">חיפוש לפי אזור ותקציב</span>
-      </div>
-    </div>
-  </div>
-  <!-- Scroll hint — below stats, just above the wave -->
   <a href="#map-section" class="hero-scroll-hint">
     <span>גלול למטה</span>
     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m19 9-7 7-7-7"/></svg>
@@ -366,8 +287,14 @@
         </select>
       </div>
     </div>
+    <fieldset class="map-amenities">
+      <legend>מאפייני הנכס</legend>
+      <label><input id="mapParking" type="checkbox" onchange="filterMapByState()"> חניה</label>
+      <label><input id="mapElevator" type="checkbox" onchange="filterMapByState()"> מעלית</label>
+      <label><input id="mapShelter" type="checkbox" onchange="filterMapByState()"> ממ״ד / ממ״ק / מקלט</label>
+    </fieldset>
     <div class="map-wrapper">
-      <div id="mainMap"></div>
+      <div class="map-kind-legend" aria-label="מקרא סוגי נכסים"><span><i class="map-residential"></i>מגורים</span><span><i class="map-commercial"></i>מסחרי</span></div><div id="mainMap"></div>
       <div class="map-legend">
         <div class="legend-item"><span class="leg-pin sale-pin"></span> 🏠 למכירה</div>
         <div class="legend-item"><span class="leg-pin rent-pin"></span> 🏠 להשכרה</div>
@@ -385,60 +312,9 @@
     <div class="section-header">
       <div class="section-tag">לפי שכונה</div>
       <h2 class="section-title">גלה את <span class="accent">השכונות</span></h2>
-      <p class="section-desc">בחר שכונה לפרטים מלאים, מפת נכסים וניתוח שוק עדכני</p>
+      <p class="section-desc">בחרו שכונה כדי לראות את הנכסים והסימונים שלה במפה</p>
     </div>
-    <div class="hoods-grid">
-      <a href="neve-tzedek.html" class="hood-card">
-        <img class="hood-card-photo" src="assets/neighborhoods/neve-tzedek.jpg" alt="נווה צדק" loading="lazy">
-        <div class="hood-card-bg" style="background:linear-gradient(135deg,#1a0a00 0%,#3d1f00 50%,#c8860a 100%)"></div>
-        <div class="hood-card-en">NEVE TZEDEK</div>
-        <div class="hood-card-body">
-          <div class="hood-card-tag">יוקרתי · היסטורי</div>
-          <div class="hood-card-name">נווה צדק</div>
-          <div class="hood-card-stat">חיפוש נכסים באזור</div>
-        </div>
-      </a>
-      <a href="florentin.html" class="hood-card">
-        <img class="hood-card-photo" src="assets/neighborhoods/florentin.jpg" alt="פלורנטין" loading="lazy">
-        <div class="hood-card-bg" style="background:linear-gradient(135deg,#1a0030 0%,#3d0070 50%,#8b2fc9 100%)"></div>
-        <div class="hood-card-en">FLORENTIN</div>
-        <div class="hood-card-body">
-          <div class="hood-card-tag">צעיר · תוסס</div>
-          <div class="hood-card-name">פלורנטין</div>
-          <div class="hood-card-stat">חיפוש נכסים באזור</div>
-        </div>
-      </a>
-      <a href="north-tel-aviv.html" class="hood-card">
-        <img class="hood-card-photo" src="assets/neighborhoods/north-tlv.jpg" alt="הצפון הישן" loading="lazy">
-        <div class="hood-card-bg" style="background:linear-gradient(135deg,#000d2e 0%,#001a6e 50%,#1565C0 100%)"></div>
-        <div class="hood-card-en">NORTH TLV</div>
-        <div class="hood-card-body">
-          <div class="hood-card-tag">משפחתי · באוהאוס</div>
-          <div class="hood-card-name">הצפון הישן</div>
-          <div class="hood-card-stat">חיפוש נכסים באזור</div>
-        </div>
-      </a>
-      <a href="kerem-hateimanim.html" class="hood-card">
-        <img class="hood-card-photo" src="assets/neighborhoods/kerem-hateimanim.jpg" alt="כרם התימנים" loading="lazy">
-        <div class="hood-card-bg" style="background:linear-gradient(135deg,#0d1f0d 0%,#1a3d1a 50%,#c87d0a 100%)"></div>
-        <div class="hood-card-en">KEREM HATEIMANIM</div>
-        <div class="hood-card-body">
-          <div class="hood-card-tag">אותנטי · שוק הכרמל</div>
-          <div class="hood-card-name">כרם התימנים</div>
-          <div class="hood-card-stat">חיפוש נכסים באזור</div>
-        </div>
-      </a>
-      <a href="bat-yam.html" class="hood-card">
-        <img class="hood-card-photo" src="assets/neighborhoods/bat-yam.jpg" alt="בת ים" loading="lazy">
-        <div class="hood-card-bg" style="background:linear-gradient(135deg,#001a2e 0%,#003a6e 50%,#0077b6 100%)"></div>
-        <div class="hood-card-en">BAT YAM</div>
-        <div class="hood-card-body">
-          <div class="hood-card-tag">נגיש · חוף הים</div>
-          <div class="hood-card-name">בת ים</div>
-          <div class="hood-card-stat">חיפוש נכסים באזור</div>
-        </div>
-      </a>
-    </div>
+    <div class="hoods-grid"><a href="neve-tzedek.html" class="hood-card area-card" style="--area-color:#E4D3B4"><div class="area-swatch" aria-hidden="true"></div><div class="hood-card-body"><div class="hood-card-name">נווה צדק</div><div class="hood-card-stat">לנכסים באזור ←</div></div></a><a href="florentin.html" class="hood-card area-card" style="--area-color:#DBC3B2"><div class="area-swatch" aria-hidden="true"></div><div class="hood-card-body"><div class="hood-card-name">פלורנטין</div><div class="hood-card-stat">לנכסים באזור ←</div></div></a><a href="north-tel-aviv.html" class="hood-card area-card" style="--area-color:#CED7CA"><div class="area-swatch" aria-hidden="true"></div><div class="hood-card-body"><div class="hood-card-name">הצפון הישן</div><div class="hood-card-stat">לנכסים באזור ←</div></div></a><a href="kerem-hateimanim.html" class="hood-card area-card" style="--area-color:#E5DDBF"><div class="area-swatch" aria-hidden="true"></div><div class="hood-card-body"><div class="hood-card-name">כרם התימנים</div><div class="hood-card-stat">לנכסים באזור ←</div></div></a><a href="bat-yam.html" class="hood-card area-card" style="--area-color:#CDDDE0"><div class="area-swatch" aria-hidden="true"></div><div class="hood-card-body"><div class="hood-card-name">בת ים</div><div class="hood-card-stat">לנכסים באזור ←</div></div></a><a href="lev-hair.html" class="hood-card area-card" style="--area-color:#D8CDD9"><div class="area-swatch" aria-hidden="true"></div><div class="hood-card-body"><div class="hood-card-name">לב העיר</div><div class="hood-card-stat">לנכסים באזור ←</div></div></a></div>
   </div>
 </section>
 
@@ -571,6 +447,7 @@
     </div>
     <div class="dynamic-hoods" id="dynamicHoods"></div>
 
+    <p id="catalogEmpty" class="catalog-empty" hidden>אין נכסים שמתאימים לבחירה. נסו לשנות שכונה או סוג עסקה.</p>
     <div class="properties-grid" id="propertiesGrid">
       <!-- cards rendered dynamically by renderPropertiesGrid() in app.js -->
     </div>
@@ -626,7 +503,7 @@
       </div>
       <div class="why-visual">
         <div class="big-logo-display">
-          <img src="logo.png" alt="לוגו גדול" style="width:100%; max-width:280px; display:block; margin:auto; border-radius: 24px;">
+          <img src="assets/brand/logo-hebrew-transparent-light.svg" alt="מבוא נכסים — הלוגו המקורי" style="width:100%; max-width:280px; display:block; margin:auto; border-radius: 24px;">
         </div>
 
       </div>
@@ -788,93 +665,16 @@
 </section>
 
 <!-- ========== PRE-FOOTER: מי אנחנו ========== -->
-<section class="prefooter">
-  <div class="container prefooter-grid">
 
-    <!-- עמודה 1: מי אנחנו -->
-    <div class="pf-col pf-brand">
-      <div class="logo">
-        <img src="logo.png" class="logo-img small" alt="מבוא נכסים">
-        <div class="logo-text">
-          <span class="logo-main">מבוא נכסים</span>
-          <span class="logo-sub">מומחים בנדל"ן</span>
-        </div>
-      </div>
-      <p class="pf-desc">מבוא נכסים — תיווך דירות למכירה ולהשכרה בתל אביב ובבת ים. באתר אפשר לחפש נכסים, לעיין בפרטים ולפנות אלינו לתיאום ביקור.</p>
-
-    </div>
-
-    <!-- עמודה 2: מה אנחנו עושים -->
-    <div class="pf-col pf-services">
-      <h4 class="pf-title">מה אנחנו עושים</h4>
-      <ul class="pf-list">
-        <li>
-          <svg class="pf-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          קנייה ומכירת נכסים
-        </li>
-        <li>
-          <svg class="pf-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          השכרה וניהול נכסים
-        </li>
-        <li>
-          <svg class="pf-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          הערכת שווי חינם
-        </li>
-        <li>
-          <svg class="pf-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          ייעוץ נדל"ן להשקעה
-        </li>
-        <li>
-          <svg class="pf-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          פרויקטים חדשים מקבלן
-        </li>
-        <li>
-          <svg class="pf-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          נדל"ן בחו"ל
-        </li>
-      </ul>
-    </div>
-
-    <!-- עמודה 3: השכונות שלנו -->
-    <div class="pf-col pf-neighborhoods-col">
-      <h4 class="pf-title">השכונות שלנו</h4>
-      <ul class="pf-list">
-        <li>
-          <svg class="pf-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          <a href="neve-tzedek.html" style="color:inherit;text-decoration:none">נווה צדק</a>
-        </li>
-        <li>
-          <svg class="pf-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          <a href="florentin.html" style="color:inherit;text-decoration:none">פלורנטין</a>
-        </li>
-        <li>
-          <svg class="pf-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          <a href="north-tel-aviv.html" style="color:inherit;text-decoration:none">הצפון הישן</a>
-        </li>
-        <li>
-          <svg class="pf-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          <a href="kerem-hateimanim.html" style="color:inherit;text-decoration:none">כרם התימנים</a>
-        </li>
-        <li>
-          <svg class="pf-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          <a href="bat-yam.html" style="color:inherit;text-decoration:none">בת ים</a>
-        </li>
-      </ul>
-      <a href="search.html" class="pf-all-link">כל הנכסים ←</a>
-      <a href="#contact" class="pf-cta">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        שלחו לנו הודעה
-      </a>
-    </div>
-
-  </div>
-</section>
 
 <!-- ========== FOOTER ========== -->
 <footer class="footer">
   <div class="container footer-inner">
     <div class="footer-brand">
-      <p class="footer-tagline">מבוא נכסים — תיווך דירות למכירה ולהשכרה.</p>
+      <a href="#" class="footer-identity" aria-label="מבוא נכסים — לראש העמוד"><img src="assets/brand/logo-hebrew-transparent-light.svg" alt="מבוא נכסים" width="170" height="130"></a>
+      <p class="footer-tagline">דירות למכירה ולהשכרה בתל אביב ובבת ים.</p>
+      <a href="tel:0548026123" class="footer-phone" dir="ltr">054-802-6123</a>
+      <a href="#contact" class="pf-cta">דברו איתנו</a>
     </div>
     <div class="footer-links">
       <div class="footer-col">
@@ -888,7 +688,7 @@
       <div class="footer-col">
         <h4>שכונות</h4>
         <a href="neve-tzedek.html">נווה צדק</a>
-        <a href="florentin.html">פלורנטין</a>
+        <a href="florentin.html">פלורנטין</a><a href="lev-hair.html">לב העיר</a>
         <a href="north-tel-aviv.html">הצפון הישן</a>
         <a href="kerem-hateimanim.html">כרם התימנים</a>
         <a href="bat-yam.html">בת ים</a>
@@ -970,7 +770,7 @@
 
 <!-- Language Side Panel -->
 <div class="lang-panel-wrapper" translate="no">
-  <div class="lang-side-panel">
+  <div class="lang-side-panel collapsed">
     <button class="lang-collapse-btn" onclick="toggleLangPanel()" aria-label="פאנל שפות">›</button>
     <div class="lang-items">
       <button onclick="changeWebsiteLanguage('iw')" title="עברית">HE</button>
@@ -1001,8 +801,9 @@
   <div class="lb-counter" id="lbCounter"></div>
 </div>
 
+<script src="catalog.js?v=1"></script>
 <script src="db.js?v=6"></script>
-<script src="app.js?v=13"></script>
+<script src="app.js?v=26"></script>
 <script type="text/javascript">
 function googleTranslateElementInit() {
   // If Hebrew is the saved/default language, clear googtrans cookie RIGHT before GT reads it

@@ -29,3 +29,13 @@ test('English gallery keeps right-forward navigation and repeated clicks advance
   assert.equal(g.elements.lightboxImg.src, 'one');
   assert.equal(g.elements.lbCounter.textContent, '1 / 3');
 });
+
+test('property gallery puts all videos first without mutating office media order', () => {
+  const start = code.indexOf('function isVideoUrl');
+  const end = code.indexOf('// Build a safe DOM player node', start);
+  const context = vm.createContext({}); vm.runInContext(code.slice(start,end),context);
+  const input = ['photo.jpg','tour.mp4','second.jpg','https://youtu.be/123456789ab','last.webm'];
+  assert.deepEqual(Array.from(context.orderPropertyMedia(input)), ['tour.mp4','https://youtu.be/123456789ab','last.webm','photo.jpg','second.jpg']);
+  assert.equal(input[0], 'photo.jpg');
+  assert.deepEqual(Array.from(context.orderPropertyMedia(null)), []);
+});
