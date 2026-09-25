@@ -36,7 +36,10 @@
   }
 
   function mapDbRow(row) {
+    // Server-owned marker in the existing public projection; no private address is fetched.
+    const approximate = row.extra === 'מיקום משוער';
     return {
+      publicLocationMode: approximate ? 'approximate' : 'exact',
       // Supabase id must be the immutable property_number allocated by Office CRM.
       id: canonicalPropertyId(row.id),
       type: row.type,
@@ -47,12 +50,12 @@
       rooms: row.rooms,
       baths: row.baths,
       sqm: row.sqm,
-      extra: row.extra,
+      extra: approximate ? '' : row.extra,
       desc: row.description,
       emoji: row.emoji || '🏠',
       bg: row.bg || 'linear-gradient(135deg,#1a3a5c,#2d6a9f)',
-      lat: row.lat,
-      lng: row.lng,
+      lat: approximate ? null : row.lat,
+      lng: approximate ? null : row.lng,
       photos: Array.isArray(row.photos) ? row.photos : [],
       hasElevator: row.has_elevator === true,
       hasShelter: row.has_shelter === true,
@@ -95,34 +98,6 @@
     return data.map(mapDbRow);
   }
 
-  async function fetchStaticSnapshot(options) {
-    const opts = options || {};
-    const fetchImpl = opts.fetchImpl || (root && root.fetch
-      ? root.fetch.bind(root)
-      : (typeof globalThis.fetch === 'function' ? globalThis.fetch.bind(globalThis) : null));
-    const response = await fetchWithTimeout(fetchImpl, opts.snapshotUrl || 'properties.json', {
-      cache: 'no-store'
-    }, opts.timeoutMs || 8000);
-    if (!response.ok) throw new Error('Snapshot ' + response.status);
-    const data = await response.json();
-    const rows = Array.isArray(data) ? data : data && data.properties;
-    if (!Array.isArray(rows)) throw new Error('Snapshot returned an invalid property list');
-    return rows.filter(function (property) { return property.active !== false; }).map(function (property) {
-      return Object.assign({}, property, { id: canonicalPropertyId(property.id) });
-    });
-  }
-
-  function readBrowserCache() {
-    if (!root || !root.localStorage) return [];
-    const stored = root.localStorage.getItem('globes_properties');
-    if (!stored) return [];
-    const rows = JSON.parse(stored);
-    if (!Array.isArray(rows)) throw new Error('Browser cache is invalid');
-    return rows.filter(function (property) { return property.active !== false; }).map(function (property) {
-      return Object.assign({}, property, { id: canonicalPropertyId(property.id) });
-    });
-  }
-
   function renderPropertyDataStatus(result) {
     if (!root || !root.document || !root.document.body) return;
     const existing = root.document.getElementById(STATUS_ID);
@@ -146,39 +121,17 @@
   async function loadMavoProperties(options) {
     const opts = options || {};
     const liveLoader = opts.fetchLive || function () { return fetchPropertiesFromDB(opts); };
-    const snapshotLoader = opts.fetchSnapshot || function () { return fetchStaticSnapshot(opts); };
-    const cacheLoader = opts.readCache || readBrowserCache;
-    const shouldRender = opts.renderStatus !== false;
-
+    let result;
     try {
-      // An empty live result is authoritative. Never revive stale listings when there are zero active rows.
       const properties = verifiedPropertyList(await liveLoader());
-      const result = { properties: properties, source: 'supabase', degraded: false, error: null };
-      if (shouldRender) renderPropertyDataStatus(result);
-      return result;
-    } catch (liveError) {
-      try {
-        const snapshot = verifiedPropertyList(await snapshotLoader());
-        const result = { properties: snapshot, source: 'snapshot', degraded: true, error: liveError };
-        if (shouldRender) renderPropertyDataStatus(result);
-        return result;
-      } catch (snapshotError) {
-        try {
-          const cached = verifiedPropertyList(cacheLoader());
-          if (Array.isArray(cached) && cached.length > 0) {
-            const result = { properties: cached, source: 'browser-cache', degraded: true, error: liveError };
-            if (shouldRender) renderPropertyDataStatus(result);
-            return result;
-          }
-        } catch (cacheError) {
-          // The unavailable result below is the only trustworthy state.
-        }
-
-        const result = { properties: [], source: 'unavailable', degraded: true, error: liveError };
-        if (shouldRender) renderPropertyDataStatus(result);
-        return result;
-      }
+      result = { properties, source: 'supabase', degraded: false, error: null };
+    } catch (error) {
+      // Privacy choices may have changed since any snapshot/cache was created.
+      // Without current server authorization, never revive old public addresses.
+      result = { properties: [], source: 'unavailable', degraded: true, error };
     }
+    if (opts.renderStatus !== false) renderPropertyDataStatus(result);
+    return result;
   }
 
   return {
@@ -190,7 +143,6 @@
     verifiedPropertyList: verifiedPropertyList,
     mapDbRow: mapDbRow,
     fetchPropertiesFromDB: fetchPropertiesFromDB,
-    fetchStaticSnapshot: fetchStaticSnapshot,
     loadMavoProperties: loadMavoProperties,
     renderPropertyDataStatus: renderPropertyDataStatus
   };

@@ -462,8 +462,8 @@
 
 </div>
 
-<script src="catalog.js?v=1"></script>
-<script src="db.js?v=6"></script>
+<script src="catalog.js?v=28"></script>
+<script src="db.js?v=28"></script>
 <script>
 // ============================================
 // SEARCH PAGE — Mavo Nechasim
@@ -663,7 +663,7 @@ function renderResults(props) {
     const featLine = featureTags.join('');
     const ag = p.agent || {};
     const pid = Number(p.id) || 0;
-    const waMsg = encodeURIComponent(`שלום, אני מעוניין בנכס: ${p.title} — ${p.location}`);
+    const waMsg = encodeURIComponent(`שלום, אני מעוניין בנכס: ${p.title} — ${MavoCatalog.locationLabel(p)}`);
     return `
       <div class="res-card" onclick="openProp(${pid})" tabindex="0" role="link" onkeydown="if(event.target===this && event.key==='Enter')openProp(${pid})">
         <div class="res-img" style="background:${esc(p.bg)};position:relative;overflow:hidden">
@@ -676,7 +676,7 @@ function renderResults(props) {
           <div class="res-title">${esc(p.title)}</div>
           <div class="res-loc">
             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            ${esc(p.location)}
+            ${esc(MavoCatalog.locationLabel(p))}
           </div>
           <div class="res-tags">${featLine}</div>
           <div class="res-footer">

@@ -49,7 +49,7 @@
     const price = document.createElement('strong'); price.textContent = property.priceLabel || (property.price ? '₪ ' + property.price : 'מחיר בתיאום');
     const title = document.createElement('div'); title.className = 'mavo-map-preview-title'; title.textContent = property.title || property.location || 'נכס';
     const facts = document.createElement('div'); facts.className = 'mavo-map-preview-facts';
-    facts.textContent = [property.rooms ? property.rooms + ' חדרים' : '', property.sqm ? property.sqm + ' מ״ר' : '', property.location].filter(Boolean).join(' · ');
+    facts.textContent = [property.rooms ? property.rooms + ' חדרים' : '', property.sqm ? property.sqm + ' מ״ר' : '', MavoCatalog.locationLabel(property)].filter(Boolean).join(' · ');
     const hint = document.createElement('small'); hint.textContent = count > 1 ? 'ועוד ' + (count - 1) + ' נכסים באותו מיקום · לחצו לצפייה' : 'לחצו לפרטי הנכס';
     body.append(price, title, facts, hint); card.append(photo, body); return card;
   };

@@ -43,11 +43,11 @@ function waLink(p) {
   const propUrl = `${SITE_URL}?prop=${p.id}`;
   const msg =
     `${p.emoji} *${p.title}*\n` +
-    `📍 ${p.location}\n` +
+    `📍 ${MavoCatalog.locationLabel(p)}\n` +
     `💰 ${p.priceLabel}\n` +
     `${featLine}\n\n` +
     `🔗 לצפייה בנכס:\n${propUrl}\n\n` +
-    `🗺 ניווט בוויז:\nhttps://waze.com/ul?ll=${p.lat},${p.lng}&navigate=yes\n\n` +
+    (MavoCatalog.navigationUrl(p) ? `🗺 ניווט בוויז:\n${MavoCatalog.navigationUrl(p)}\n\n` : '') +
     `📞 מבוא נכסים | 054-802-6123`;
   return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
 }
@@ -288,7 +288,7 @@ function openPropertyModal(p) {
   document.getElementById('modalPrice').textContent = p.priceLabel || ('₪ ' + p.price);
   document.getElementById('modalTitle').textContent = p.title;
   document.getElementById('modalLocation').innerHTML =
-    `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${esc(p.location)}`;
+    `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${esc(MavoCatalog.locationLabel(p))}`;
 
   const modalFeatures = [];
   if (hasDisplayValue(p.rooms)) modalFeatures.push(`<span>🛏 ${esc(p.rooms)} חדרים</span>`);
@@ -329,11 +329,14 @@ function openPropertyModal(p) {
   document.getElementById('modalWA').href = waLink(p);
 
   // Waze
-  document.getElementById('modalWaze').href =
-    `https://waze.com/ul?ll=${p.lat},${p.lng}&navigate=yes&zoom=17`;
+  const waze = document.getElementById('modalWaze');
+  const navigation = MavoCatalog.navigationUrl(p);
+  waze.hidden = !navigation;
+  waze.style.display = navigation ? '' : 'none';
+  if (navigation) waze.href = navigation; else waze.removeAttribute('href');
 
   // Form subtitle
-  document.getElementById('modalFormSub').textContent = `שאלות על: ${p.title} — ${p.location}`;
+  document.getElementById('modalFormSub').textContent = `שאלות על: ${p.title} — ${MavoCatalog.locationLabel(p)}`;
 
   // Phone
   document.getElementById('modalPhone').textContent = ag.phone || '054-802-6123';
@@ -978,7 +981,7 @@ function renderPropertiesGrid(props) {
     const loc = document.createElement('div');
     loc.className = 'prop-loc';
     loc.appendChild(_mkSvgLocPin());
-    loc.appendChild(document.createTextNode(' ' + (p.location || '')));
+    loc.appendChild(document.createTextNode(' ' + MavoCatalog.locationLabel(p)));
     body.appendChild(loc);
 
     const feats = document.createElement('div');

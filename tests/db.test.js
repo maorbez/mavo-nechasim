@@ -52,7 +52,7 @@ test('a successful empty live inventory is authoritative and never falls back', 
   assert.equal(fallbackCalls, 0);
 });
 
-test('a live outage uses a marked static snapshot', async function () {
+test('a live outage is unavailable rather than disclosing a stale snapshot', async function () {
   const result = await db.loadMavoProperties({
     fetchLive: async function () { throw new Error('offline'); },
     fetchSnapshot: async function () { return [{ id: 38, title: 'snapshot' }]; },
@@ -60,9 +60,9 @@ test('a live outage uses a marked static snapshot', async function () {
     renderStatus: false
   });
 
-  assert.equal(result.source, 'snapshot');
+  assert.equal(result.source, 'unavailable');
   assert.equal(result.degraded, true);
-  assert.equal(result.properties[0].id, 38);
+  assert.deepEqual(result.properties, []);
 });
 
 test('total provider and snapshot failure returns no invented listings', async function () {
@@ -85,8 +85,8 @@ test('invalid live identity cannot silently become the public property number', 
     renderStatus: false
   });
 
-  assert.equal(result.source, 'snapshot');
-  assert.equal(result.properties[0].id, 23);
+  assert.equal(result.source, 'unavailable');
+  assert.deepEqual(result.properties, []);
 });
 
 test('browser renders a visible Hebrew warning when live data falls back', async function () {
@@ -121,8 +121,8 @@ test('browser renders a visible Hebrew warning when live data falls back', async
   });
   const banner = document.getElementById('mavo-data-status');
 
-  assert.equal(result.source, 'snapshot');
+  assert.equal(result.source, 'unavailable');
   assert.ok(banner);
   assert.match(banner.textContent, /מאגר הנכסים החי אינו זמין/);
-  assert.equal(banner.dataset.source, 'snapshot');
+  assert.equal(banner.dataset.source, 'unavailable');
 });

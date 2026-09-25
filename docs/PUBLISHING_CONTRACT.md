@@ -55,10 +55,16 @@ The readback response exposes the office save/status, canonical number provenanc
 
 - The browser reads only `active=true` rows ordered by `id`.
 - A successful empty live result is authoritative and displays no stale listings.
-- When the live API fails, the site may show `properties.json` or browser cache only with a visible degraded-state notice.
+- When the live API fails, do not revive a static or browser snapshot: it may contain an address the owner has since hidden. Show no listings and a visible unavailable-state notice.
 - If neither live data nor a saved snapshot is usable, the site displays no listings and a visible unavailable-state notice.
 - All public deep links use the canonical public domain (hosted on GitHub Pages) and the exact office number: `?prop=<property_number>`.
 
 ## Recovery debt
 
 The historical snapshot includes Supabase row `id=23` whose description/extra text mentions `#49`. There is currently no provider-backed Office CRM readback proving that row is property 49. Preserve it as unresolved recovery debt; do not rewrite either identifier from free text.
+
+## Public location privacy (2026-09-26)
+
+Office retains the canonical exact address for signing. Office controls `public_location_mode` (`exact` or `approximate`) and an explicitly supplied `public_location_label`. The existing public schema transports approximate mode as the exact `extra` value `מיקום משוער`; no schema expansion is required. In approximate mode the trusted publisher must replace title with the public label, rebuild description from safe structured facts, clear exact lat/lng, and omit private address/free-text details. Public `location` keeps city and neighborhood classification. The public reader maps this marker to `publicLocationMode`, adds a visible approximate label, suppresses navigation, and never positions a precise map pin. This is defense in depth; the server projection must never contain the hidden address.
+
+A published exact listing must be withdrawn or sanitized with provider readback before Office confirms an approximate-location change. The public static snapshot is intentionally empty and runtime snapshots/browser caches are not used: old addresses must not reappear during outages. Existing previously shared external copies cannot be recalled by this site.
