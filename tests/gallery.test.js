@@ -39,3 +39,20 @@ test('property gallery puts all videos first without mutating office media order
   assert.equal(input[0], 'photo.jpg');
   assert.deepEqual(Array.from(context.orderPropertyMedia(null)), []);
 });
+
+test('gallery follows natural dimensions and ignores late events from replaced media', () => {
+  const g = gallery('rtl');
+  const style={setProperty(k,v){this[k]=v;}};
+  const media={naturalWidth:1920,naturalHeight:1080};
+  const main={style,contains:n=>n===media};
+  g.context.fitGalleryMedia(main,media);
+  assert.equal(style['--media-ratio'],'1920 / 1080');
+  media.naturalWidth=900;media.naturalHeight=1600;
+  g.context.fitGalleryMedia(main,media);
+  assert.equal(style['--media-ratio'],'900 / 1600');
+  g.context.fitGalleryMedia(main,{videoWidth:4000,videoHeight:1000});
+  assert.equal(style['--media-ratio'],'900 / 1600');
+  media.naturalWidth=0;
+  g.context.fitGalleryMedia(main,media);
+  assert.equal(style['--media-ratio'],'900 / 1600');
+});

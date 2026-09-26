@@ -233,6 +233,7 @@ function openPropertyModal(p) {
   const thumbsEl = document.getElementById('galleryThumbs');
   main.style.background = p.bg;
   main.style.opacity = '1';
+  main.style.removeProperty('--media-ratio');
   thumbsEl.textContent = '';
 
   const media = orderPropertyMedia(p.photos);
@@ -389,13 +390,23 @@ function buildVideoNode(src, autoplay) {
   const v = document.createElement('video');
   v.src = src; v.controls = true; v.playsInline = true;
   if (autoplay) v.autoplay = true;
-  v.style.cssText = 'width:100%;height:100%;object-fit:cover;background:#000;display:block';
+  v.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#242424;display:block';
   return v;
+}
+
+function fitGalleryMedia(main, media) {
+  if (!main.contains(media)) return;
+  const width = media.naturalWidth || media.videoWidth;
+  const height = media.naturalHeight || media.videoHeight;
+  if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+    main.style.setProperty('--media-ratio', width + ' / ' + height);
+  }
 }
 
 // Show one media item in the gallery main area
 function showGalleryItem(main, src) {
   main.innerHTML = '';
+  main.style.removeProperty('--media-ratio');
   main.style.opacity = '1';
   if (isVideoUrl(src)) {
     main.classList.add('is-video');
@@ -403,7 +414,9 @@ function showGalleryItem(main, src) {
     main.style.cursor = 'default';
     main.dataset.lightbox = '';
     const player = buildVideoNode(src);
+    player.addEventListener('loadedmetadata', () => fitGalleryMedia(main, player));
     player.addEventListener('error', () => {
+      if (!main.contains(player)) return;
       if (_galleryImages.length) showGalleryItem(main, _galleryImages[0]);
       else main.replaceChildren();
       const notice = document.createElement('div');
@@ -414,9 +427,13 @@ function showGalleryItem(main, src) {
     main.appendChild(player);
   } else {
     main.classList.remove('is-video');
-    main.style.backgroundImage = `url(${src})`;
-    main.style.backgroundSize = 'cover';
-    main.style.backgroundPosition = 'center';
+    main.style.backgroundImage = '';
+    const image = document.createElement('img');
+    image.className = 'gallery-media-image';
+    image.alt = 'תמונת הנכס';
+    image.addEventListener('load', () => fitGalleryMedia(main, image));
+    main.appendChild(image);
+    image.src = src;
     main.style.cursor = 'zoom-in';
     main.dataset.lightbox = src;
   }

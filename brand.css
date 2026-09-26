@@ -245,3 +245,12 @@ body:not([data-city]) .hero-scroll-hint{opacity:.55}
 .mavo-map-preview-photo video,.mavo-map-preview-photo iframe{position:absolute;width:100%;height:100%;object-fit:cover;inset:0;border:0;background:#242424}
 
 .gallery-media-notice{position:absolute;bottom:12px;right:12px;padding:7px 12px;border-radius:8px;background:#F8F3E9E6;color:#242424;font:13px Heebo,sans-serif}
+
+/* Preserve full media framing and let the property gallery follow natural orientation. */
+.modal-gallery{height:auto;background:#242424}
+.gallery-main{position:relative;height:auto;aspect-ratio:var(--media-ratio,16 / 9);max-height:65svh;overflow:hidden;transition:opacity .2s;background-color:#242424!important}
+.gallery-main>img,.gallery-main>video,.gallery-main>iframe{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.gallery-thumbs{position:relative;inset:auto;padding:12px;margin:0;background:#242424}
+.gallery-thumb{flex-shrink:0}
+.prop-img img,.res-img img{object-fit:contain!important}
+.mavo-map-preview-photo img,.mavo-map-preview-photo video{object-fit:contain;background:#242424}
