@@ -91,7 +91,7 @@
     container.dataset.touchHint = 'הזיזו את המפה בשתי אצבעות';
     // Interpolate wheel input each animation frame rather than whole zoom jumps.
     map.options.zoomSnap = 0;
-    map.options.zoomDelta = 0.5;
+    map.options.zoomDelta = 1;
     map.scrollWheelZoom.disable();
     let frame = 0, targetZoom = map.getZoom(), anchor;
     const cancelWheel = function () {
@@ -103,14 +103,14 @@
       event.preventDefault();
       if (!frame) targetZoom = map.getZoom();
       const pixels = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? container.clientHeight : 1);
-      targetZoom = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), targetZoom - Math.max(-0.3,Math.min(0.3,pixels / 1100))));
+      targetZoom = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), targetZoom - Math.max(-0.55,Math.min(0.55,pixels / 550))));
       anchor = map.mouseEventToContainerPoint(event);
       if (frame) return;
       const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
       let previous = performance.now();
       const step = function (now) {
         const current = map.getZoom(), difference = targetZoom - current;
-        const fraction = reduced ? 1 : 1 - Math.exp(-Math.min(now-previous,64)/120);
+        const fraction = reduced ? 1 : 1 - Math.exp(-Math.min(now-previous,64)/90);
         previous = now;
         const next = Math.abs(difference)<0.002 ? targetZoom : current + difference*fraction;
         map.setZoomAround(anchor,next,{animate:false});
