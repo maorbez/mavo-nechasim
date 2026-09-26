@@ -1,6 +1,12 @@
 /* Shared keyless basemap; Leaflet retains property markers and controls. */
 (function () {
   'use strict';
+  function wheelZoomDelta(event, height) {
+    const pixels = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? height : 1);
+    // Browser trackpad pinch arrives as ctrl+wheel; fine pixel scrolling needs its own gain.
+    const divisor = event.ctrlKey ? 30 : event.deltaMode === 0 && Math.abs(event.deltaY) < 40 ? 120 : 550;
+    return Math.max(-0.55, Math.min(0.55, pixels / divisor));
+  }
   if (window.maplibregl) maplibregl.setRTLTextPlugin(new URL('assets/maps/rtl-text.js', document.baseURI).href, true);
   // MapLibre 5 exposes a transform snapshot; use its public camera API.
   if (L.MaplibreGL) L.MaplibreGL.include({
@@ -102,8 +108,7 @@
     container.addEventListener('wheel', function (event) {
       event.preventDefault();
       if (!frame) targetZoom = map.getZoom();
-      const pixels = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? container.clientHeight : 1);
-      targetZoom = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), targetZoom - Math.max(-0.55,Math.min(0.55,pixels / 550))));
+      targetZoom = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), targetZoom - wheelZoomDelta(event, container.clientHeight)));
       anchor = map.mouseEventToContainerPoint(event);
       if (frame) return;
       const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
