@@ -6,7 +6,7 @@ const WA_NUMBER = '972548026123';
 const SITE_URL = window.MAVO_PUBLIC_SITE_URL || 'https://mavorealestate.com/';
 
 // ← החלף בכתובת המייל האמיתית של המשרד
-const CONTACT_EMAIL = 'maor.globes@gmail.com';
+const CONTACT_EMAIL = 'mavorealestate@gmail.com';
 
 // ---- Security: HTML escaping to prevent XSS ----
 function esc(s) {

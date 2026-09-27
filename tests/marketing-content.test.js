@@ -25,8 +25,24 @@ test('structured business identity remains parseable and keeps the actual contac
   assert.ok(business);
   assert.equal(business.name, 'מבוא נכסים');
   assert.equal(business.telephone, '+972-54-802-6123');
-  assert.equal(business.email, 'maor.globes@gmail.com');
+  assert.equal(business.email, 'mavorealestate@gmail.com');
   assert.doesNotMatch(business.description, /4 שנים|מוביל/);
+});
+
+test('the business contact email agrees across all public contact surfaces', () => {
+  const contactFiles = [
+    'index.html', 'app.js', 'privacy.html', 'accessibility.html',
+    'neve-tzedek.html', 'florentin.html', 'north-tel-aviv.html',
+    'bat-yam.html', 'kerem-hateimanim.html', 'lev-hair.html'
+  ];
+  for (const filename of contactFiles) {
+    const content = fs.readFileSync(path.join(__dirname, '..', filename), 'utf8');
+    assert.match(content, /mavorealestate@gmail\.com/, filename);
+    assert.doesNotMatch(content, /maor\.globes@gmail\.com/, filename);
+    if (filename !== 'index.html' && filename !== 'app.js') {
+      assert.match(content, /mailto:mavorealestate@gmail\.com/, filename);
+    }
+  }
 });
 
 test('launch copy cleanup retains the interactive catalog and contact anchors', () => {
