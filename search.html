@@ -463,7 +463,7 @@
 </div>
 
 <script src="catalog.js?v=28"></script>
-<script src="db.js?v=33"></script>
+<script src="db.js?v=34"></script>
 <script>
 // ============================================
 // SEARCH PAGE — Mavo Nechasim
@@ -658,6 +658,7 @@ function renderResults(props) {
     const featureTags = [];
     if (hasDisplayValue(p.rooms)) featureTags.push(`<span class="res-tag">🛏 ${esc(p.rooms)} חד'</span>`);
     if (hasDisplayValue(p.baths)) featureTags.push(`<span class="res-tag">🚿 ${esc(p.baths)} אמב'</span>`);
+    if (hasDisplayValue(p.balconySqm)) featureTags.push(`<span class="res-tag">☀️ ${esc(p.balconySqm)} מ״ר מרפסות</span>`);
     if (hasDisplayValue(p.sqm)) featureTags.push(`<span class="res-tag">📐 ${esc(p.sqm)} מ"ר</span>`);
     if (hasDisplayValue(p.extra)) featureTags.push(`<span class="res-tag">✅ ${esc(p.extra)}</span>`);
     const featLine = featureTags.join('');

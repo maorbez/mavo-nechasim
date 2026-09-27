@@ -37,6 +37,7 @@ function waLink(p) {
   const features = [];
   if (hasDisplayValue(p.rooms)) features.push(`🛏 ${p.rooms} חדרים`);
   if (hasDisplayValue(p.baths)) features.push(`🚿 ${p.baths} אמבטיות`);
+  if (hasDisplayValue(p.balconySqm)) features.push(`☀️ ${p.balconySqm} מ״ר מרפסות`);
   if (hasDisplayValue(p.sqm)) features.push(`📐 ${p.sqm} מ"ר`);
   if (hasDisplayValue(p.extra)) features.push(`✅ ${p.extra}`);
   const featLine = features.join(' | ');
@@ -295,6 +296,7 @@ function openPropertyModal(p) {
   if (hasDisplayValue(p.rooms)) modalFeatures.push(`<span>🛏 ${esc(p.rooms)} חדרים</span>`);
   if (hasDisplayValue(p.baths)) modalFeatures.push(`<span>🚿 ${esc(p.baths)} אמבטיות</span>`);
   if (hasDisplayValue(p.sqm)) modalFeatures.push(`<span>📐 ${esc(p.sqm)} מ"ר</span>`);
+  if (hasDisplayValue(p.balconySqm)) modalFeatures.push(`<span title="שטח המרפסות במטרים רבועים, בנפרד משטח הדירה">☀️ ${esc(p.balconySqm)} מ״ר מרפסות</span>`);
   if (hasDisplayValue(p.extra)) modalFeatures.push(`<span>✅ ${esc(p.extra)}</span>`);
   if (!p.rooms) modalFeatures.push(`<span>${esc(p.emoji)} נדל"ן מסחרי</span>`);
   document.getElementById('modalFeatures').innerHTML = modalFeatures.join('');
@@ -1013,6 +1015,7 @@ function renderPropertiesGrid(props) {
       if (hasDisplayValue(p.sqm)) addSpan('📐 ' + p.sqm + ' מ"ר');
       if (p.extra) addSpan('✅ ' + p.extra);
     }
+    if (hasDisplayValue(p.balconySqm)) addSpan('☀️ ' + p.balconySqm + ' מ״ר מרפסות');
     body.appendChild(feats);
 
     // footer

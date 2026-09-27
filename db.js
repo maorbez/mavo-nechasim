@@ -48,6 +48,14 @@
     return '₪ ' + amount;
   }
 
+  // The public projection has no balcony-area column. Read only an explicit
+  // balcony measurement from the approved copy, never a count or apartment area.
+  function balconyAreaFromDescription(description) {
+    const text = String(description || '');
+    const match = text.match(/מרפס(?:ת|ות)\s+בשטח(?:\s+כולל)?(?:\s+של)?\s+(\d+(?:\.\d+)?)\s*מ["״']?ר/);
+    return match && Number(match[1]) > 0 ? Number(match[1]) : null;
+  }
+
   function mapDbRow(row) {
     // Server-owned marker in the existing public projection; no private address is fetched.
     const approximate = row.extra === 'מיקום משוער';
@@ -63,6 +71,7 @@
       rooms: row.rooms,
       baths: row.baths,
       sqm: row.sqm,
+      balconySqm: balconyAreaFromDescription(row.description),
       extra: approximate ? '' : row.extra,
       desc: row.description,
       emoji: row.emoji || '🏠',
