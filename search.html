@@ -337,7 +337,7 @@
       .type-toggle { grid-template-columns: 1fr 1fr 1fr; }
     }
   </style>
-<link rel="stylesheet" href="brand.css?v=29">
+<link rel="stylesheet" href="brand.css?v=35">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=8">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=8">
@@ -458,6 +458,11 @@
     <div class="results-grid" id="resultsGrid">
       <!-- Cards injected by JS -->
     </div>
+
+    <section class="search-request-cta" id="searchRequestCta" aria-labelledby="search-request-title">
+      <div><h2 id="search-request-title">לא מצאתם את הנכס שמתאים לכם?</h2><p>ספרו לנו מה אתם מחפשים, ונוכל לעדכן אתכם כשייכנס נכס מתאים. אפשר להשאיר כמה חיפושים — להשכרה או לקנייה, למגורים או למסחר.</p></div>
+      <a href="looking.html" class="btn-primary">ספרו לנו מה אתם מחפשים ←</a>
+    </section>
   </main>
 
 </div>
@@ -640,6 +645,7 @@ function hasDisplayValue(value){ return value !== null && value !== undefined &&
 function renderResults(props) {
   const grid = document.getElementById('resultsGrid');
   const count = props.length;
+  document.getElementById("searchRequestCta").classList.toggle("no-results", count === 0);
   document.getElementById('resultCount').textContent = count;
   document.getElementById('countLabel').textContent = count;
 

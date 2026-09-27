@@ -202,6 +202,7 @@ function applyCatalogFilters() {
   });
   const empty = document.getElementById('catalogEmpty');
   if(empty) empty.hidden = count > 0;
+  document.getElementById("searchRequestCta")?.classList.toggle("no-results", count === 0);
   syncPagination();
   if(window.dispatchEvent)window.dispatchEvent(new CustomEvent('mavo:catalog-filter',{detail:{...catalogFilters}}));
 }

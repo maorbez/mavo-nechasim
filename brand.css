@@ -254,3 +254,11 @@ body:not([data-city]) .hero-scroll-hint{opacity:.55}
 .gallery-thumb{flex-shrink:0}
 .prop-img img,.res-img img{object-fit:contain!important}
 .mavo-map-preview-photo img,.mavo-map-preview-photo video{object-fit:contain;background:#242424}
+
+/* Public search request invitation after catalog results. */
+.search-request-cta{margin:32px 0;padding:28px 32px;border:1px solid #C9BCA8;border-radius:20px;background:#F8F3E9;display:flex;gap:28px;align-items:center;justify-content:space-between}
+.search-request-cta h2{font-size:24px;line-height:1.35;margin:0 0 10px;color:#242424}
+.search-request-cta p{color:#625C50;line-height:1.8;margin:0;max-width:630px;font-size:15px}
+.search-request-cta a{padding:14px 22px;border-radius:12px;flex-shrink:0;text-decoration:none;font-weight:700;min-height:48px;text-align:center}
+.search-request-cta.no-results{border:2px solid #C8A052;background:#C8A05210;margin-top:18px}
+@media(max-width:900px){.search-request-cta{flex-direction:column;align-items:stretch;gap:20px;padding:25px 22px}.search-request-cta h2{font-size:22px}}
