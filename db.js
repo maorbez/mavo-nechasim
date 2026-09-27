@@ -35,6 +35,19 @@
     });
   }
 
+  function formatPropertyPrice(price, label) {
+    const text = String(label || price || '').trim();
+    if (!text) return 'מחיר בתיאום';
+    // Keep qualifiers such as monthly rent; normalize only monetary numbers.
+    if (!/\d/.test(text)) return text;
+    const amount = text.replace(/₪|ש["״׳']?ח/g, '').trim()
+      .replace(/\d[\d,]*(?:\.\d+)?/g, value => {
+        const [integer, fraction] = value.replace(/,/g, '').split('.');
+        return integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (fraction ? '.' + fraction : '');
+      }).replace(/\s+/g, ' ');
+    return '₪ ' + amount;
+  }
+
   function mapDbRow(row) {
     // Server-owned marker in the existing public projection; no private address is fetched.
     const approximate = row.extra === 'מיקום משוער';
@@ -45,7 +58,7 @@
       type: row.type,
       title: row.title,
       price: row.price,
-      priceLabel: row.price_label || row.price,
+      priceLabel: formatPropertyPrice(row.price, row.price_label),
       location: row.location,
       rooms: row.rooms,
       baths: row.baths,
