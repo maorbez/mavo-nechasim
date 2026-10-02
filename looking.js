@@ -21,7 +21,12 @@
     if (!Array.isArray(groups)) return [];
     return groups.filter(g=>g && typeof g.name==='string' && g.name.length<=200 && typeof g.url==='string' && /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]{15,40}$/.test(g.url)).slice(0,12);
   }
-  if (typeof module==='object' && module.exports) module.exports={phoneValid,parseBudget,safeGroups};
+  function updatesLink({requested,routing}) {
+    // Official phone readback verified 2026-10-02. No applicant data in URL.
+    return requested===true && routing==='active_search'
+      ? 'https://wa.me/972535487714?text='+encodeURIComponent('עדכוני נכסים') : '';
+  }
+  if (typeof module==='object' && module.exports) module.exports={phoneValid,parseBudget,safeGroups,updatesLink};
   if (!root || !root.document) return;
   const doc=root.document, $=id=>doc.getElementById(id), form=$('search-form');
   const panels=[...form.querySelectorAll('.step-panel')];
@@ -96,6 +101,9 @@
     const groups=safeGroups(data.groups);$('groups').replaceChildren();
     groups.forEach(g=>{const li=doc.createElement('li'),a=doc.createElement('a');a.href=g.url;a.textContent=g.name+' ↗';a.target='_blank';a.rel='noopener noreferrer';li.append(a);$('groups').append(li);});
     $('groups-section').hidden=!groups.length;$('no-groups').hidden=!!groups.length;
+    const handoff=updatesLink({requested:$('updates').checked,routing:data.routing});
+    $('updates-handoff').hidden=!handoff;
+    if(handoff)$('updates-link').href=handoff;else $('updates-link').removeAttribute('href');
     $('success-title').focus();$('success').scrollIntoView({block:'center',behavior:'auto'});
   }
   form.addEventListener('submit',async e=>{
