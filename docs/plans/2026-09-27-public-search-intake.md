@@ -54,3 +54,7 @@ Group source is Office group_links.py catalog derived from Maor's verified commu
 
 ## Current verified blocker
 2026-09-27 live OPTIONS of proposed public path returns501 Unsupported method; no usable CORS public intake. Office owner confirms form/backend pending in canonical task. This public release is explicitly marked not open for submission; submit is disabled (including programmatic form submission). INTAKE_READY stays false until real server receipt and canonical readback pass. No live test leads or CRM writes were made by the frontend work. UI fixtures test interactions only, not database persistence. Owner messaging approval requested via async question; not assumed from silence.
+
+## 2026-10-02 activation acceptance
+
+The historical unavailable-endpoint blocker above is superseded by Office runtime3eb3900/provider33a0e7f9 SUCCESS. Actual anonymous synthetic save/replay and authenticated canonical criteria reload passed, unauthorized readers denied, synthetic rows recoverably archived with no sends. Submission enabled in the candidate; final Pages/readback recorded in docs/PUBLIC_SEARCH_LIVE_20261002.md. The public site still exposes no private CRM reader or credential.

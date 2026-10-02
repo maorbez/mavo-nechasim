@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   // Enable only after Office production intake and canonical readback pass.
-  const INTAKE_READY = false;
+  const INTAKE_READY = true;
   const ENDPOINT = 'https://mavo-office-production.up.railway.app/public/search-requests';
   const TYPES = {
     residential: [['apartment','דירה'],['penthouse','פנטהאוז'],['garden_apartment','דירת גן'],['house','בית פרטי'],['studio','סטודיו']],
