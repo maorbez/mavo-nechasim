@@ -12,47 +12,44 @@
 <meta property="og:image" content="https://mavorealestate.com/assets/brand/mavo-share-v32.png">
 <link rel="icon" href="assets/brand/favicon-v37.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon-v37.png">
-<link rel="stylesheet" href="looking.css?v=2">
-<script src="looking.js?v=5" defer></script>
+<link rel="stylesheet" href="looking.css?v=3">
+<script src="looking.js?v=6" defer></script>
 </head>
 <body>
 <header class="page-header"><a class="brand" href="index.html" aria-label="מבוא נכסים — לדף הבית"><img src="assets/brand/symbol-transparent.svg" alt="" width="60" height="48"><strong>מבוא נכסים</strong></a><a href="search.html" class="back-link">לכל הנכסים ←</a></header>
 <main>
-<section class="intro" aria-labelledby="page-title"><span class="eyebrow">המקום הבא שלכם מתחיל כאן</span><h1 id="page-title">לא מצאתם את הנכס<br><span>שמתאים לכם?</span></h1><p>ספרו לנו מה אתם מחפשים, ונוכל לעדכן אתכם כשייכנס נכס מתאים. אפשר להשאיר כמה חיפושים — להשכרה או לקנייה, למגורים או למסחר.</p><a class="start-link" href="#search-form">ספרו לנו מה אתם מחפשים <span aria-hidden="true">↓</span></a></section>
+<section class="intro" aria-labelledby="page-title"><span class="eyebrow">החיפוש שלכם, אצלנו</span><h1 id="page-title">מה המקום הבא<br><span>שלכם?</span></h1><p>תקציב, אזור ומה שחייב להיות. <br>אנחנו כבר נמשיך מכאן.</p><span class="intro-caption">חיפוש קצר · אפשר להוסיף כמה חיפושים</span></section>
 <section class="form-shell" aria-label="פרטי החיפוש">
 <div id="connection-status" class="connection-status" role="status"><strong>הטופס עדיין לא פתוח לשליחה.</strong> אנחנו משלימים את החיבור למשרד. אפשר לעיין בשדות; בינתיים ניתן לפנות בטלפון <a href="tel:0548026123" dir="ltr">054-802-6123</a>.</div>
-<ol class="steps" aria-label="שלבי הטופס"><li aria-current="step"><span>1</span> הכיוון</li><li><span>2</span> ההעדפות</li><li><span>3</span> הפרטים שלכם</li></ol>
+<ol class="steps" aria-label="שלבי הטופס"><li aria-current="step"><span>1</span> החיפוש</li><li><span>2</span> פרטי קשר</li></ol>
 <form id="search-form" novalidate>
 <div id="form-error" class="error" role="alert" hidden></div>
 <div class="step-panel" data-step="0">
-<h2 tabindex="-1">איזה נכס מחפשים?</h2><p class="hint">נתחיל בכיוון הכללי.</p>
-<fieldset><legend>סוג העסקה <span class="required">*</span></legend><div class="choices two"><label><input type="radio" name="deal_type" value="rent" required><span>שכירות</span></label><label><input type="radio" name="deal_type" value="buy" required><span>קנייה</span></label></div></fieldset>
-<fieldset><legend>למה הנכס מיועד? <span class="required">*</span></legend><div class="choices two"><label><input type="radio" name="category" value="residential" required><span>מגורים</span></label><label><input type="radio" name="category" value="commercial" required><span>מסחרי</span></label></div></fieldset>
-<label class="field" id="property-type-wrap" hidden>סוג הנכס <span class="optional">לא חובה</span><select id="property-type" name="property_type"><option value="">פתוחים לאפשרויות</option></select></label>
-<div class="form-actions"><button type="button" class="primary next">ממשיכים להעדפות ←</button></div>
+<h2 tabindex="-1">מה מחפשים?</h2><p class="hint">רק מה שחשוב באמת.</p>
+<fieldset><legend class="sr-only">קנייה או שכירות</legend><div class="choices two"><label><input type="radio" name="deal_type" value="rent" required><span>שכירות</span></label><label><input type="radio" name="deal_type" value="buy" required><span>קנייה</span></label></div></fieldset>
+<label class="field budget-field"><span id="budget-label">תקציב מרבי</span> <span class="required">*</span><div class="money-input"><input id="budget" name="budget_max" inputmode="numeric" placeholder="לדוגמה, 6,500" maxlength="12" required><span aria-hidden="true">₪</span></div></label>
+<fieldset><legend>בלי זה לא מסתדרים <span class="optional">סמנו רק דרישות חובה</span></legend><div class="choices amenities"><label><input type="checkbox" name="requirements" value="parking"><span>חניה</span></label><label><input type="checkbox" name="requirements" value="balcony"><span>מרפסת</span></label><label><input type="checkbox" name="requirements" value="elevator"><span>מעלית</span></label><label><input type="checkbox" name="requirements" value="protected_space"><span>ממ״ד בדירה</span></label></div></fieldset>
+<div class="location-heading"><strong>איפה לחפש?</strong><button type="button" id="open-map" class="map-toggle" aria-expanded="false" aria-controls="map-panel">בחירה במפה ↗</button></div>
+<div id="quick-regions" class="choices regions" aria-label="בחירת אזורים"></div>
+<div id="map-panel" hidden><p class="hint">לחצו על שם אזור כדי לבחור או להסיר. הסמנים מציינים אזורים, לא גבולות מדויקים. בטלפון מזיזים את המפה בשתי אצבעות.</p><div id="search-map" aria-label="מפת אזורי חיפוש"></div><p id="map-status" class="hint" role="status"></p></div>
+<ul id="cities" class="chips" aria-label="הערים שבחרתם" aria-live="polite"></ul><ul id="areas" class="chips" aria-label="האזורים שבחרתם" aria-live="polite"></ul>
+<details class="more-options"><summary>אזור אחר או חיפוש מסחרי</summary>
+<label class="field" for="city-input">עיר</label><div class="add-row"><input id="city-input" maxlength="60" placeholder="הוספת עיר" autocomplete="address-level2"><button type="button" class="secondary" id="add-city">הוספה</button></div>
+<label class="field" for="area-input">שכונה או אזור</label><div class="add-row"><input id="area-input" maxlength="80" placeholder="הוספת אזור"><button type="button" class="secondary" id="add-area">הוספה</button></div>
+<fieldset><legend>ייעוד החיפוש</legend><div class="choices two"><label><input type="radio" name="category" value="residential" checked><span>מגורים</span></label><label><input type="radio" name="category" value="commercial"><span>מסחרי</span></label></div></fieldset>
+</details>
+<div class="form-actions"><button type="button" class="primary next">ממשיכים לפרטי קשר ←</button></div>
 </div>
 <div class="step-panel" data-step="1" hidden>
-<h2 tabindex="-1">מה חשוב לכם?</h2><p class="hint">אפשר לבחור כמה אזורים. גם אם עוד לא החלטתם על הכול, אפשר להמשיך.</p>
-<label class="field" for="city-input">עיר <span class="optional">אפשר להוסיף כמה</span></label><div class="add-row"><input id="city-input" list="city-options" maxlength="60" placeholder="לדוגמה, תל אביב" autocomplete="address-level2"><button type="button" class="secondary" id="add-city">הוספה</button></div><datalist id="city-options"><option value="תל אביב"><option value="בת ים"></datalist><ul id="cities" class="chips" aria-label="הערים שבחרתם" aria-live="polite"></ul>
-<label class="field" for="area-input">שכונות או אזורים <span class="optional">לא חובה</span></label><div class="add-row"><input id="area-input" list="area-options" maxlength="80" placeholder="לדוגמה, פלורנטין או לב העיר"><button type="button" class="secondary" id="add-area">הוספה</button></div><datalist id="area-options"><option value="פלורנטין"><option value="לב העיר"><option value="נווה צדק"><option value="הצפון הישן"><option value="כרם התימנים"></datalist><ul id="areas" class="chips" aria-label="האזורים שבחרתם" aria-live="polite"></ul>
-<div class="field-grid"><label class="field"><span id="budget-label">תקציב מרבי</span><div class="money-input"><input id="budget" name="budget_max" inputmode="numeric" placeholder="עוד לא החלטנו" maxlength="12" aria-describedby="budget-help"><span aria-hidden="true">₪</span></div><small id="budget-help">לא חובה. אפשר להשאיר ריק אם עוד לא החלטתם.</small></label>
-<label class="field" id="rooms-wrap">מספר חדרים — לפחות <span class="optional">לא חובה</span><select id="rooms" name="rooms_min"><option value="">לא משנה</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option><option>3.5</option><option>4</option><option>4.5</option><option>5</option><option>6</option></select></label>
-<label class="field">מועד כניסה רצוי <span class="optional">לא חובה</span><input type="date" id="move-in" name="move_in"></label></div>
-<fieldset><legend>דברים שחשובים לכם <span class="optional">לא חובה</span></legend><div class="choices amenities"><label><input type="checkbox" name="requirements" value="parking"><span>חניה</span></label><label><input type="checkbox" name="requirements" value="elevator"><span>מעלית</span></label><label><input type="checkbox" name="requirements" value="balcony"><span>מרפסת</span></label><label><input type="checkbox" name="requirements" value="garden"><span>גינה</span></label><label><input type="checkbox" name="requirements" value="furnished"><span>ריהוט</span></label><label><input type="checkbox" name="requirements" value="protected_space"><span>מרחב מוגן</span></label></div></fieldset>
-<label class="field">עוד משהו שחשוב שנדע? <span class="optional">לא חובה</span><textarea id="notes" name="notes" rows="3" maxlength="1500" placeholder="למשל, גמישות באזור או צורך בנגישות"></textarea></label>
-<p id="routing-note" class="routing-note"></p>
-<div class="form-actions"><button type="button" class="secondary previous">חזרה</button><button type="button" class="primary next">לפרטי הקשר ←</button></div>
-</div>
-<div class="step-panel" data-step="2" hidden>
-<h2 tabindex="-1">איך אפשר ליצור איתכם קשר?</h2><p class="hint">נשמור את הבקשה במשרד כדי שנוכל לטפל בה.</p><p id="search-summary" class="summary"></p>
+<h2 tabindex="-1">איך אפשר ליצור איתכם קשר?</h2><p class="hint">למי חוזרים כשיש משהו מתאים?</p><p id="search-summary" class="summary"></p>
 <div class="field-grid"><label class="field">שם מלא <span class="required">*</span><input id="name" name="name" autocomplete="name" maxlength="100" required></label><label class="field">טלפון נייד <span class="required">*</span><input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="050-000-0000" maxlength="24" required></label></div>
-<label class="field">כתובת מייל <span class="optional">לא חובה</span><input id="email" name="email" type="email" autocomplete="email" dir="ltr" maxlength="254" placeholder="name@example.com"></label>
+
 <div class="honeypot" aria-hidden="true"><label>אתר אישי<input name="website" id="website" autocomplete="off" tabindex="-1"></label></div>
 <p class="privacy-note">בשליחת הטופס, הפרטים והעדפות החיפוש יישמרו במערכת המשרד של מבוא נכסים לצורך טיפול בפנייה ויצירת קשר לגביה, בהתאם ל<a href="privacy.html#search-requests" target="_blank" rel="noopener">מדיניות הפרטיות</a>. אין צורך בתעודת זהות או במסמכים.</p>
 <label class="consent"><input type="checkbox" id="privacy-accepted" name="privacy_accepted" required><span>קראתי את <a href="privacy.html#search-requests" target="_blank" rel="noopener">מדיניות הפרטיות</a> ואני מסכים/ה לשמירת פרטי הפנייה והחיפוש לצורך טיפול בבקשה. <span class="required">*</span></span></label>
 <label class="consent"><input type="checkbox" id="updates" name="updates"><span>אני רוצה לקבל גם עדכונים על נכסים שעשויים להתאים לי. ההסכמה אינה חובה, ואפשר לבקש להפסיק בכל עת.</span></label>
 <label class="consent"><input type="checkbox" id="marketing" name="marketing"><span>אני מסכים/ה לקבל ממבוא נכסים גם חומר שיווקי והצעות של המשרד בוואטסאפ, SMS או מייל. הבחירה אינה חובה ואינה תנאי לטיפול בחיפוש; אפשר לבטל בכל עת בכתיבת ״הסר״ או בפנייה למשרד.</span></label>
-<p class="hint">העדפות העדכונים והשיווק נפרדות. השארת הבקשה אינה מבטיחה שליחה אוטומטית; אישור ערוץ השליחה נעשה בנפרד.</p>
+
 <div class="form-actions"><button type="button" class="secondary previous">חזרה</button><button type="submit" class="primary" id="submit-button" disabled>שליחת הבקשה ←</button></div>
 </div>
 </form>
