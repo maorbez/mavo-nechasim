@@ -12,3 +12,10 @@ test('updates handoff uses verified bot number and fixed command without applica
  assert.equal(updatesLink({requested:'true',routing:'active_search'}),'');
  assert.equal(updatesLink({requested:true,routing:'unknown'}),'');
 });
+
+test('public form sends only to the branded write-only intake, without an Office origin or credential',()=>{
+ const fs=require('node:fs');const source=fs.readFileSync(require.resolve('../looking.js'),'utf8');
+ assert.ok(source.includes('https://forms.mavorealestate.com/public/search-requests'));
+ assert.equal(source.includes('up.railway.app'),false);
+ assert.ok(source.includes("credentials:'omit'"));
+});
