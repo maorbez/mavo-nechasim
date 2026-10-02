@@ -79,11 +79,12 @@
       if(!$('name').value.trim()) {showError('מה השם שלכם?');$('name').focus();return false;}
       if(!phoneValid($('phone').value)) {showError('יש להזין מספר נייד ישראלי תקין, למשל 050-123-4567.');$('phone').focus();return false;}
       if(!$('email').checkValidity()){showError('כתובת המייל אינה תקינה. אפשר לתקן או להשאיר את השדה ריק.');$('email').focus();return false;}
+      if(!$('privacy-accepted').checked){showError('יש לאשר את מדיניות הפרטיות לצורך טיפול בבקשה.');$('privacy-accepted').focus();return false;}
     }
     return true;
   }
   function payload() {
-    return {schema_version:1,contact:{name:$('name').value.trim(),phone:$('phone').value.trim(),email:$('email').value.trim()},search:{deal_type:selected('deal_type'),category:selected('category'),property_type:$('property-type').value,cities:[...cities],areas:[...areas],budget_max:parseBudget($('budget').value),rooms_min:selected('category')==='residential' && $('rooms').value?Number($('rooms').value):null,move_in:$('move-in').value,requirements:[...form.querySelectorAll('input[name="requirements"]:checked')].map(i=>i.value),notes:$('notes').value.trim()},consent:{privacy_version:'2026-09-27',updates:$('updates').checked},source:'mavo_public_search',website:$('website').value};
+    return {schema_version:1,contact:{name:$('name').value.trim(),phone:$('phone').value.trim(),email:$('email').value.trim()},search:{deal_type:selected('deal_type'),category:selected('category'),property_type:$('property-type').value,cities:[...cities],areas:[...areas],budget_max:parseBudget($('budget').value),rooms_min:selected('category')==='residential' && $('rooms').value?Number($('rooms').value):null,move_in:$('move-in').value,requirements:[...form.querySelectorAll('input[name="requirements"]:checked')].map(i=>i.value),notes:$('notes').value.trim()},consent:{privacy_version:'2026-10-02',privacy_accepted:$('privacy-accepted').checked,updates:$('updates').checked,marketing:$('marketing').checked,marketing_version:'2026-10-02'},source:'mavo_public_search',website:$('website').value};
   }
   async function requestKey(body) {
     const hash=[...new Uint8Array(await root.crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(body))))].map(b=>b.toString(16).padStart(2,'0')).join('');

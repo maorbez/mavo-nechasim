@@ -13,7 +13,7 @@
 <link rel="icon" href="assets/brand/favicon-v37.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon-v37.png">
 <link rel="stylesheet" href="looking.css?v=2">
-<script src="looking.js?v=3" defer></script>
+<script src="looking.js?v=4" defer></script>
 </head>
 <body>
 <header class="page-header"><a class="brand" href="index.html" aria-label="מבוא נכסים — לדף הבית"><img src="assets/brand/symbol-transparent.svg" alt="" width="60" height="48"><strong>מבוא נכסים</strong></a><a href="search.html" class="back-link">לכל הנכסים ←</a></header>
@@ -49,8 +49,10 @@
 <label class="field">כתובת מייל <span class="optional">לא חובה</span><input id="email" name="email" type="email" autocomplete="email" dir="ltr" maxlength="254" placeholder="name@example.com"></label>
 <div class="honeypot" aria-hidden="true"><label>אתר אישי<input name="website" id="website" autocomplete="off" tabindex="-1"></label></div>
 <p class="privacy-note">בשליחת הטופס, הפרטים והעדפות החיפוש יישמרו במערכת המשרד של מבוא נכסים לצורך טיפול בפנייה ויצירת קשר לגביה, בהתאם ל<a href="privacy.html#search-requests" target="_blank" rel="noopener">מדיניות הפרטיות</a>. אין צורך בתעודת זהות או במסמכים.</p>
+<label class="consent"><input type="checkbox" id="privacy-accepted" name="privacy_accepted" required><span>קראתי את <a href="privacy.html#search-requests" target="_blank" rel="noopener">מדיניות הפרטיות</a> ואני מסכים/ה לשמירת פרטי הפנייה והחיפוש לצורך טיפול בבקשה. <span class="required">*</span></span></label>
 <label class="consent"><input type="checkbox" id="updates" name="updates"><span>אני רוצה לקבל גם עדכונים על נכסים שעשויים להתאים לי. ההסכמה אינה חובה, ואפשר לבקש להפסיק בכל עת.</span></label>
-<p class="hint">השארת הבקשה אינה מבטיחה עדכונים אוטומטיים.</p>
+<label class="consent"><input type="checkbox" id="marketing" name="marketing"><span>אני מסכים/ה לקבל ממבוא נכסים גם חומר שיווקי והצעות של המשרד בוואטסאפ, SMS או מייל. הבחירה אינה חובה ואינה תנאי לטיפול בחיפוש; אפשר לבטל בכל עת בכתיבת ״הסר״ או בפנייה למשרד.</span></label>
+<p class="hint">העדפות העדכונים והשיווק נפרדות. השארת הבקשה אינה מבטיחה שליחה אוטומטית; אישור ערוץ השליחה נעשה בנפרד.</p>
 <div class="form-actions"><button type="button" class="secondary previous">חזרה</button><button type="submit" class="primary" id="submit-button" disabled>שליחת הבקשה ←</button></div>
 </div>
 </form>
