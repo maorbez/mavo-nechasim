@@ -1,0 +1,5 @@
+# Full branded property cards
+
+Maor reported missing detail/copy on the collection. Cards now include readable verified-fact summaries and open a responsive full property modal with gallery, price, areas, floor, condition and known amenities. Original protected source hides free description; this remains explicit, no invented copy or private contact/address extraction. Office call and WhatsApp compose links do not send anything automatically. Fresh detail reads use a capability-scoped Office route and no credentials/cache. Open detail refresh preserves reading position and expiry guards; collection refetches on close. No public catalog changes.
+
+Site63 tests pass. Actual-source isolated UI1280/390 verifies full modal, real photos, factual summary, floor/shelter, gallery next/close/back and no overflow. Open modal survives refresh; independent deterministic review confirms timer cancellation retains expiry. Office1887/focused70 pass. Live provider verification pending. Rollback public5ec420b, Office6f80ed0; existing links and database retained.

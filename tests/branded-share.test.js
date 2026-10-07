@@ -15,3 +15,13 @@ test('client display lease cannot exceed source expiry or one minute, including 
  assert.equal(leaseMs({...data,expires_at:'invalid'},0),0);
  assert.equal(leaseMs(data,61000),0);
 });
+
+test('property detail text preserves zero floor, false amenities and unknown fields',()=>{
+ const {propertyFacts,propertySummary}=require('../branded-share');
+ const row={property_type:'דירה',neighborhood:'לב העיר',city:'תל אביב',rooms:2,size:72,floor:0,total_floors:3,condition:'משופץ',parking:false,shelter:true};
+ assert.ok(propertyFacts(row).some(([name,value])=>name==='קומה'&&value==='קרקע מתוך 3'));
+ assert.ok(propertyFacts(row).some(([name,value])=>name==='חניה'&&value==='אין'));
+ assert.ok(!propertyFacts(row).some(([name])=>name==='מעלית'));
+ assert.match(propertySummary(row),/2 חדרים/);assert.match(propertySummary(row),/72 מ״ר/);assert.match(propertySummary(row),/משופץ/);
+ assert.ok(!propertySummary({}).includes('undefined'));
+});
