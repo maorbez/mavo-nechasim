@@ -1,7 +1,7 @@
 (function(){'use strict';
 const ENDPOINT='https://forms.mavorealestate.com/public/branded-shares/';
 function tokenFromHash(hash){return /^#[A-Za-z0-9_-]{32}$/.test(hash)?hash.slice(1):''}
-function safeImages(values){if(!Array.isArray(values))return [];return values.filter(value=>{if(typeof value!=='string'||value.length>2000||/[\x00-\x20\\]/.test(value)||value.includes('%')||/\/\.\.?\//.test(value))return false;try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='img.yad2.co.il'&&!u.username&&!u.password&&!u.hash&&(!u.port||u.port==='443')}catch{return false}}).slice(0,51)}
+function safeImages(values){if(!Array.isArray(values))return [];return values.filter(value=>{if(typeof value!=='string'||value.length>2000||/[\x00-\x20\\]/.test(value)||value.includes('%')||/\/\.\.?\//.test(value))return false;try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='forms.mavorealestate.com'&&!u.username&&!u.password&&!u.hash&&!u.search&&(!u.port||u.port==='443')&&/^\/public\/branded-shares\/[A-Za-z0-9_-]{32}\/media\/[a-f0-9]{64}$/.test(u.pathname)}catch{return false}}).slice(0,51)}
 function leaseMs(data,elapsed){const duration=Date.parse(data.expires_at)-Date.parse(data.verified_at);return Number.isFinite(duration)?Math.max(0,Math.min(60000,duration)-Math.max(0,elapsed)):0}
 if(typeof module!=='undefined'&&module.exports)module.exports={tokenFromHash,safeImages,leaseMs};
 if(typeof document==='undefined')return;

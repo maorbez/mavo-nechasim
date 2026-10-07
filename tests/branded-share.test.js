@@ -5,7 +5,8 @@ test('capabilities are exact nonenumerable tokens; query URLs are never accepted
  for(const x of ['#123','#https://evil.test','#'+'a'.repeat(33),'#'+'a'.repeat(31)+'%','#a?share=1'])assert.equal(tokenFromHash(x),'');
 });
 test('remote media has a strict origin and no credentials or path traversal',()=>{
- assert.deepEqual(safeImages(['https://img.yad2.co.il/fixture.jpg','javascript:alert(1)','https://img.yad2.co.il.evil/a','https://u:p@img.yad2.co.il/a','http://img.yad2.co.il/a','https://img.yad2.co.il/../secret']),['https://img.yad2.co.il/fixture.jpg']);
+ const media='https://forms.mavorealestate.com/public/branded-shares/'+'a'.repeat(32)+'/media/'+'b'.repeat(64);
+ assert.deepEqual(safeImages([media,'https://img.yad2.co.il/fixture.jpg','javascript:alert(1)','https://forms.mavorealestate.com/office/crm',media+'?url=x',media.replace('forms.','evil.'),media.replace('/media/','/media/../'),media.replace('https://','http://')]),[media]);
 });
 test('client display lease cannot exceed source expiry or one minute, including transport delay',()=>{
  const data={verified_at:'2026-10-07T12:00:00Z',expires_at:'2026-10-07T12:02:00Z'};
