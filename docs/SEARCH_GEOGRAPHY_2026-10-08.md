@@ -77,6 +77,39 @@ Public deployment, synthetic Office persistence/readback, anonymous read denial,
 and live browser QA must be recorded separately by the release owner. Unit tests
 alone do not prove the server saved a request.
 
+## Production acceptance — 2026-10-08
+
+The paired release is live: Pages commit `338538aac5accc00039a1fdbc8e4c3186acb13c3`
+built at 07:25:30 UTC; Office runtime `9d24ae926eff6c8d2634bed061cceb872b707343`,
+Railway deployment `e908f4c8-6692-43af-8a36-f35280939686` is `SUCCESS`.
+All five public HTML/CSS/JS/catalog files match the committed bytes. The Office
+release has 180 exact runtime file hashes, 74 unchanged settings and unchanged
+original rows across eleven business/signing tables. SQLite integrity and foreign
+keys are clean. Full suites: 1,948 Office tests and 72 website tests passed.
+
+Four isolated actual intake submissions verified 4,999 rental as lead-only,
+5,000/5,001 rental as active searches and purchase below the rental threshold as
+active. Authenticated Office repeated readback confirmed exact city and area IDs,
+three separate searches and receipt reuse without duplicates. Anonymous forms
+CRM access returned 404, Office record access 403, and public phone lookup 405.
+
+A fifth isolated request was submitted through the public browser at 390px:
+rent, 5,000 ILS, Tel Aviv-Yafo `tlv:37` plus Bat Yam `batyam:61`. Its receipt and
+canonical Office search were read twice with the same exact preferences. Updates
+and marketing stayed off. All owned synthetic contacts/searches were recoverably
+archived after verification; no customer messages were sent.
+
+Live 1280px and 390px browser checks covered aliases, city switching, polygon-label
+selection, map/list synchronization, whole-city selection, removal, clearing and
+no horizontal overflow. Offline/retry/double-click behavior was tested through a
+local transport fixture, separately from the successful real Office submissions.
+Physical phone hardware and physical two-finger gestures were not tested.
+
+The Office's existing flat text-area editor displays structured map selections
+read-only to prevent loss of their city association; ordinary budget/other edits
+preserve them. The existing permission-scoped API supports structured geographic
+updates. A separate internal Office map picker is not part of this release.
+
 ## Local verification performed on 2026-10-08
 
 After the final alias merge, the catalog SHA-256 was
