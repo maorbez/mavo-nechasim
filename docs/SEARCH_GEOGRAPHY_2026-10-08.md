@@ -145,7 +145,7 @@ with the second attempt deduplicated and the third using a new key. This proves
 the local UI's disconnect/retry/busy/additional-search behavior against a test
 transport. **It is not evidence of Office persistence or production delivery.**
 
-## Five-city expansion — 2026-10-08 (prepared; live acceptance pending)
+## Five-city expansion — 2026-10-08 (LIVE VERIFIED)
 
 The user's additive request adds Givatayim (6300, 7), Ramat Gan (8600, 36),
 and Holon (6600, 20): 150 selectable municipal neighborhoods/areas across five
@@ -191,3 +191,31 @@ Sources: [Givatayim neighborhoods](https://www.givatayim.muni.il/שכונות-ו
 **חולון**
 
 תל גיבורים, גרין ועם, אגרובנק, נאות רחל, קרית עבודה, רסקו א', מפדה אזרחי, נאות שושנים, רסקו ב', נאות יהודית ונווה ארזים, אזור התעשיה, נווה רמז, שיכון ותיקים, קרית אילון, קרית שרת מערב, קרית שרת מזרח, ג'סי כהן וקרית מיכה, קרית רבין, קרית בן גוריון, מולדת - דרום חולון.
+
+### Five-city release verification
+
+Public Pages a7c29f6 (build created 2026-10-08T20:54:22Z) is built; all five
+served HTML/CSS/JavaScript/catalog files matched exactly. Office runtime 3a362ae,
+Railway 1ab0b6b7-bb2a-4c6e-b4d5-c814b7fb3054 is SUCCESS; 180 files exact, 74
+settings unchanged, original business rows preserved, integrity OK and FK0.
+Full suites: 1,950 Office and 74 website tests passed. Independent reviews passed.
+
+Four actual public requests, plus one actual mobile-width form submission,
+were saved and read twice through authenticated Office access. Coverage includes
+all five cities, each of the three new cities, whole-city/individual choices,
+4999/5000/5001 thresholds, purchase and duplicate receipt replay. Only owned
+isolated test records were recoverably archived; no customer messages were sent.
+Anonymous CRM access remains denied.
+
+The live public interface passed city switching, alias search, map/list selection,
+same-named neighborhoods in different cities, whole-city selection, removal, clear
+and additional-search reset at 390/1280 widths. No horizontal overflow or console
+errors. All seven Givatayim reference markers were visible at initial mobile zoom.
+A fresh public HTTPS tab enabled these checks after the old local error tab was
+blocked by protocol policy. Physical phone hardware was not tested.
+
+Remaining limitations: Givatayim uses general-area points; the official public
+GIS does not expose vector neighborhood boundaries. Names represent the current
+municipal neighborhood/area scheme, with combined districts preserved. The
+existing Office flat editor keeps structured map selections read-only to prevent
+loss of city association; ordinary non-geographic edits remain available.
