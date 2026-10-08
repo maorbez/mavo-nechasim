@@ -75,7 +75,36 @@ test('all municipal areas can be selected without the former twelve-area truncat
   const result=s.serialize();
   assert.equal(result.locations.find(l=>l.city_id==='5000').area_ids.length,71);
   assert.equal(result.locations.find(l=>l.city_id==='6200').area_ids.length,16);
-  assert.equal(new Set(result.locations.flatMap(l=>l.area_ids)).size,87);
+  assert.equal(new Set(result.locations.flatMap(l=>l.area_ids)).size,catalog.areas.length);
   s.setCity('6200');assert.equal(s.listAreas('פארק הים')[0].id,'batyam:71');
   s.setCity('5000');assert.equal(s.listAreas('לב העיר')[0].id,'tlv:37');
+});
+test('all five city selections survive switching and independent whole-city removal',()=>{
+  const catalog=require('../assets/regions/neighborhood-catalog-2026-10-08.json');
+  assert.deepEqual(new Set(catalog.cities.map(c=>c.name)),new Set(['תל אביב-יפו','בת ים','גבעתיים','רמת גן','חולון']));
+  const s=require('../looking-regions').createSelection(catalog);
+  for(const c of catalog.cities){s.setCity(c.id);assert.ok(s.listAreas().length);s.toggleArea(s.listAreas()[0].id);}
+  assert.equal(s.serialize().locations.length,5);
+  s.setCity('6600');s.toggleWholeCity();
+  assert.equal(s.serialize().locations.filter(l=>l.whole_city).length,1);
+  s.removeCity('6600');assert.equal(s.serialize().locations.length,4);
+  s.setCity('6300');assert.ok(s.isSelected(s.listAreas()[0].id));
+  s.clear();assert.deepEqual(s.serialize().locations,[]);
+});
+
+test('every new municipal name and documented alias remains searchable in its own city',()=>{
+  const catalog=require('../assets/regions/neighborhood-catalog-2026-10-08.json');
+  const s=require('../looking-regions').createSelection(catalog);
+  for(const area of catalog.areas.filter(a=>['6300','8600','6600'].includes(a.city_id))){
+    s.setCity(area.city_id);
+    for(const name of [area.name,...(area.aliases||[])]){
+      const found=s.listAreas(name);
+      assert.ok(found.some(a=>a.id===area.id),name);
+      assert.ok(found.every(a=>a.city_id===area.city_id));
+    }
+  }
+  const sameName=catalog.areas.filter(a=>(a.display_name||a.name)==='שיכון ותיקים');
+  assert.equal(sameName.length,2);
+  sameName.forEach(a=>s.toggleArea(a.id));
+  assert.deepEqual(new Set(s.serialize().locations.map(l=>l.city_id)),new Set(['6600','8600']));
 });

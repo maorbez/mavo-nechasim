@@ -148,7 +148,7 @@
     $('region-picker').setAttribute('aria-busy','true');$('region-loading').hidden=false;$('region-loading').textContent='טוענים שכונות ואזורים…';$('retry-regions').hidden=true;$('open-map').disabled=true;
     const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
     try{
-      const response=await root.fetch('assets/regions/neighborhood-catalog-2026-10-08.json',{credentials:'omit',signal:controller.signal});
+      const response=await root.fetch('assets/regions/neighborhood-catalog-2026-10-08.json?v=2',{credentials:'omit',signal:controller.signal});
       if(!response.ok)throw new Error('catalog_unavailable');
       regionSelection=root.MavoRegions.createSelection(await response.json());
       $('region-city').replaceChildren();regionSelection.cities.forEach(c=>{const option=doc.createElement('option');option.value=c.id;option.textContent=c.name;$('region-city').append(option);});
@@ -195,10 +195,12 @@
       const label=root.L.marker([area.labelPoint[1],area.labelPoint[0]],{keyboard:false,icon:root.L.divIcon({html:b,className:'region-label-marker',iconSize:[0,0],iconAnchor:[0,0]})}).addTo(mapGroup);
       mapLayers.push({area,polygon,label});
     });
-    const bounds=mapGroup.getBounds();if(bounds.isValid())searchMap.fitBounds(bounds,{padding:[14,14],animate:false});
-    $('map-source').replaceChildren();const source=items.find(a=>a.source_url)?.source_url;
-    if(source){const a=doc.createElement('a');a.href=source;a.target='_blank';a.rel='noopener noreferrer';a.textContent='מקור הגבולות: עיריית '+city.name;$('map-source').append(a);}
-    $('map-status').textContent=approximate?'חלק מהסמנים מציינים אזור כללי, ללא גבול רשמי זמין.':'גבולות שכונות ואזורים מתוך מפת העירייה. אפשר לבחור כמה אזורים.';
+    const pointsOnly=items.every(area=>!area.geometry);
+    const bounds=mapGroup.getBounds();if(bounds.isValid())searchMap.fitBounds(bounds,{padding:pointsOnly?[60,35]:[14,14],animate:false});
+    $('map-source').replaceChildren();const source=city.source_url||items.find(a=>a.source_url)?.source_url;
+    if(source){const a=doc.createElement('a');a.href=source;a.target='_blank';a.rel='noopener noreferrer';a.textContent=(approximate?'מקור האזורים: עיריית ':'מקור הגבולות: עיריית ')+city.name;$('map-source').append(a);}
+    $('map-instructions').textContent=(pointsOnly?'לחצו על שם אזור כדי לבחור או להסיר אותו. הסמנים מציינים אזורים כלליים, ללא גבולות מדויקים.':'לחצו בתוך אזור או על שמו כדי לבחור או להסיר אותו. השטח הנבחר נצבע בירוק.')+' בטלפון מזיזים את המפה בשתי אצבעות.';
+    $('map-status').textContent=pointsOnly?'הסמנים מציינים אזורים כלליים לפי מקורות העירייה, ללא גבולות רשמיים זמינים.':approximate?'חלק מהסמנים מציינים אזור כללי, ללא גבול רשמי זמין.':'גבולות שכונות ואזורים מתוך מפת העירייה. אפשר לבחור כמה אזורים.';
     refreshRegions();root.requestAnimationFrame(placeMapLabels);
   }
   $('open-map').onclick=async()=>{
@@ -209,7 +211,7 @@
       if(panel.hidden)return;
       searchMap=root.L.map('search-map',{scrollWheelZoom:false}).setView([32.062,34.768],12);root.addMavoBasemap(searchMap);
       searchMap.on('zoomend moveend resize',placeMapLabels);drawCityMap();searchMap.invalidateSize();
-      const gl=searchMap._mavoBasemap?.getMaplibreMap();if(gl)gl.on('error',()=>{$('map-status').textContent='חלק מרחובות הרקע לא נטענו. גבולות האזורים והבחירה ברשימה עדיין זמינים.';});
+      const gl=searchMap._mavoBasemap?.getMaplibreMap();if(gl)gl.on('error',()=>{$('map-status').textContent='חלק מרחובות הרקע לא נטענו. בחירת האזורים במפה וברשימה עדיין זמינה.';});
     }catch{$('map-status').textContent='המפה אינה זמינה כרגע. אפשר לבחור את כל האזורים ברשימה, או לסגור ולפתוח את המפה לניסיון נוסף.';if(searchMap){searchMap.remove();searchMap=null;}}
     finally{mapLoading=false;}
   };
