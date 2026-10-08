@@ -19,14 +19,15 @@ test('public form sends only to the branded write-only intake, without an Office
  assert.equal(source.includes('up.railway.app'),false);
  assert.ok(source.includes("credentials:'omit'"));
 });
-const {buildSearch,REGIONS}=require('../looking');
+const {buildSearch}=require('../looking');
 test('compact criteria preserve exact budget, canonical regions and mandatory amenity wording',()=>{
- const s=buildSearch({deal:'rent',category:'residential',budget:'6,500',cities:[],areas:['פלורנטין'],requirements:['parking','protected_space']});
- assert.equal(s.budget_max,6500);assert.deepEqual(s.cities,['תל אביב']);assert.deepEqual(s.areas,['פלורנטין']);assert.equal(s.property_type,'');assert.equal(s.rooms_min,null);assert.equal(s.move_in,'');
+ const geography={catalog_version:'2026-10-08',locations:[{city_id:'5000',whole_city:false,area_ids:['tlv:52']}],cities:['תל אביב-יפו'],areas:['פלורנטין']};
+ const s=buildSearch({deal:'rent',category:'residential',budget:'6,500',cities:[],areas:[],geography,requirements:['parking','protected_space']});
+ assert.equal(s.budget_max,6500);assert.deepEqual(s.cities,['תל אביב-יפו']);assert.deepEqual(s.areas,['פלורנטין']);assert.equal(s.property_type,'');assert.equal(s.rooms_min,null);assert.equal(s.move_in,'');
+ assert.deepEqual(s.locations,[{city_id:'5000',whole_city:false,area_ids:['tlv:52']}]);assert.equal(s.catalog_version,'2026-10-08');
  assert.deepEqual(s.requirements,['parking','protected_space']);assert.equal(s.notes,'דרישות חובה: חניה, ממ״ד בדירה.');
- assert.ok(REGIONS.every(r=>r.lat>=32 && r.lat<33 && r.lng>34 && r.lng<35));
 });
 test('removing a mapped neighborhood does not retain its inferred city or previous mandatory preferences',()=>{
- const s=buildSearch({deal:'buy',category:'commercial',budget:'1000000',cities:['בת ים'],areas:[],requirements:[]});
+ const s=buildSearch({deal:'buy',category:'commercial',budget:'1000000',cities:[],areas:[],geography:{catalog_version:'2026-10-08',locations:[{city_id:'6200',whole_city:true,area_ids:[]}],cities:['בת ים'],areas:[]},requirements:[]});
  assert.deepEqual(s.cities,['בת ים']);assert.deepEqual(s.areas,[]);assert.equal(s.notes,'');assert.deepEqual(s.requirements,[]);
 });

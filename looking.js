@@ -4,20 +4,10 @@
   // Enable only after Office production intake and canonical readback pass.
   const INTAKE_READY = true;
   const ENDPOINT = 'https://forms.mavorealestate.com/public/search-requests';
-  // Centers already used by the public neighborhood pages; no invented boundaries.
-  const REGIONS=[
-    {name:'פלורנטין',city:'תל אביב',lat:32.053,lng:34.7649},
-    {name:'לב העיר',city:'תל אביב',lat:32.066,lng:34.774},
-    {name:'נווה צדק',city:'תל אביב',lat:32.0578,lng:34.7627},
-    {name:'כרם התימנים',city:'תל אביב',lat:32.0693,lng:34.7718},
-    {name:'הצפון הישן',city:'תל אביב',lat:32.092,lng:34.777},
-    {name:'בת ים',city:'בת ים',lat:32.021,lng:34.749,wholeCity:true}
-  ];
   const REQUIREMENTS={parking:'חניה',balcony:'מרפסת',elevator:'מעלית',protected_space:'ממ״ד בדירה'};
-  function buildSearch({deal,category,budget,cities,areas,requirements}) {
-    const inferred=REGIONS.filter(r=>!r.wholeCity && areas.includes(r.name)).map(r=>r.city);
+  function buildSearch({deal,category,budget,geography,requirements}) {
     const labels=requirements.map(r=>REQUIREMENTS[r]).filter(Boolean);
-    return {deal_type:deal,category,property_type:'',cities:[...new Set([...cities,...inferred])],areas:[...areas],budget_max:parseBudget(budget),rooms_min:null,move_in:'',requirements:[...requirements],notes:labels.length?'דרישות חובה: '+labels.join(', ')+'.':''};
+    return {deal_type:deal,category,property_type:'',...geography,budget_max:parseBudget(budget),rooms_min:null,move_in:'',requirements:[...requirements],notes:labels.length?'דרישות חובה: '+labels.join(', ')+'.':''};
   }
   function phoneValid(value) { return /^(?:0|972|\+972)5\d{8}$/.test(String(value).replace(/[\s()-]/g,'')); }
   function parseBudget(value) {
@@ -37,11 +27,11 @@
     return requested===true && routing==='active_search'
       ? 'https://wa.me/972535487714?text='+encodeURIComponent('עדכוני נכסים') : '';
   }
-  if (typeof module==='object' && module.exports) module.exports={phoneValid,parseBudget,safeGroups,updatesLink,buildSearch,REGIONS};
+  if (typeof module==='object' && module.exports) module.exports={phoneValid,parseBudget,safeGroups,updatesLink,buildSearch};
   if (!root || !root.document) return;
   const doc=root.document, $=id=>doc.getElementById(id), form=$('search-form');
   const panels=[...form.querySelectorAll('.step-panel')];
-  let step=0, cities=[], areas=[], busy=false, fallbackKey=null;
+  let step=0, busy=false, fallbackKey=null, regionSelection=null;
   const selected=name=>form.querySelector(`input[name="${name}"]:checked`)?.value || '';
   function showError(message) { $('form-error').textContent=message; $('form-error').hidden=false; $('form-error').scrollIntoView({block:'center',behavior:'auto'}); }
   function clearError() { $('form-error').hidden=true; }
@@ -51,27 +41,14 @@
     if (step===1) updateSummary();
     panels[step].querySelector('h2').focus({preventScroll:true});form.scrollIntoView({block:'start',behavior:'auto'});
   }
-  function addArea(kind) {
-    const input=$(kind==='cities'?'city-input':'area-input'), values=kind==='cities'?cities:areas;
-    const value=input.value.trim().replace(/\s+/g,' ');
-    if (!value) return true;
-    if (values.length>=12 && !values.includes(value)) {showError('אפשר לבחור עד 12 ערים ועד 12 אזורים.');return false;}
-    if (!values.includes(value)) values.push(value);
-    input.value=''; renderAreas(kind);refreshRegions();return true;
-  }
-  function renderAreas(kind) {
-    const list=$(kind); list.replaceChildren();const values=kind==='cities'?cities:areas;
-    values.forEach((value,index)=>{const li=doc.createElement('li'),button=doc.createElement('button');button.type='button';button.textContent=value+' ×';button.setAttribute('aria-label','הסרת '+value);button.onclick=()=>{values.splice(index,1);renderAreas(kind);refreshRegions();};li.append(button);list.append(li);});
-  }
-  function criteria() {return buildSearch({deal:selected('deal_type'),category:selected('category'),budget:$('budget').value,cities,areas,requirements:[...form.querySelectorAll('input[name="requirements"]:checked')].map(i=>i.value)});}
+  function criteria() {return buildSearch({deal:selected('deal_type'),category:selected('category'),budget:$('budget').value,geography:regionSelection.serialize(),requirements:[...form.querySelectorAll('input[name="requirements"]:checked')].map(i=>i.value)});}
   function updateBudget() {const rent=selected('deal_type')!=='buy';$('budget-label').textContent=rent?'תקציב מרבי לחודש':'תקציב מרבי לקנייה';$('budget').placeholder=rent?'לדוגמה, 6,500':'לדוגמה, 2,500,000';}
-  function updateSummary() {const s=criteria();$('search-summary').textContent=[s.deal_type==='rent'?'שכירות':'קנייה',s.category==='commercial'?'מסחרי':'',...s.cities,...s.areas,'עד '+s.budget_max.toLocaleString('en-US')+' ₪'+(s.deal_type==='rent'?' לחודש':''),s.notes].filter(Boolean).join(' · ');}
+  function updateSummary() {const s=criteria();$('search-summary').textContent=[s.deal_type==='rent'?'שכירות':'קנייה',s.category==='commercial'?'מסחרי':'',...regionSelection.describe(),'עד '+s.budget_max.toLocaleString('en-US')+' ₪'+(s.deal_type==='rent'?' לחודש':''),s.notes].filter(Boolean).join(' · ');}
   function validate(current) {
     if(current===0) {
       if(!selected('deal_type')){showError('בחרו קנייה או שכירות.');return false;}
-      if(!addArea('cities')||!addArea('areas'))return false;
+      if(!regionSelection){showError('רשימת האזורים טרם נטענה. לחצו על ניסיון נוסף לפני שממשיכים.');return false;}
       try{if(parseBudget($('budget').value)===null)throw new Error('מה התקציב המרבי שלכם?');}catch(e){showError(e.message);$('budget').focus();return false;}
-      if(criteria().cities.length>12){showError('אפשר לבחור עד 12 ערים.');return false;}
     }
     if(current===1) {
       if(!$('name').value.trim()) {showError('מה השם שלכם?');$('name').focus();return false;}
@@ -124,39 +101,120 @@
   form.querySelectorAll('.next').forEach(b=>b.onclick=()=>{if(validate(step)){updateBudget();go(step+1);}});
   form.querySelectorAll('.previous').forEach(b=>b.onclick=()=>go(step-1));
 
-  form.querySelectorAll('[name="deal_type"]').forEach(i=>i.onchange=updateBudget);
+  form.querySelectorAll('[name="deal_type"]').forEach(i=>i.onchange=()=>{clearError();updateBudget();});
+  form.querySelectorAll('[name="category"]').forEach(i=>i.onchange=clearError);
   $('budget').addEventListener('input',clearError);
   $('budget').addEventListener('blur',()=>{try{const n=parseBudget($('budget').value);if(n!==null)$('budget').value=n.toLocaleString('en-US');}catch{}updateBudget();});
-  $('add-city').onclick=()=>addArea('cities');$('add-area').onclick=()=>addArea('areas');
-  ['city-input','area-input'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addArea(id==='city-input'?'cities':'areas');}}));
   $('another-search').onclick=()=>{
     const contact=['name','phone'].map(id=>$(id).value);form.reset();['name','phone'].forEach((id,i)=>$(id).value=contact[i]);
-    cities=[];areas=[];renderAreas('cities');renderAreas('areas');refreshRegions();updateBudget();fallbackKey=null;
+    regionSelection.clear();regionSelection.setCity(regionSelection.cities[0].id);$('region-city').value=regionSelection.activeCity;$('region-query').value='';renderRegionList();refreshRegions();if(searchMap)drawCityMap();updateBudget();fallbackKey=null;
     try{root.sessionStorage.removeItem('mavo-intake-retry');}catch{}
     $('success').hidden=true;form.hidden=false;doc.querySelector('.steps').hidden=false;go(0);
   };
-  let searchMap=null, mapMarkers=[], mapLoading=false;
-  function chosen(r){return (r.wholeCity?cities:areas).includes(r.name);}
-  function toggleRegion(r){const values=r.wholeCity?cities:areas,index=values.indexOf(r.name);if(index>=0)values.splice(index,1);else if(values.length<12)values.push(r.name);else{showError('אפשר לבחור עד 12 אזורים או ערים.');return;}renderAreas(r.wholeCity?'cities':'areas');refreshRegions();}
-  function refreshRegions(){doc.querySelectorAll('[data-region]').forEach(b=>{const r=REGIONS.find(r=>r.name===b.dataset.region);b.setAttribute('aria-pressed',String(chosen(r)));});}
-  REGIONS.forEach(r=>{const b=doc.createElement('button');b.type='button';b.dataset.region=r.name;b.textContent=r.name;b.setAttribute('aria-pressed','false');b.onclick=()=>toggleRegion(r);$('quick-regions').append(b);});
-  function loadScript(src){return new Promise((resolve,reject)=>{const s=doc.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(new Error('map_unavailable'));doc.head.append(s);});}
-  function loadStyle(href){const l=doc.createElement('link');l.rel='stylesheet';l.href=href;doc.head.append(l);}
+  let searchMap=null, mapLayers=[], mapGroup=null, mapLoading=false, mapLibraryPromise=null;
+  const areaName=area=>area.display_name||area.name;
+  function toggleRegion(id){regionSelection.toggleArea(id);clearError();refreshRegions();}
+  function renderRegionList(){
+    if(!regionSelection)return;
+    const city=regionSelection.city(regionSelection.activeCity), list=$('region-list');list.replaceChildren();
+    const items=regionSelection.listAreas($('region-query').value);
+    $('whole-city').textContent='כל '+city.name;$('whole-city').setAttribute('aria-pressed',String(regionSelection.isWholeCity()));
+    $('region-count').textContent=items.length+' שכונות ואזורים ב'+city.name;
+    $('no-regions').hidden=items.length>0;list.hidden=!items.length;
+    items.forEach(area=>{const b=doc.createElement('button'),text=doc.createElement('span');b.type='button';b.dataset.region=area.id;b.className='region-option';text.textContent=areaName(area);if(area.selection_note){const note=doc.createElement('small');note.textContent=area.selection_note;text.append(note);}b.append(text);b.setAttribute('aria-pressed',String(regionSelection.isSelected(area.id)));b.onclick=()=>toggleRegion(area.id);list.append(b);});
+  }
+  function refreshRegions(){
+    if(!regionSelection)return;
+    doc.querySelectorAll('[data-region]').forEach(b=>b.setAttribute('aria-pressed',String(regionSelection.isSelected(b.dataset.region))));
+    $('whole-city').setAttribute('aria-pressed',String(regionSelection.isWholeCity()));
+    const selection=regionSelection.serialize(),list=$('selected-regions');list.replaceChildren();
+    function chip(text,onRemove){const li=doc.createElement('li'),b=doc.createElement('button');b.type='button';b.textContent=text+' ×';b.setAttribute('aria-label','הסרת '+text);b.onclick=()=>{onRemove();clearError();refreshRegions();$('selection-count').focus({preventScroll:true});};li.append(b);list.append(li);}
+    selection.locations.forEach(location=>{
+      const city=regionSelection.city(location.city_id);
+      if(location.whole_city)chip('כל '+city.name,()=>regionSelection.removeCity(city.id));
+      else location.area_ids.forEach(id=>{const a=regionSelection.area(id);chip(areaName(a)+' · '+city.name,()=>regionSelection.removeArea(id));});
+    });
+    const count=selection.locations.reduce((n,l)=>n+(l.whole_city?1:l.area_ids.length),0);
+    $('selection-count').textContent=count?count+' בחירות בחיפוש שלכם':'ללא הגבלת אזור';$('clear-regions').hidden=!count;
+    mapLayers.forEach(({area,polygon,label})=>{if(polygon)polygon.setStyle(areaStyle(area));const b=label.getElement()?.querySelector('button');if(b)b.setAttribute('aria-pressed',String(regionSelection.isSelected(area.id)));});
+    placeMapLabels();
+  }
+  $('region-city').onchange=()=>{regionSelection.setCity($('region-city').value);$('region-query').value='';renderRegionList();refreshRegions();if(searchMap)drawCityMap();};
+  $('region-query').addEventListener('input',renderRegionList);
+  $('region-query').addEventListener('keydown',e=>{if(e.key==='Enter')e.preventDefault();});
+  $('whole-city').onclick=()=>{regionSelection.toggleWholeCity();clearError();refreshRegions();};
+  $('clear-regions').onclick=()=>{regionSelection.clear();clearError();refreshRegions();$('selection-count').focus({preventScroll:true});};
+  async function loadRegions(){
+    $('region-picker').setAttribute('aria-busy','true');$('region-loading').hidden=false;$('region-loading').textContent='טוענים שכונות ואזורים…';$('retry-regions').hidden=true;$('open-map').disabled=true;
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
+    try{
+      const response=await root.fetch('assets/regions/neighborhood-catalog-2026-10-08.json',{credentials:'omit',signal:controller.signal});
+      if(!response.ok)throw new Error('catalog_unavailable');
+      regionSelection=root.MavoRegions.createSelection(await response.json());
+      $('region-city').replaceChildren();regionSelection.cities.forEach(c=>{const option=doc.createElement('option');option.value=c.id;option.textContent=c.name;$('region-city').append(option);});
+      $('region-controls').hidden=false;$('region-loading').hidden=true;$('open-map').disabled=false;renderRegionList();refreshRegions();
+    }catch{$('region-loading').textContent='רשימת האזורים לא נטענה. הבחירות לא נשלחו. אפשר לנסות שוב.';$('retry-regions').hidden=false;}
+    finally{clearTimeout(timeout);$('region-picker').setAttribute('aria-busy','false');}
+  }
+  $('retry-regions').onclick=loadRegions;
+  function loadScript(src){return new Promise((resolve,reject)=>{const s=doc.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>{s.remove();reject(new Error('map_unavailable'));};doc.head.append(s);});}
+  function loadStyle(href){if([...doc.querySelectorAll('link[rel="stylesheet"]')].some(l=>l.getAttribute('href')===href))return;const l=doc.createElement('link');l.rel='stylesheet';l.href=href;doc.head.append(l);}
+  function loadMapLibraries(){
+    if(!mapLibraryPromise)mapLibraryPromise=(async()=>{
+      loadStyle('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');loadStyle('assets/maps/maplibre-gl.css');
+      if(!root.L)await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
+      if(!root.maplibregl)await loadScript('assets/maps/maplibre-gl.js');
+      if(!root.L.maplibreGL)await loadScript('assets/maps/leaflet-maplibre-gl.js');
+      if(!root.addMavoBasemap)await loadScript('map-base.js');
+    })().catch(error=>{mapLibraryPromise=null;throw error;});
+    return mapLibraryPromise;
+  }
+  function areaStyle(area){const chosen=regionSelection.isSelected(area.id);return {color:chosen?'#28574D':'#83755C',weight:chosen?2:1,opacity:chosen?1:.7,fillColor:chosen?'#28574D':'#C8A052',fillOpacity:chosen?.35:.06};}
+  function placeMapLabels(){
+    if(!searchMap||$('map-panel').hidden)return;
+    const size=searchMap.getSize(),placed=[];
+    [...mapLayers].sort((a,b)=>Number(regionSelection.isSelected(b.area.id))-Number(regionSelection.isSelected(a.area.id))).forEach(({area,label})=>{
+      const element=label.getElement();if(!element)return;const button=element.querySelector('button'),p=searchMap.latLngToContainerPoint(label.getLatLng());
+      const w=button.offsetWidth,h=button.offsetHeight,box={left:p.x-w/2,right:p.x+w/2,top:p.y-h/2,bottom:p.y+h/2};
+      const fits=box.left>0&&box.right<size.x&&box.top>0&&box.bottom<size.y&&!placed.some(b=>box.left<b.right+3&&box.right>b.left-3&&box.top<b.bottom+3&&box.bottom>b.top-3);
+      element.style.visibility=fits?'visible':'hidden';if(fits)placed.push(box);
+    });
+  }
+  function drawCityMap(){
+    if(!searchMap||!regionSelection)return;
+    if(mapGroup)mapGroup.remove();mapLayers=[];mapGroup=root.L.featureGroup().addTo(searchMap);
+    const city=regionSelection.city(regionSelection.activeCity),items=regionSelection.listAreas();let approximate=false;
+    items.forEach(area=>{
+      let polygon=null;
+      if(area.geometry){polygon=root.L.geoJSON({type:'Feature',properties:{},geometry:area.geometry},{style:()=>areaStyle(area)}).addTo(mapGroup);polygon.on('click',()=>toggleRegion(area.id));
+        const hint=doc.createElement('span');hint.dir='rtl';hint.textContent=areaName(area);polygon.bindTooltip(hint,{sticky:true,direction:'top',className:'region-tooltip'});
+      }else approximate=true;
+      if(!Array.isArray(area.labelPoint))return;
+      const b=doc.createElement('button');b.type='button';b.className='region-map-name'+(polygon?'':' approximate');b.dataset.region=area.id;b.dir='rtl';b.textContent=areaName(area);b.setAttribute('aria-pressed',String(regionSelection.isSelected(area.id)));b.setAttribute('aria-label',areaName(area)+(polygon?'':' — אזור כללי'));
+      b.onclick=e=>{e.stopPropagation();toggleRegion(area.id);};root.L.DomEvent.disableClickPropagation(b);
+      const label=root.L.marker([area.labelPoint[1],area.labelPoint[0]],{keyboard:false,icon:root.L.divIcon({html:b,className:'region-label-marker',iconSize:[0,0],iconAnchor:[0,0]})}).addTo(mapGroup);
+      mapLayers.push({area,polygon,label});
+    });
+    const bounds=mapGroup.getBounds();if(bounds.isValid())searchMap.fitBounds(bounds,{padding:[14,14],animate:false});
+    $('map-source').replaceChildren();const source=items.find(a=>a.source_url)?.source_url;
+    if(source){const a=doc.createElement('a');a.href=source;a.target='_blank';a.rel='noopener noreferrer';a.textContent='מקור הגבולות: עיריית '+city.name;$('map-source').append(a);}
+    $('map-status').textContent=approximate?'חלק מהסמנים מציינים אזור כללי, ללא גבול רשמי זמין.':'גבולות שכונות ואזורים מתוך מפת העירייה. אפשר לבחור כמה אזורים.';
+    refreshRegions();root.requestAnimationFrame(placeMapLabels);
+  }
   $('open-map').onclick=async()=>{
     const panel=$('map-panel');panel.hidden=!panel.hidden;$('open-map').setAttribute('aria-expanded',String(!panel.hidden));$('open-map').textContent=panel.hidden?'בחירה במפה ↗':'סגירת המפה';
-    if(panel.hidden)return;if(searchMap){searchMap.invalidateSize();return;}if(mapLoading)return;mapLoading=true;$('map-status').textContent='טוענים מפה…';
-    try{loadStyle('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');loadStyle('assets/maps/maplibre-gl.css');
-      await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');await loadScript('assets/maps/maplibre-gl.js');await loadScript('assets/maps/leaflet-maplibre-gl.js');await loadScript('map-base.js');
-      searchMap=root.L.map('search-map',{scrollWheelZoom:false}).setView([32.062,34.768],14);root.addMavoBasemap(searchMap);
-      REGIONS.forEach(r=>{const b=doc.createElement('button');b.type='button';b.className='region-pin';b.dataset.region=r.name;b.textContent=r.name;b.setAttribute('aria-pressed',String(chosen(r)));b.onclick=e=>{e.stopPropagation();toggleRegion(r);};root.L.DomEvent.disableClickPropagation(b);
-        const marker=root.L.marker([r.lat,r.lng],{keyboard:false,icon:root.L.divIcon({html:b,className:'region-marker',iconSize:[100,40],iconAnchor:[50,20]})}).addTo(searchMap);mapMarkers.push(marker);});
-      refreshRegions();searchMap.invalidateSize();$('map-status').textContent='מציירים את המפה…';
-      const gl=searchMap._mavoBasemap?.getMaplibreMap();
-      if(gl){gl.once('idle',()=>{$('map-status').textContent='אפשר לבחור כמה אזורים.';});gl.on('error',()=>{$('map-status').textContent='חלק מפרטי המפה לא נטענו. אפשר לבחור אזורים בכפתורים.';});}
-      else $('map-status').textContent='אפשר לבחור כמה אזורים.';
-    }catch{$('map-status').textContent='המפה אינה זמינה כרגע. אפשר לבחור אזורים בכפתורים או להוסיף אזור בטקסט.';}
+    if(panel.hidden||!regionSelection)return;if(searchMap){searchMap.invalidateSize();placeMapLabels();return;}if(mapLoading)return;mapLoading=true;$('map-status').textContent='טוענים מפה…';
+    try{
+      await loadMapLibraries();
+      if(panel.hidden)return;
+      searchMap=root.L.map('search-map',{scrollWheelZoom:false}).setView([32.062,34.768],12);root.addMavoBasemap(searchMap);
+      searchMap.on('zoomend moveend resize',placeMapLabels);drawCityMap();searchMap.invalidateSize();
+      const gl=searchMap._mavoBasemap?.getMaplibreMap();if(gl)gl.on('error',()=>{$('map-status').textContent='חלק מרחובות הרקע לא נטענו. גבולות האזורים והבחירה ברשימה עדיין זמינים.';});
+    }catch{$('map-status').textContent='המפה אינה זמינה כרגע. אפשר לבחור את כל האזורים ברשימה, או לסגור ולפתוח את המפה לניסיון נוסף.';if(searchMap){searchMap.remove();searchMap=null;}}
     finally{mapLoading=false;}
   };
+  loadRegions();
+  if(doc.fonts)doc.fonts.ready.then(placeMapLabels);
   $('connection-status').hidden=INTAKE_READY;
   $('submit-button').disabled=!INTAKE_READY;
   updateBudget();

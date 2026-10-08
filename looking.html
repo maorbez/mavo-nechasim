@@ -12,8 +12,9 @@
 <meta property="og:image" content="https://mavorealestate.com/assets/brand/mavo-share-v32.png">
 <link rel="icon" href="assets/brand/favicon-v37.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon-v37.png">
-<link rel="stylesheet" href="looking.css?v=3">
-<script src="looking.js?v=6" defer></script>
+<link rel="stylesheet" href="looking.css?v=4">
+<script src="looking-regions.js?v=1" defer></script>
+<script src="looking.js?v=7" defer></script>
 </head>
 <body>
 <header class="page-header"><a class="brand" href="index.html" aria-label="מבוא נכסים — לדף הבית"><img src="assets/brand/symbol-transparent.svg" alt="" width="60" height="48"><strong>מבוא נכסים</strong></a><a href="search.html" class="back-link">לכל הנכסים ←</a></header>
@@ -30,12 +31,20 @@
 <label class="field budget-field"><span id="budget-label">תקציב מרבי</span> <span class="required">*</span><div class="money-input"><input id="budget" name="budget_max" inputmode="numeric" placeholder="לדוגמה, 6,500" maxlength="12" required><span aria-hidden="true">₪</span></div></label>
 <fieldset><legend>בלי זה לא מסתדרים <span class="optional">סמנו רק דרישות חובה</span></legend><div class="choices amenities"><label><input type="checkbox" name="requirements" value="parking"><span>חניה</span></label><label><input type="checkbox" name="requirements" value="balcony"><span>מרפסת</span></label><label><input type="checkbox" name="requirements" value="elevator"><span>מעלית</span></label><label><input type="checkbox" name="requirements" value="protected_space"><span>ממ״ד בדירה</span></label></div></fieldset>
 <div class="location-heading"><strong>איפה לחפש?</strong><button type="button" id="open-map" class="map-toggle" aria-expanded="false" aria-controls="map-panel">בחירה במפה ↗</button></div>
-<div id="quick-regions" class="choices regions" aria-label="בחירת אזורים"></div>
-<div id="map-panel" hidden><p class="hint">לחצו על שם אזור כדי לבחור או להסיר. הסמנים מציינים אזורים, לא גבולות מדויקים. בטלפון מזיזים את המפה בשתי אצבעות.</p><div id="search-map" aria-label="מפת אזורי חיפוש"></div><p id="map-status" class="hint" role="status"></p></div>
-<ul id="cities" class="chips" aria-label="הערים שבחרתם" aria-live="polite"></ul><ul id="areas" class="chips" aria-label="האזורים שבחרתם" aria-live="polite"></ul>
-<details class="more-options"><summary>אזור אחר או חיפוש מסחרי</summary>
-<label class="field" for="city-input">עיר</label><div class="add-row"><input id="city-input" maxlength="60" placeholder="הוספת עיר" autocomplete="address-level2"><button type="button" class="secondary" id="add-city">הוספה</button></div>
-<label class="field" for="area-input">שכונה או אזור</label><div class="add-row"><input id="area-input" maxlength="80" placeholder="הוספת אזור"><button type="button" class="secondary" id="add-area">הוספה</button></div>
+<div class="region-picker" id="region-picker" aria-busy="true">
+<p id="region-loading" class="hint" role="status">טוענים שכונות ואזורים…</p><button type="button" id="retry-regions" class="secondary" hidden>ניסיון נוסף</button>
+<div id="region-controls" hidden>
+<label class="field city-field" for="region-city">באיזו עיר לחפש?<select id="region-city" aria-describedby="city-help"></select></label>
+<p class="hint city-help" id="city-help">להוספת אזורים בעיר נוספת, החליפו עיר. הבחירות שכבר סימנתם נשמרות.</p>
+<button type="button" class="whole-city" id="whole-city" aria-pressed="false"></button>
+<label class="field region-search" for="region-query"><span>חיפוש שכונה או אזור</span><input id="region-query" type="search" placeholder="הקלידו שם שכונה…" autocomplete="off" maxlength="100" aria-controls="region-list"></label>
+<p id="region-count" class="hint" role="status"></p><div id="region-list" class="region-list" aria-label="שכונות ואזורים בעיר הנבחרת"></div>
+<p id="no-regions" class="hint" hidden>לא נמצאה שכונה בשם הזה בעיר הנבחרת. נסו שם אחר או החליפו עיר.</p>
+</div></div>
+<div id="map-panel" hidden><p class="hint">לחצו בתוך אזור או על שמו כדי לבחור או להסיר אותו. השטח הנבחר נצבע בירוק. בטלפון מזיזים את המפה בשתי אצבעות.</p><div id="search-map" aria-label="מפת שכונות ואזורים — אפשר לבחור גם ברשימה שמעל המפה"></div><p id="map-status" class="hint" role="status"></p><p id="map-source" class="hint"></p></div>
+<div class="selection-heading"><strong id="selection-count" role="status" tabindex="-1">ללא הגבלת אזור</strong><button id="clear-regions" type="button" class="map-toggle" hidden>ניקוי הבחירות</button></div>
+<ul id="selected-regions" class="chips selected-regions" aria-label="האזורים שבחרתם — לחצו להסרה"></ul>
+<details class="more-options"><summary>חיפוש מגורים או מסחרי</summary>
 <fieldset><legend>ייעוד החיפוש</legend><div class="choices two"><label><input type="radio" name="category" value="residential" checked><span>מגורים</span></label><label><input type="radio" name="category" value="commercial"><span>מסחרי</span></label></div></fieldset>
 </details>
 <div class="form-actions"><button type="button" class="primary next">ממשיכים לפרטי קשר ←</button></div>
