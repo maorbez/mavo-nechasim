@@ -31,19 +31,17 @@ The server publisher then receives the Office CRM record and writes an explicit 
 
 `id` is the Office CRM `property_number`, not an example of a number the publisher may choose. The service-role credential stays in the server environment and must never be returned to the browser, written to logs, or committed here.
 
-## Two-phase publication
+## Verified publication
 
-1. Read the exact Office CRM record and its `property_number`.
-2. Upsert one inactive Supabase row, using `office_property_id` as the idempotency key and the exact office number as `id`.
-3. Reject the operation if an existing row for that office id has a different `id`, or if that `id` belongs to a different office row.
-4. Upload photos to deterministic paths for that office record and persist the resulting provider URLs.
-5. Read the Supabase row back and verify its id, office id, listing fields, photos, and inactive state.
-6. Set `active=true` and `published_at` only after the readback passes.
-7. Read the public projection back again through the anonymous API. Internal fields such as `office_property_id` are not exposed to the browser.
-8. Open `https://mavorealestate.com/?prop=<property_number>` and verify the exact listing is shown.
-9. Store the real publication receipt in Office CRM, then verify it using `GET /office/crm/properties/{property_id}/publication-readback`.
+1. Read the approved, frozen Office revision and immutable property number. Verify both existing provider identities; never infer a link or upsert over a foreign identity.
+2. Capture the current provider precondition and complete public projection. Restore-test the encrypted provider backup before mutation.
+3. Upload each selected derivative to its immutable property/revision/hash path. Verify its bytes through both authenticated and anonymous storage reads before beginning a row change. Transfer one bounded file at a time.
+4. Recheck the provider precondition and Office approval/revision. A newer Office selection invalidates stale work before the row CAS.
+5. For a new or already inactive listing, insert/update an inactive row, verify the stage, and activate using CAS. For an existing active listing, replace the public projection in one CAS write, keeping the old listing visible until every new asset is ready.
+6. Read the public projection anonymously, verify identity/media/hash, and verify desktop/mobile detail rendering at the unchanged `?prop=<property_number>` URL.
+7. Complete the existing Office dispatch with the verified public-row receipt, then independently read it back. A 2xx alone never means published.
 
-No step may mark the Office record published merely because a request returned 2xx. If a readback fails, leave the listing inactive and record an actionable failure; do not synthesize a receipt.
+Failed upload leaves the last public row unchanged. Failed page verification restores the previous complete public projection only when the provider still contains this exact attempted revision. Concurrent edits are never overwritten. Unknown outcomes use the original dispatch and identity/revision readback before retry; they are not new publications.
 
 The Office publication commit endpoint is `POST /office/crm/properties/{office_property_id}/publications`. For the website channel it records `channel="website"`, the public URL, the canonical number as `external_id`, `is_current=true`, and the authoritative `last_verified_at`. A website `external_id` different from `property_number` must be rejected. Missing verification remains pending/fail-closed.
 
@@ -68,3 +66,17 @@ The historical snapshot includes Supabase row `id=23` whose description/extra te
 Office retains the canonical exact address for signing. Office controls `public_location_mode` (`exact` or `approximate`) and an explicitly supplied `public_location_label`. The existing public schema transports approximate mode as the exact `extra` value `מיקום משוער`; no schema expansion is required. In approximate mode the trusted publisher must replace title with the public label, rebuild description from safe structured facts, clear exact lat/lng, and omit private address/free-text details. Public `location` keeps city and neighborhood classification. The public reader maps this marker to `publicLocationMode`, adds a visible approximate label, suppresses navigation, and never positions a precise map pin. This is defense in depth; the server projection must never contain the hidden address.
 
 A published exact listing must be withdrawn or sanitized with provider readback before Office confirms an approximate-location change. The public static snapshot is intentionally empty and runtime snapshots/browser caches are not used: old addresses must not reappear during outages. Existing previously shared external copies cannot be recalled by this site.
+
+## Stable public media (2026-10-09 candidate; not deployed)
+
+The nullable `media_manifest` is `{version:1,cover_media_id,items:[{id,type,url,poster_url?,fallback_url?}]}`. Array order is gallery order, never cover identity. The separate Office draft keeps stable source IDs, selections and poster/fallback references; none of its private source URLs or customer fields are public. Up to80 gallery items use the existing public `property-photos` bucket. Derivatives are branded with the official MAVO asset and Hebrew wordmark; originals remain private and unchanged.
+
+A video has a static poster for cards/map/sharing, controls on the detail page, no automatic playback/audio, and a fallback image. Existing null manifests retain legacy presentation. Existing public photos stay unchanged until an explicit Office selection. Malformed explicit manifests fail closed. Public media URL allowlists do not accept arbitrary Office URLs.
+
+New explicit selections use the approximate public-location projection, retaining exact addresses only in Office/signing. Public card/detail previews do not reveal the private address. Selection saves are drafts and pause auto publication; the existing authorized approval remains necessary.
+
+The optional verified share URL `https://forms.mavorealestate.com/public/property-preview/<number>` serves escaped public metadata from the exact verified Office receipt and redirects to the existing canonical property link. GET/HEAD only; no public CRM reader. Removal or pending/failed privacy withdrawal immediately denies this preview. Existing capability-based `share.html` is unrelated and unchanged.
+
+Deploy prerequisite: apply `supabase/migrations/202610090001_public_media_manifest.sql` to the existing project after restore-verified backup with the publisher paused. The migration only adds the validated nullable public column/select grant and bounds the existing bucket to25MiB JPEG/PNG/WebP/MP4. Deploy the Office/publisher candidate and this reader as one coordinated release; the reader requires the column. No deployment or live migration was performed by this candidate. Current blocker: authenticated Supabase dashboard access.
+
+Local acceptance: `npm test`; `python3 tests/verify_public_media_migration.py` uses disposable PostgreSQL on a private Unix socket, no live credentials. Database checks include malformed/duplicate/private manifests, active-row RLS, private-column denial and write denial. Fixtures are synthetic and never part of public inventory.

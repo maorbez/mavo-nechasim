@@ -41,7 +41,7 @@ function waLink(p) {
   if (hasDisplayValue(p.sqm)) features.push(`📐 ${p.sqm} מ"ר`);
   if (hasDisplayValue(p.extra)) features.push(`✅ ${p.extra}`);
   const featLine = features.join(' | ');
-  const propUrl = `${SITE_URL}?prop=${p.id}`;
+  const propUrl = MavoMedia.shareUrl(p);
   const msg =
     `${p.emoji} *${p.title}*\n` +
     `📍 ${MavoCatalog.locationLabel(p)}\n` +
@@ -238,10 +238,29 @@ function openPropertyModal(p) {
   main.style.removeProperty('--media-ratio');
   thumbsEl.textContent = '';
 
+  const selection = MavoMedia.resolve(p);
   const media = orderPropertyMedia(p.photos);
-  _galleryImages = media.filter(u => !isVideoUrl(u));   // images only, for the lightbox
+  _galleryImages = selection.items.filter(item => item.type === 'image').map(item => item.url);
+  _lightboxImages = [];
 
-  if (media.length > 0) {
+  if (selection.mode !== 'legacy') {
+    main.classList.remove('is-video');
+    main.dataset.lightbox = '';
+    main.style.fontSize = '';
+    main.style.backgroundImage = '';
+    MavoMedia.mountGallery(main, thumbsEl, selection, {
+      className: 'gallery-media-image',
+      onSelect(item) {
+        main.classList.toggle('is-video', item.type === 'video');
+        main.style.removeProperty('--media-ratio');
+        main.style.cursor = item.type === 'image' ? 'zoom-in' : 'default';
+        main.dataset.lightbox = '';
+      },
+      onSource(src) { main.dataset.lightbox = src; main.style.cursor = 'zoom-in'; main.classList.remove('is-video'); },
+      onLoad(node) { fitGalleryMedia(main, node); },
+      onUnavailable() { main.dataset.lightbox = ''; main.style.cursor = 'default'; }
+    });
+  } else if (media.length > 0) {
     const firstShown = media[0];
     showGalleryItem(main, firstShown);
     media.forEach((src, index) => {
@@ -360,6 +379,7 @@ function switchImg(el, emoji) {
 
 // ---- Photos + video gallery / fullscreen lightbox ----
 let _galleryImages = [];   // image URLs of the open property (for lightbox navigation)
+let _lightboxImages = [];
 let _lbIndex = 0;
 
 function isVideoUrl(u) {
@@ -471,7 +491,8 @@ function openLightbox(src) {
   }
   imgEl.style.display = '';
   lb.querySelectorAll('.lb-nav').forEach(n => n.style.display = '');
-  const imgs = _galleryImages.length ? _galleryImages : [src];
+  const imgs = _galleryImages.includes(src) ? _galleryImages : [src, ..._galleryImages];
+  _lightboxImages = imgs;
   _lbIndex = Math.max(0, imgs.indexOf(src));
   imgEl.src = imgs[_lbIndex];
   counter.textContent = (_lbIndex + 1) + ' / ' + imgs.length;
@@ -480,7 +501,7 @@ function openLightbox(src) {
 function lightboxNav(dir, ev) {
   if (ev) ev.stopPropagation();
   if (document.querySelector('#lightbox .lb-video')) return;   // no image-nav while a video is open
-  const imgs = _galleryImages;
+  const imgs = _lightboxImages.length ? _lightboxImages : _galleryImages;
   if (imgs.length < 2) return;
   _lbIndex = (_lbIndex + dir + imgs.length) % imgs.length;
   document.getElementById('lightboxImg').src = imgs[_lbIndex];
@@ -530,6 +551,7 @@ function closeModal(e) {
 }
 
 function closeModalBtn() {
+  document.querySelectorAll('#galleryMain video').forEach(video => video.pause());
   document.getElementById('propModalOverlay').classList.remove('open');
   document.body.style.overflow = '';
 }
@@ -924,16 +946,14 @@ function renderPropertiesGrid(props) {
     propImg.style.background = p.bg || 'linear-gradient(135deg,#1565C0,#1976D2)';
 
     // real photo if available (first non-video image; videos play inside the modal)
-    const cardImg = (p.photos || []).find(u => !isVideoUrl(u));
-    const hasVideo = (p.photos || []).some(isVideoUrl);
+    const cardMedia = MavoMedia.resolve(p);
+    const cardImg = MavoMedia.imageCandidates(cardMedia)[0];
+    const hasVideo = cardMedia.hasVideo;
     if (cardImg) {
-      const realImg = document.createElement('img');
-      realImg.src = cardImg;
-      realImg.alt = p.title || '';
+      const realImg = MavoMedia.mountStill(propImg, cardMedia, {alt:p.title || '', onUnavailable(){const fallback=propImg.querySelector('.prop-icon-big');if(fallback)fallback.textContent=p.emoji || '🏠';}});
       realImg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0';
       propImg.style.position = 'relative';
       propImg.style.overflow = 'hidden';
-      propImg.appendChild(realImg);
     }
     if (hasVideo) {
       const vb = document.createElement('div');

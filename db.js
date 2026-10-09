@@ -14,10 +14,11 @@
   const DEFAULT_SUPABASE_KEY = 'sb_publishable_vuUxH_RK_QqsRRGyUM165w_MQV4uq4j';
   const PUBLIC_SITE_URL = 'https://mavorealestate.com/';
   const STATUS_ID = 'mavo-data-status';
+  const mediaApi = root && root.MavoMedia || (typeof require === 'function' ? require('./public-media.js') : null);
   const PUBLIC_PROPERTY_COLUMNS = [
     'id', 'type', 'price', 'price_label', 'title', 'location', 'rooms', 'baths', 'sqm',
     'extra', 'description', 'emoji', 'bg', 'lat', 'lng', 'photos', 'has_elevator',
-    'has_shelter', 'has_parking', 'active'
+    'has_shelter', 'has_parking', 'active', 'media_manifest'
   ];
 
   function canonicalPropertyId(value) {
@@ -79,6 +80,7 @@
       lat: approximate ? null : row.lat,
       lng: approximate ? null : row.lng,
       photos: Array.isArray(row.photos) ? row.photos : [],
+      media_manifest: row.media_manifest == null ? null : mediaApi ? mediaApi.sanitizeManifest(row.media_manifest) : {version:0,cover_media_id:'',items:[]},
       hasElevator: row.has_elevator === true,
       hasShelter: row.has_shelter === true,
       hasParking: row.has_parking === true,

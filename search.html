@@ -337,7 +337,7 @@
       .type-toggle { grid-template-columns: 1fr 1fr 1fr; }
     }
   </style>
-<link rel="stylesheet" href="brand.css?v=35">
+<link rel="stylesheet" href="brand.css?v=36">
 <link rel="icon" type="image/svg+xml" href="assets/brand/favicon-v37.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-v37.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon-v37.png">
@@ -468,7 +468,8 @@
 </div>
 
 <script src="catalog.js?v=28"></script>
-<script src="db.js?v=34"></script>
+<script src="public-media.js?v=1"></script>
+<script src="db.js?v=35"></script>
 <script>
 // ============================================
 // SEARCH PAGE — Mavo Nechasim
@@ -670,11 +671,11 @@ function renderResults(props) {
     const featLine = featureTags.join('');
     const ag = p.agent || {};
     const pid = Number(p.id) || 0;
-    const waMsg = encodeURIComponent(`שלום, אני מעוניין בנכס: ${p.title} — ${MavoCatalog.locationLabel(p)}`);
+    const waMsg = encodeURIComponent(`שלום, אני מעוניין בנכס: ${p.title} — ${MavoCatalog.locationLabel(p)}`+(MavoMedia.resolve(p).mode==='explicit'?'\n'+MavoMedia.shareUrl(p):''));
     return `
       <div class="res-card" onclick="openProp(${pid})" tabindex="0" role="link" onkeydown="if(event.target===this && event.key==='Enter')openProp(${pid})">
-        <div class="res-img" style="background:${esc(p.bg)};position:relative;overflow:hidden">
-          ${(p.photos||[]).find(u=>!(/\.(mp4|mov|webm)(?:[?#]|$)/i.test(u)))?`<img src="${esc((p.photos||[]).find(u=>!(/\.(mp4|mov|webm)(?:[?#]|$)/i.test(u))))}" alt="${esc(p.title)}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">`:`<div class="res-emoji">${esc(p.emoji||'🏠')}</div>`}
+        <div class="res-img" data-property-media="${pid}" style="background:${esc(p.bg)};position:relative;overflow:hidden">
+          <div class="res-emoji">${esc(p.emoji||'🏠')}</div>
           <div class="res-badge ${esc(p.type)}">${typeLabel[p.type]||''}</div>
           <div class="res-avail"></div>
         </div>
@@ -702,6 +703,13 @@ function renderResults(props) {
         </div>
       </div>`;
   }).join('');
+  const byId=new Map(props.map(p=>[String(p.id),p]));
+  grid.querySelectorAll('[data-property-media]').forEach(host=>{
+    const property=byId.get(host.dataset.propertyMedia);if(!property)return;
+    const media=MavoMedia.resolve(property),image=MavoMedia.mountStill(host,media,{alt:property.title||'תמונת הנכס'});
+    if(image){image.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0';host.insertBefore(image,host.firstChild);}
+    if(media.mode==='explicit'&&media.cover?.type==='video'){const badge=document.createElement('span');badge.className='prop-video-badge';badge.textContent='▶ סרטון';host.appendChild(badge);}
+  });
 }
 
 function openProp(id) {

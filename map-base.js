@@ -21,6 +21,13 @@
     const photo = document.createElement('div'); photo.className = 'mavo-map-preview-photo';
     const placeholder = document.createElement('span'); placeholder.textContent = 'מבוא נכסים';
     photo.appendChild(placeholder);
+    const selection = window.MavoMedia.resolve(property);
+    if (selection.mode !== 'legacy') {
+      window.MavoMedia.mountStill(photo, selection, {alt:property.title || 'תמונת הנכס'});
+      if (selection.cover?.type === 'video') {
+        const badge = document.createElement('span'); badge.className = 'prop-video-badge'; badge.textContent = '▶ סרטון'; photo.appendChild(badge);
+      }
+    } else {
     const safeMedia = (property.photos || []).filter(value => {
       if (typeof value !== 'string') return false;
       try { return /^https?:$/.test(new URL(value, document.baseURI).protocol); } catch { return false; }
@@ -50,6 +57,7 @@
         }
       };
       photo.appendChild(media);
+    }
     }
     const body = document.createElement('div'); body.className = 'mavo-map-preview-body';
     const price = document.createElement('strong'); price.textContent = property.priceLabel || (property.price ? '₪ ' + property.price : 'מחיר בתיאום');

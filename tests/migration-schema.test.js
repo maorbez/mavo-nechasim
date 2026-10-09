@@ -26,10 +26,11 @@ test('migration accounts for the exact 2026-09-03 live properties schema', funct
   assert.match(sql, /alter column id drop default/i, 'server publisher must always provide the office number');
 });
 
-test('every browser-selected field exists in the live provider snapshot', function () {
+test('every browser-selected field exists in the baseline schema or a scoped additive migration', function () {
   const db = require('../db.js');
+  const mediaSql=fs.readFileSync(path.join(root,'supabase/migrations/202610090001_public_media_manifest.sql'),'utf8');
   for (const column of db.PUBLIC_PROPERTY_COLUMNS) {
-    assert.ok(liveColumns.includes(column), column + ' is absent from the live provider schema');
+    assert.ok(liveColumns.includes(column)||new RegExp('add column if not exists '+column+'\\b','i').test(mediaSql), column + ' has no schema migration');
   }
   assert.ok(!db.PUBLIC_PROPERTY_COLUMNS.includes('office_property_id'));
   assert.ok(!db.PUBLIC_PROPERTY_COLUMNS.includes('office_updated_at'));

@@ -13,7 +13,8 @@ const publicPages = [
   'florentin.html',
   'north-tel-aviv.html',
   'bat-yam.html',
-  'kerem-hateimanim.html'
+  'kerem-hateimanim.html',
+  'lev-hair.html'
 ];
 
 function read(file) {
@@ -25,6 +26,8 @@ test('all public pages that run inventory logic load db.js first', function () {
     const html = read(file);
     const dbPosition = html.indexOf('src="db.js');
     assert.notEqual(dbPosition, -1, file + ' must load db.js');
+    const mediaPosition=html.indexOf('src="public-media.js');
+    assert.ok(mediaPosition!==-1&&mediaPosition<dbPosition,file+' must normalize public media before reading properties');
 
     const appPosition = html.indexOf('src="app.js');
     const hoodMapPosition = html.indexOf('src="hood-map.js');
@@ -77,6 +80,10 @@ test('browser projection exactly matches the anonymous column grant', function (
   const match = sql.match(/grant select \(([\s\S]*?)\) on table public\.properties to anon, authenticated;/i);
   assert.ok(match, 'anonymous column grant is missing');
   const grantedColumns = match[1].split(',').map(function (column) { return column.trim(); });
+  const mediaSql=read('supabase/migrations/202610090001_public_media_manifest.sql');
+  const mediaGrant=mediaSql.match(/grant select \(([^)]+)\) on table public\.properties to anon, authenticated;/i);
+  assert.ok(mediaGrant,'additive public media grant is missing');
+  grantedColumns.push(...mediaGrant[1].split(',').map(column=>column.trim()));
   assert.deepEqual(grantedColumns, db.PUBLIC_PROPERTY_COLUMNS);
   assert.ok(!grantedColumns.includes('office_property_id'));
   assert.ok(!grantedColumns.includes('office_updated_at'));
