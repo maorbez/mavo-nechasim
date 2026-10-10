@@ -25,6 +25,13 @@
   <meta property="og:locale" content="he_IL" />
   <!-- Canonical -->
   <link rel="canonical" href="https://mavorealestate.com/" />
+<link rel="alternate" hreflang="he" href="https://mavorealestate.com/">
+<link rel="alternate" hreflang="en" href="https://mavorealestate.com/en/">
+<link rel="alternate" hreflang="fr" href="https://mavorealestate.com/fr/">
+<link rel="alternate" hreflang="de" href="https://mavorealestate.com/de/">
+<link rel="alternate" hreflang="es" href="https://mavorealestate.com/es/">
+<link rel="alternate" hreflang="ar" href="https://mavorealestate.com/ar/">
+<link rel="alternate" hreflang="x-default" href="https://mavorealestate.com/">
   <!-- Schema JSON-LD -->
   <script type="application/ld+json">{
   "@context": "https://schema.org",
@@ -130,7 +137,7 @@
 }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=73" />
+  <link rel="stylesheet" href="style.css?v=74" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="assets/maps/maplibre-gl.css">
@@ -141,6 +148,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/brand/favicon-v37.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-v37.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon-v37.png">
+<script src="/language-bridge.js?v=1"></script>
 </head>
 <body>
 
@@ -150,7 +158,7 @@
     <a href="#" class="logo">
       <img src="assets/brand/symbol-transparent.svg" class="logo-img brand-symbol-dark" alt="מבוא נכסים" style="width:52px; height:auto; border-radius:12px;"><img src="assets/brand/symbol-transparent-light.svg" class="logo-img brand-symbol-light" alt="" aria-hidden="true" style="width:52px; height:auto; border-radius:12px;">
       <img src="assets/brand/symbol-transparent-gold.svg" class="logo-img brand-symbol-gold" alt="" aria-hidden="true"><div class="logo-text">
-        <span class="logo-main">מבוא נכסים</span>
+        <span class="logo-main" translate="no">מבוא נכסים</span>
         <span class="logo-sub">מומחים בנדל"ן</span>
       </div>
     </a>
@@ -781,17 +789,18 @@
   </div>
 </div>
 
+<nav class="seo-language-links" aria-label="שפות" translate="no"><a href="/en/" lang="en">English</a> <a href="/fr/" lang="fr">Français</a> <a href="/de/" lang="de">Deutsch</a> <a href="/es/" lang="es">Español</a> <a href="/ar/" lang="ar">العربية</a> </nav>
 <!-- Language Side Panel -->
 <div class="lang-panel-wrapper" translate="no">
   <div class="lang-side-panel collapsed">
     <button class="lang-collapse-btn" onclick="toggleLangPanel()" aria-label="פאנל שפות">›</button>
     <div class="lang-items">
-      <button onclick="changeWebsiteLanguage('iw')" title="עברית">HE</button>
-      <button onclick="changeWebsiteLanguage('en')" title="English">EN</button>
-      <button onclick="changeWebsiteLanguage('fr')" title="Français">FR</button>
-      <button onclick="changeWebsiteLanguage('de')" title="Deutsch">DE</button>
-      <button onclick="changeWebsiteLanguage('es')" title="Español">ES</button>
-      <button onclick="changeWebsiteLanguage('ar')" title="العربية">AR</button>
+      <button onclick="location.href='/?lang=he'" title="עברית">HE</button>
+      <button onclick="location.href='/en/'" title="English">EN</button>
+      <button onclick="location.href='/fr/'" title="Français">FR</button>
+      <button onclick="location.href='/de/'" title="Deutsch">DE</button>
+      <button onclick="location.href='/es/'" title="Español">ES</button>
+      <button onclick="location.href='/ar/'" title="العربية">AR</button>
     </div>
   </div>
 </div>

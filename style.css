@@ -3165,3 +3165,5 @@ html body { margin-top: 0 !important; }
   .highlight-card strong { font-size: .82rem; }
   .highlight-card p { font-size: .75rem; }
 }
+
+.seo-language-links{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;padding:20px;font-size:14px;background:#faf8f2;color:#18352f}.seo-language-links a{text-underline-offset:4px}
