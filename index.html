@@ -148,7 +148,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/brand/favicon-v37.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-v37.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon-v37.png">
-<script src="/language-bridge.js?v=1"></script>
+<script src="/language-bridge.js?v=2"></script>
 <link rel="stylesheet" href="public-photo.css?v=5">
 </head>
 <body>
@@ -796,12 +796,12 @@
   <div class="lang-side-panel collapsed">
     <button class="lang-collapse-btn" onclick="toggleLangPanel()" aria-label="פאנל שפות">›</button>
     <div class="lang-items">
-      <button onclick="location.href='/?lang=he'" title="עברית">HE</button>
-      <button onclick="location.href='/en/'" title="English">EN</button>
-      <button onclick="location.href='/fr/'" title="Français">FR</button>
-      <button onclick="location.href='/de/'" title="Deutsch">DE</button>
-      <button onclick="location.href='/es/'" title="Español">ES</button>
-      <button onclick="location.href='/ar/'" title="العربية">AR</button>
+      <button onclick="mavoSetLanguage('he')" title="עברית">HE</button>
+      <button onclick="mavoSetLanguage('en')" title="English">EN</button>
+      <button onclick="mavoSetLanguage('fr')" title="Français">FR</button>
+      <button onclick="mavoSetLanguage('de')" title="Deutsch">DE</button>
+      <button onclick="mavoSetLanguage('es')" title="Español">ES</button>
+      <button onclick="mavoSetLanguage('ar')" title="العربية">AR</button>
     </div>
   </div>
 </div>
@@ -926,8 +926,7 @@ function changeWebsiteLanguage(lang) {
   // Fallback: if GT doesn't load within 3s, reset to Hebrew
   const fallback = setTimeout(() => {
     clearInterval(interval);
-    sessionStorage.setItem('globes_lang', 'iw');
-    applyLangLayout('iw');
+    // Keep the chosen language if the translation provider is slow.
   }, 3000);
 
   const interval = setInterval(() => {

@@ -40,7 +40,8 @@ test('explicit catalog language preserves query IDs, initializes translation and
       cookie: '',
       addEventListener: (name, callback) => listeners.push(callback),
       querySelectorAll: () => [],
-      createElement: () => ({ setAttribute() {}, style: {} }),
+      querySelector: () => null,
+      createElement: () => ({ setAttribute() {}, addEventListener() {}, querySelector:()=>({appendChild(){}}), style: {} }),
       body: { appendChild: node => nodes.push(node) },
     };
     const location = { search: `?prop=40&lang=${choice}` };
@@ -49,5 +50,26 @@ test('explicit catalog language preserves query IDs, initializes translation and
     assert.equal(stored.get('globes_lang'), expected);
     assert.equal(location.search, `?prop=40&lang=${choice}`);
     assert.equal(nodes.filter(n => n.src).length, ['en', 'ar'].includes(choice) ? 1 : 0);
+  }
+});
+
+test('language selection keeps property, filters and hash on the current public page', () => {
+  const vm = require('node:vm');
+  const code = fs.readFileSync(path.join(root, 'language-bridge.js'), 'utf8');
+  for (const lang of ['en', 'fr', 'de', 'es', 'ar', 'he']) {
+    const stored = new Map();
+    const window = {};
+    const location = {href:'https://mavorealestate.com/index.html?prop=40&type=sale#details', search:'?prop=40&type=sale', hostname:'mavorealestate.com', pathname:'/index.html'};
+    const document = {cookie:'',querySelector:()=>null,addEventListener(){}};
+    vm.runInNewContext(code,{URL,URLSearchParams,location,document,window,sessionStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)}});
+    assert.equal(typeof window.mavoSetLanguage, 'function');
+    window.mavoSetLanguage(lang);
+    const target = new URL(location.href);
+    assert.equal(target.pathname,'/index.html');
+    assert.equal(target.searchParams.get('prop'),'40');
+    assert.equal(target.searchParams.get('type'),'sale');
+    assert.equal(target.hash,'#details');
+    assert.equal(target.searchParams.get('lang'),lang);
+    assert.equal(stored.get('globes_lang'),lang==='he'?'iw':lang);
   }
 });
