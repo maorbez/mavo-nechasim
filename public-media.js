@@ -7,7 +7,7 @@
   function isVideoUrl(value){return /youtube\.com|youtu\.be|vimeo\.com|\.mp4(\?|$)|\.webm(\?|$)|\.mov(\?|$)/i.test(value||'');}
   function safePublicUrl(value){
     if(typeof value!=='string'||value.length>2000||/[\x00-\x20\\%]/.test(value)||/(?:^|\/)\.{1,2}(?:\/|$)/.test(value))return false;
-    try{const u=new URL(value);return u.origin===PUBLIC_ORIGIN&&!u.username&&!u.password&&!u.search&&!u.hash&&u.pathname.startsWith(PUBLIC_PATH)&&u.pathname.length>PUBLIC_PATH.length;}catch{return false;}
+    try{const u=new URL(value);return !u.username&&!u.password&&!u.search&&!u.hash&&((u.origin===PUBLIC_ORIGIN&&u.pathname.startsWith(PUBLIC_PATH)&&u.pathname.length>PUBLIC_PATH.length)||(u.origin==='https://media.mavorealestate.com'&&/^\/property-[1-9][0-9]*\/revision-[1-9][0-9]*\/[0-9]{2,3}-[a-f0-9]{64}\.(jpg|png|webp|mp4)$/.test(u.pathname)));}catch{return false;}
   }
   function resolve(property){
     const source=property?.media_manifest;

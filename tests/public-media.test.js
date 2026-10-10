@@ -6,6 +6,12 @@ const video={id:'video-b',type:'video',url:base+'fixture/b.mp4',poster_url:base+
 const second={id:'photo-c',type:'image',url:base+'fixture/c.jpg'};
 const manifest=(cover='video-b',items=[image,video,second])=>({version:1,cover_media_id:cover,items});
 function api(){assert.ok(fs.existsSync(require('node:path').join(__dirname,'../public-media.js')),'A shared public media resolver must exist');return require('../public-media');}
+test('R2 public origin accepts immutable property paths and rejects lookalikes or private paths',()=>{
+ const m=api(),url='https://media.mavorealestate.com/property-42/revision-3/00-'+('a'.repeat(64))+'.webp';
+ assert.equal(m.resolve({media_manifest:manifest('photo-a',[{...image,url}])}).mode,'explicit');
+ for(const bad of [url+'?token=private',url.replace('media.mavorealestate.com','media.mavorealestate.com.evil.test'),url.replace('/property-42/','/private/'),url.replace('.webp','.pdf'),url.replace('https://','https://secret@')])
+  assert.equal(m.resolve({media_manifest:manifest('photo-a',[{...image,url:bad}])}).mode,'invalid');
+});
 test('an explicit video cover does not reorder the gallery or derive identity from position',()=>{
  const m=api(),input=manifest(),s=m.resolve({media_manifest:input});
  assert.equal(s.mode,'explicit');assert.equal(s.cover.id,'video-b');assert.deepEqual(s.items.map(x=>x.id),['photo-a','video-b','photo-c']);
