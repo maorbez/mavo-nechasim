@@ -41,7 +41,7 @@
   }
   document.addEventListener('DOMContentLoaded', function () {
     var language = sessionStorage.getItem('globes_lang');
-    // One public menu: selection reloads this exact page with its IDs and filters.
+    // One public menu for every catalog page; retain the current destination.
     window.changeWebsiteLanguage = window.mavoSetLanguage;
     var panel = document.querySelector('.lang-panel-wrapper');
     if (panel) panel.remove();
@@ -67,7 +67,6 @@
       node.setAttribute('translate', 'no');
       if (language && language !== 'iw') node.textContent = 'MAVO';
     });
-    if (!language || language === 'iw' || !supported.includes(language)) return;
     // Existing homepage/neighborhood translation owns its own initialization.
     if (typeof window.googleTranslateElementInit === 'function') return;
     var host = document.createElement('div');
@@ -77,6 +76,7 @@
     document.body.appendChild(host);
     window.mavoCatalogTranslateInit = function () {
       new google.translate.TranslateElement({pageLanguage:'iw', includedLanguages:'en,fr,de,es,ar,iw', autoDisplay:false}, host.id);
+      if (!language || language === 'iw' || !supported.includes(language)) return;
       var attempts = 0;
       var timer = setInterval(function () {
         var combo = document.querySelector('.goog-te-combo');

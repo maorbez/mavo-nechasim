@@ -49,7 +49,7 @@ test('explicit catalog language preserves query IDs, initializes translation and
     listeners.forEach(fn => fn());
     assert.equal(stored.get('globes_lang'), expected);
     assert.equal(location.search, `?prop=40&lang=${choice}`);
-    assert.equal(nodes.filter(n => n.src).length, ['en', 'ar'].includes(choice) ? 1 : 0);
+    assert.equal(nodes.filter(n => n.src).length, 1);
   }
 });
 
@@ -72,4 +72,27 @@ test('language selection keeps property, filters and hash on the current public 
     assert.equal(target.searchParams.get('lang'),lang);
     assert.equal(stored.get('globes_lang'),lang==='he'?'iw':lang);
   }
+});
+
+test('a ready translator switches language without reloading or losing page state', () => {
+  const vm = require('node:vm');
+  const stored = new Map();
+  const window = {};
+  const original = 'https://mavorealestate.com/search.html?type=sale#results';
+  const location = {href:original,search:'?type=sale'};
+  const combo = {value:'',dispatchEvent(){this.changed=true;}};
+  const menu = {open:true};
+  const buttons = ['en','ar'].map(lang=>({lang,setAttribute(k,v){this[k]=v;}}));
+  let currentUrl;
+  const document = {addEventListener(){}, querySelector:s=>s==='.goog-te-combo'?combo:menu,querySelectorAll:()=>buttons,documentElement:{classList:{toggle(){}}}};
+  vm.runInNewContext(fs.readFileSync(path.join(root,'language-bridge.js'),'utf8'),{URL,URLSearchParams,location,document,window,Event:class{},history:{replaceState(a,b,url){currentUrl=url;}},sessionStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)}});
+  window.mavoSetLanguage('ar');
+  assert.equal(location.href,original,'must not trigger page navigation');
+  assert.equal(new URL(currentUrl).searchParams.get('type'),'sale');
+  assert.equal(new URL(currentUrl).hash,'#results');
+  assert.equal(combo.value,'ar');
+  assert.equal(combo.changed,true);
+  assert.equal(document.documentElement.dir,'rtl');
+  assert.equal(buttons[1]['aria-pressed'],'true');
+  assert.equal(menu.open,false);
 });
