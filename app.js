@@ -273,7 +273,7 @@ function openPropertyModal(p) {
       if (vid) {
         d.style.background = '#000';
       } else {
-        d.style.backgroundImage = `url(${src})`;
+        MavoPhoto.setBackground(d, src);
         d.style.backgroundSize = 'cover';
         d.style.backgroundPosition = 'center';
       }
@@ -455,11 +455,41 @@ function showGalleryItem(main, src) {
     image.className = 'gallery-media-image';
     image.alt = 'תמונת הנכס';
     image.addEventListener('load', () => fitGalleryMedia(main, image));
+    image.addEventListener('error', () => {
+      if (!main.contains(image)) return;
+      main.replaceChildren();
+      main.dataset.lightbox = '';
+      main.style.cursor = 'default';
+      const notice = document.createElement('span');
+      notice.className = 'gallery-media-notice';
+      notice.setAttribute('role', 'status');
+      notice.textContent = 'התמונה אינה זמינה כרגע';
+      main.appendChild(notice);
+    }, {once:true});
     main.appendChild(image);
-    image.src = src;
+    MavoPhoto.setSource(image, src);
     main.style.cursor = 'zoom-in';
     main.dataset.lightbox = src;
   }
+}
+
+function setLightboxPhoto(src) {
+  const lb = document.getElementById('lightbox');
+  const image = document.getElementById('lightboxImg');
+  const clearNotice = () => { const notice = lb.querySelector('.lb-photo-notice'); if (notice) notice.remove(); };
+  clearNotice();
+  image.style.display = '';
+  image.onload = () => { clearNotice(); image.style.display = ''; };
+  image.onerror = () => {
+    clearNotice();
+    image.style.display = 'none';
+    const notice = document.createElement('span');
+    notice.className = 'gallery-media-notice lb-photo-notice';
+    notice.setAttribute('role', 'status');
+    notice.textContent = 'התמונה אינה זמינה כרגע';
+    lb.appendChild(notice);
+  };
+  MavoPhoto.setSource(image, src);
 }
 
 function openLightbox(src) {
@@ -474,6 +504,9 @@ function openLightbox(src) {
   const prev = lb.querySelector('.lb-video'); if (prev) prev.remove();
   if (isVideoUrl(src)) {
     // video → play large, original aspect ratio, no image nav
+    imgEl.onload = imgEl.onerror = null;
+    MavoPhoto.dispose?.(imgEl);
+    const notice = lb.querySelector('.lb-photo-notice'); if (notice) notice.remove();
     imgEl.style.display = 'none';
     lb.querySelectorAll('.lb-nav').forEach(n => n.style.display = 'none');
     counter.textContent = '';
@@ -494,7 +527,7 @@ function openLightbox(src) {
   const imgs = _galleryImages.includes(src) ? _galleryImages : [src, ..._galleryImages];
   _lightboxImages = imgs;
   _lbIndex = Math.max(0, imgs.indexOf(src));
-  imgEl.src = imgs[_lbIndex];
+  setLightboxPhoto(imgs[_lbIndex]);
   counter.textContent = (_lbIndex + 1) + ' / ' + imgs.length;
   lb.classList.add('open');
 }
@@ -504,7 +537,7 @@ function lightboxNav(dir, ev) {
   const imgs = _lightboxImages.length ? _lightboxImages : _galleryImages;
   if (imgs.length < 2) return;
   _lbIndex = (_lbIndex + dir + imgs.length) % imgs.length;
-  document.getElementById('lightboxImg').src = imgs[_lbIndex];
+  setLightboxPhoto(imgs[_lbIndex]);
   document.getElementById('lbCounter').textContent = (_lbIndex + 1) + ' / ' + imgs.length;
 }
 function closeLightbox() {
@@ -512,7 +545,9 @@ function closeLightbox() {
   if (!lb) return;
   const vid = lb.querySelector('.lb-video');
   if (vid) { try { if (vid.pause) vid.pause(); } catch (e) {} vid.remove(); }
-  const imgEl = document.getElementById('lightboxImg'); if (imgEl) imgEl.style.display = '';
+  const imgEl = document.getElementById('lightboxImg');
+  if (imgEl) { imgEl.onload = imgEl.onerror = null; MavoPhoto.dispose?.(imgEl); imgEl.style.display = ''; }
+  const notice = lb.querySelector('.lb-photo-notice'); if (notice) notice.remove();
   lb.classList.remove('open');
 }
 

@@ -1,0 +1,13 @@
+# Public photo branding
+
+Maor requested the accepted V5 black top-left MAVO badge and ordinary image-saving deterrents throughout the public website, explicitly excluding the Office system. This release changes only GitHub Pages presentation and separate public gallery derivatives. No Office, publisher, Supabase row, media manifest, cover selection, ordering or shared storage object is changed.
+
+`public-photo.js` draws the existing official badge into an in-memory PNG shown by catalog/search cards, map previews, property galleries, fullscreen views, photo thumbnails and video posters. The public share page uses the same renderer while retaining its existing expiry and revocation checks. Source identity remains separate from the displayed blob. Removed/replaced photos revoke their blob URLs; stale asynchronous results cannot replace a later selection. Failed rendering uses existing unavailable states, never an unbranded fallback.
+
+Public legacy Postify images lack canvas CORS. Separate lossless V5 copies are therefore served from content-addressed public assets, selected by SHA-256 of the existing source URL in `public-photo-fallbacks.json`. Source originals remain at their existing providers and in Office. New unsupported media hosts need verified public derivatives before publishing. New ordinary Supabase images pass through the shared renderer automatically. Static gallery `79d7d2d1c9c2a6db` now uses V5 derivatives from its original seven photographs, with no repeated watermarks.
+
+Photo surfaces disable ordinary right-click saving, dragging, touch callouts and photo printing. These are deterrents, not DRM: screenshots, developer tools and independently available original URLs remain possible. Public derivative assets in this public Git repository are not private or revocable by hiding a listing; do not use this static fallback for token-bound or private photos. The share page's token-bound photos are never persisted here. Server-generated social previews on the forms domain are outside this Pages release.
+
+Validation: repository tests cover source identity/order, fallback selection, stale completions, blob disposal, image failure states and the explicit Office-route exclusion. Browser checks cover public provider images, the legacy fallback, the standalone gallery and mobile layout. Exact live deployment receipts are retained in the task's private evidence directory after release. The internal Office UI was not modified or exercised.
+
+Rollback is a reviewed revert of this public-site commit. Preserve subsequent releases and listing data. The previous public repository state was backed up and verified before publication. A revert removes current derivative references, not historical public Git copies.

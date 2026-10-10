@@ -46,17 +46,18 @@
         media = document.createElement('video'); media.src = url;
         media.muted = true; media.autoplay = true; media.loop = true; media.playsInline = true; media.preload = 'metadata';
       } else {
-        media = document.createElement('img'); media.alt = property.title || 'תמונת הנכס'; media.src = url; media.decoding = 'async';
+        media = document.createElement('img'); media.alt = property.title || 'תמונת הנכס'; media.decoding = 'async';
       }
       media.onerror = function () {
         media.remove();
         const fallback = safeMedia.find(value => !videoPattern.test(value));
         if (videoPattern.test(url) && fallback) {
-          const image = document.createElement('img'); image.alt = property.title || 'תמונת הנכס'; image.src = fallback;
-          image.onerror = () => image.remove(); photo.appendChild(image);
+          const image = document.createElement('img'); image.alt = property.title || 'תמונת הנכס';
+          image.onerror = () => image.remove(); photo.appendChild(image); window.MavoPhoto.setSource(image, fallback);
         }
       };
       photo.appendChild(media);
+      if (media.tagName === 'IMG') window.MavoPhoto.setSource(media, url);
     }
     }
     const body = document.createElement('div'); body.className = 'mavo-map-preview-body';

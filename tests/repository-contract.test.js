@@ -28,6 +28,8 @@ test('all public pages that run inventory logic load db.js first', function () {
     assert.notEqual(dbPosition, -1, file + ' must load db.js');
     const mediaPosition=html.indexOf('src="public-media.js');
     assert.ok(mediaPosition!==-1&&mediaPosition<dbPosition,file+' must normalize public media before reading properties');
+    const photoPosition=html.indexOf('src="public-photo.js');
+    assert.ok(photoPosition!==-1&&photoPosition<mediaPosition,file+' must load photo presentation before any media consumer');
 
     const appPosition = html.indexOf('src="app.js');
     const hoodMapPosition = html.indexOf('src="hood-map.js');

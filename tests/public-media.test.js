@@ -42,8 +42,25 @@ function hostFixture(){
   remove(){if(this.parent){this.parent.children=this.parent.children.filter(c=>c!==this);this.parent=null;}}contains(child){return this.children.includes(child);}setAttribute(k,v){this.attributes[k]=v;}
   addEventListener(type,handler){this.handlers[type]=handler;}fire(type){this.handlers[type]?.();}
  }
- const doc={createElement:tag=>{const e=new Element(tag);e.ownerDocument=doc;return e;}},host=new Element('div');host.ownerDocument=doc;return host;
+ const doc={defaultView:{MavoPhoto:{setSource(image,url){image.src=url;image.dataset.protectedSource=url;},setBackground(element,url){element.style.backgroundImage='url("blob:protected-'+url+'")';},setPoster(video,url){video.poster=url;video.dataset.protectedPoster=url;}}},createElement:tag=>{const e=new Element(tag);e.ownerDocument=doc;return e;}},host=new Element('div');host.ownerDocument=doc;return host;
 }
+test('still rendering uses branded bytes while callbacks preserve the approved source identity',()=>{
+ const m=api(),host=hostFixture(),s=m.resolve({media_manifest:manifest()}),sources=[];
+ host.ownerDocument.defaultView.MavoPhoto.setSource=(image,url)=>{image.src='blob:protected-'+url;};
+ const img=m.mountStill(host,s,{onSource:url=>sources.push(url)});
+ assert.equal(img.src,'blob:protected-'+video.poster_url);assert.deepEqual(sources,[video.poster_url]);
+ img.fire('error');assert.equal(img.src,'blob:protected-'+video.fallback_url);assert.deepEqual(sources,[video.poster_url,video.fallback_url]);
+ assert.equal(s.cover.url,video.url);assert.equal(s.cover.poster_url,video.poster_url);
+});
+test('gallery thumbnail backgrounds and paused video posters pass through the photo renderer',()=>{
+ const m=api(),host=hostFixture(),thumbs=host.ownerDocument.createElement('div'),s=m.resolve({media_manifest:manifest()});
+ host.ownerDocument.defaultView.MavoPhoto.setPoster=(video,url)=>{video.poster='blob:protected-'+url;};
+ m.mountGallery(host,thumbs,s);
+ assert.equal(thumbs.children[0].style.backgroundImage,'url("blob:protected-'+image.url+'")');
+ assert.equal(thumbs.children[1].style.backgroundImage,'url("blob:protected-'+video.poster_url+'")');
+ assert.equal(host.children[0].poster,'blob:protected-'+video.poster_url);
+ assert.equal(host.children[0].src,video.url);
+});
 test('a broken card poster tries each approved still once and then removes the broken image',()=>{
  const m=api(),host=hostFixture(),s=m.resolve({media_manifest:manifest()});
  assert.equal(typeof m.mountStill,'function');m.mountStill(host,s,{alt:'נכס'});

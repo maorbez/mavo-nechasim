@@ -1,0 +1,10 @@
+/* Loaded by the public catalog only; the Office UI and source files are untouched. */
+[data-mavo-photo] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+img[data-mavo-photo="loading"] { visibility: hidden; }
+@media print {
+  [data-mavo-photo] { visibility: hidden !important; }
+}

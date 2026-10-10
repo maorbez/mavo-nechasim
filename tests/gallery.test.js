@@ -6,9 +6,14 @@ const vm = require('node:vm');
 const code = fs.readFileSync(require('node:path').join(__dirname, '..', 'app.js'), 'utf8');
 function gallery(direction) {
   const handlers = {};
-  const elements = { lightboxImg: {}, lbCounter: {}, lightbox: { classList: { contains: () => true } } };
+  const element = () => ({style:{},dataset:{},children:[],events:{},classList:{contains:()=>true,add(){},remove(){}},
+    addEventListener(name,fn){this.events[name]=fn;},setAttribute(){},appendChild(child){child.parent=this;this.children.push(child);},
+    querySelector(selector){return selector==='.lb-photo-notice'?this.children.find(child=>child.className?.includes('lb-photo-notice'))||null:null;},
+    querySelectorAll(){return [];},remove(){if(this.parent)this.parent.children=this.parent.children.filter(child=>child!==this);}});
+  const elements = { lightboxImg: element(), lbCounter: element(), lightbox: element() };
   const context = vm.createContext({
-    document: { getElementById: id => elements[id] || null, querySelector: () => null, querySelectorAll: () => [],
+    MavoPhoto: { setSource(image, url) { image.src = url; image.protectedSource = url; } },
+    document: { createElement:element,getElementById: id => elements[id] || null, querySelector: () => null, querySelectorAll: () => [],
       addEventListener: (name, fn) => { handlers[name] = fn; } },
     getComputedStyle: () => ({ direction })
   });
@@ -21,6 +26,50 @@ test('Hebrew gallery advances left and goes back right, with wraparound', () => 
   g.key('ArrowLeft'); assert.equal(g.elements.lightboxImg.src, 'two');
   g.key('ArrowRight'); assert.equal(g.elements.lightboxImg.src, 'one');
   g.key('ArrowRight'); assert.equal(g.elements.lightboxImg.src, 'three');
+});
+test('legacy image failure shows an unavailable notice and cannot open a failed photo', () => {
+  const g = gallery('rtl');
+  const main = {style:{removeProperty(){}},classList:{remove(){}},dataset:{},children:[],contains(image){return this.children.includes(image);},
+    appendChild(image){this.children.push(image);},replaceChildren(){this.children=[];}};
+  g.context.showGalleryItem(main,'two');
+  const image=main.children[0];
+  assert.equal(typeof image.events.error,'function');
+  image.events.error();
+  assert.equal(main.dataset.lightbox,'');assert.equal(main.style.cursor,'default');
+  assert.equal(main.children[0].textContent,'התמונה אינה זמינה כרגע');
+});
+test('fullscreen failure shows an unavailable state and next navigation clears it', () => {
+  const g=gallery('rtl');
+  g.key('ArrowLeft');
+  assert.equal(typeof g.elements.lightboxImg.onerror,'function');
+  g.elements.lightboxImg.onerror();
+  assert.equal(g.elements.lightbox.querySelector('.lb-photo-notice').textContent,'התמונה אינה זמינה כרגע');
+  assert.equal(g.elements.lightboxImg.style.display,'none');
+  g.key('ArrowLeft');
+  assert.equal(g.elements.lightbox.querySelector('.lb-photo-notice'),null);
+  assert.equal(g.elements.lightboxImg.src,'three');
+  assert.equal(g.elements.lightboxImg.style.display,'');
+});
+test('lightbox navigation renders protected bytes without changing the source photo sequence', () => {
+  const g = gallery('rtl');
+  g.context.MavoPhoto.setSource = (image, url) => { image.src = 'blob:protected-' + url; };
+  g.key('ArrowLeft'); assert.equal(g.elements.lightboxImg.src, 'blob:protected-two');
+  g.key('ArrowLeft'); assert.equal(g.elements.lightboxImg.src, 'blob:protected-three');
+  assert.equal(g.elements.lbCounter.textContent, '3 / 3');
+});
+test('legacy gallery and initial lightbox use the renderer while retaining the original click destination', () => {
+  const g = gallery('rtl');
+  const main = { style:{removeProperty(){}}, classList:{remove(){}}, dataset:{}, children:[], appendChild(image){this.children.push(image);} };
+  g.context.document.createElement = () => ({addEventListener(){}});
+  g.context.MavoPhoto.setSource = (image, url) => { image.src = 'blob:protected-' + url; };
+  g.context.showGalleryItem(main, 'two');
+  assert.equal(main.children[0].src, 'blob:protected-two');
+  assert.equal(main.dataset.lightbox, 'two');
+  Object.assign(g.elements.lightbox, {dataset:{}, querySelector:selector=>['.lb-video','.lb-photo-notice'].includes(selector)?null:{}, querySelectorAll:()=>[], classList:{add(){}}});
+  g.elements.lightboxImg.style = {};
+  g.context.openLightbox('two');
+  assert.equal(g.elements.lightboxImg.src, 'blob:protected-two');
+  assert.equal(g.elements.lbCounter.textContent, '2 / 3');
 });
 test('English gallery keeps right-forward navigation and repeated clicks advance once each', () => {
   const g = gallery('ltr');

@@ -48,14 +48,16 @@
   function mountStill(host,selection,options={}){
     const urls=imageCandidates(selection,options.item||selection.cover);if(!urls.length)return null;
     const image=host.ownerDocument.createElement('img');image.alt=options.alt||'תמונת הנכס';image.className=options.className||'';image.loading=options.loading||'lazy';image.referrerPolicy='no-referrer';let index=0;
+    const photo=host.ownerDocument.defaultView.MavoPhoto;
+    function showSource(){photo.setSource(image,urls[index]);options.onSource?.(urls[index]);}
     image.addEventListener('load',()=>{if(host.contains(image))options.onLoad?.(image);});
-    image.addEventListener('error',()=>{if(!host.contains(image))return;index++;if(index<urls.length){image.src=urls[index];options.onSource?.(image.src);}else{image.remove();options.onUnavailable?.();}});
-    host.appendChild(image);image.src=urls[0];options.onSource?.(image.src);return image;
+    image.addEventListener('error',()=>{if(!host.contains(image))return;index++;if(index<urls.length){showSource();}else{image.remove();options.onUnavailable?.();}});
+    host.appendChild(image);showSource();return image;
   }
   function mountGalleryItem(host,selection,item,options={}){
     host.replaceChildren();if(!item)return null;
     if(item.type==='image')return mountStill(host,selection,{...options,item,loading:'eager',onUnavailable(){const notice=host.ownerDocument.createElement('span');notice.textContent='התמונה אינה זמינה כרגע';host.appendChild(notice);options.onUnavailable?.();}});
-    const video=host.ownerDocument.createElement('video');video.controls=true;video.muted=true;video.defaultMuted=true;video.playsInline=true;video.preload='metadata';video.style.cssText='width:100%;height:100%;object-fit:contain;background:#242424;display:block';video.setAttribute('aria-label','סרטון הנכס');if(item.poster_url)video.poster=item.poster_url;
+    const video=host.ownerDocument.createElement('video');video.controls=true;video.muted=true;video.defaultMuted=true;video.playsInline=true;video.preload='metadata';video.style.cssText='width:100%;height:100%;object-fit:contain;background:#242424;display:block';video.setAttribute('aria-label','סרטון הנכס');if(item.poster_url)host.ownerDocument.defaultView.MavoPhoto.setPoster(video,item.poster_url);
     video.addEventListener('loadedmetadata',()=>{if(host.contains(video))options.onLoad?.(video);});
     video.addEventListener('error',()=>{if(!host.contains(video))return;host.replaceChildren();mountStill(host,selection,{...options,item,loading:'eager'});const notice=host.ownerDocument.createElement('div');notice.className='gallery-media-notice';notice.textContent='הסרטון אינו זמין כרגע';host.appendChild(notice);},{once:true});
     host.appendChild(video);video.src=item.url;return video;
@@ -65,7 +67,7 @@
     function show(item){buttons.forEach(button=>{const active=button.dataset.mediaId===item.id;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});options.onSelect?.(item);mountGalleryItem(host,selection,item,options);}
     selection.items.forEach((item,index)=>{
       const button=host.ownerDocument.createElement('button');button.type='button';button.className='gallery-thumb'+(item.type==='video'?' is-video':'');button.dataset.mediaId=item.id;button.setAttribute('aria-label',(item.type==='video'?'סרטון':'תמונה')+' '+(index+1)+' מתוך '+selection.items.length);
-      const still=item.type==='image'?item.url:item.poster_url;if(still){button.style.backgroundImage='url("'+still.replace(/"/g,'%22')+'")';button.style.backgroundSize='cover';button.style.backgroundPosition='center';}else button.style.background='#242424';
+      const still=item.type==='image'?item.url:item.poster_url;if(still){host.ownerDocument.defaultView.MavoPhoto.setBackground(button,still);button.style.backgroundSize='cover';button.style.backgroundPosition='center';}else button.style.background='#242424';
       button.addEventListener('click',()=>{show(item);button.scrollIntoView?.({block:'nearest',inline:'nearest'});});buttons.push(button);thumbs.appendChild(button);
     });
     if(selection.cover)show(selection.cover);else{host.replaceChildren();const empty=host.ownerDocument.createElement('span');empty.textContent='מבוא נכסים';host.appendChild(empty);}
