@@ -10,6 +10,8 @@
 // ONLY when a complete captured table proves row absence. publicflag=false is
 // never a privacy veto. Unresolved location jobs block; verified jobs stay binding.
 // A newer active approval after such a job requires separate current proof.
+// Active approximate rows also require canonical sanitized text proof, which this
+// initial compiler cannot authenticate; marker/cleared coordinates are insufficient.
 // Capture proof and verification assertions are caller-supplied, not network proof.
 // prepareMigrationInput validates readiness and freezes an initial normalized
 // input; use verifyFrozenMigration against fresh evidence before import.
@@ -163,7 +165,9 @@ function readiness(input,office){
   if((terminal||s.effective_available===false)&&positive(p.property_number))forced.add(p.property_number);
   if(source&&source.active===true&&!forced.has(p.property_number)){
    if(s.stage==='reserved'||s.lifecycle_stage==='recruiting')throw Error('unresolved_public_lifecycle');
-   if(s.public_location_mode==='approximate'&&(source.extra!=='מיקום משוער'||source.lat!==null||source.lng!==null))throw Error('current_privacy_projection_mismatch');
+   // Approximate text can still contain an exact address in any public string.
+   // Do not guess from a marker, coordinates or numeric-address heuristics.
+   if(s.public_location_mode==='approximate')throw Error('current_privacy_projection_proof_required');
   }
  }
  if(states.size!==office.ids.size)throw Error('uncaptured_property_privacy_state');

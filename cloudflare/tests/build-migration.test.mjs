@@ -63,6 +63,14 @@ test('archives force withdrawal, other channels do not hide website, absent inac
 test('unknown/foreign removals, missing tombstone deal type, malformed status and ahead-of-current revisions block',()=>{
  for(const overrides of [{removals:[{property_id:'foreign',revision:3,status:'verified',channels:['website']}]},{officeProperties:[office(),office('office-67',67,{type:null})],removals:[{property_id:'office-67',revision:3,status:'verified',channels:['website']}]},{removals:[{property_id:'office-64',revision:4,status:'verified',channels:['website']}]},{removals:[{property_id:'office-64',revision:3,status:'unknown',channels:['website']}]},{inactiveProjections:[row(99,{photos:[],active:false})]}])assert.throws(()=>buildMigration(input(overrides)));
 });
+test('raw queued/processing/partial removal states block until explicitly normalized, never disappear from a plan',()=>{
+ for(const status of ['queued','processing','partial']){
+  const data=input({removals:[{property_id:'office-64',revision:3,status,channels:['website']}]});
+  assert.throws(()=>buildMigration(data),/invalid_removal_ledger/);
+  assert.throws(()=>migration.prepareMigrationInput(data),/invalid_removal_ledger/);
+  assert.equal(data.removals[0].status,status);assert.equal(data.sourceRows[0].active,true);
+ }
+});
 test('maps every gallery/poster/fallback URL without changing order, cover or stable IDs, including legacy Postify/MOV',()=>{
  const a=old,b=old.replace('old.jpg','b.jpg'),v=old.replace('old.jpg','video.mp4');
  const manifest={version:1,cover_media_id:'video:id',items:[{id:'b',type:'image',url:b},{id:'video:id',type:'video',url:v,poster_url:a,fallback_url:b},{id:'a',type:'image',url:a}]};
@@ -143,6 +151,20 @@ test('unclear lifecycle, unknown terminal states and unsanitized current approxi
  const data=input();
  for(const change of [{workflow_status:'unknown'},{stage:'unknown'},{lifecycle_stage:'unknown'},{stage:'reserved'},{lifecycle_stage:'recruiting'}])assert.throws(()=>buildMigration(input({...data,privacyEvidence:privacy(data,{propertyStates:[{...data.privacyEvidence.propertyStates[0],...change}]})})));
  const exact=row(64,{extra:'',lat:32,lng:34.8});const p=privacy(data,{propertyStates:[{...data.privacyEvidence.propertyStates[0],public_location_mode:'approximate'}]});assert.throws(()=>buildMigration(input({...data,sourceRows:[exact],privacyEvidence:p})));
+});
+test('active approximate rows require canonical sanitized text proof even with approximate marker and cleared coordinates',()=>{
+ const base=input(),privacyEvidence=privacy(base,{propertyStates:[{...base.privacyEvidence.propertyStates[0],public_location_mode:'approximate'}]});
+ for(const text of [
+  {title:'דירה ברחוב הרצל 16',location:'הרצל 16, חיפה',description:'כניסה מהרצל 16'},
+  {title:'דירה בחיפה',location:'חיפה',description:'מיקום משוער'}
+ ]){
+  const data=input({...base,sourceRows:[row(64,{...text,extra:'מיקום משוער',lat:null,lng:null})],privacyEvidence});
+  assert.throws(()=>buildMigration(data),/current_privacy_projection_proof_required/);
+  assert.throws(()=>migration.prepareMigrationInput(data),/current_privacy_projection_proof_required/);
+  assert.equal(data.sourceRows[0].active,true);assert.equal(data.sourceRows[0].title,text.title);
+ }
+ const inactive=input({...base,sourceRows:[row(64,{active:false,extra:'מיקום משוער',lat:null,lng:null})],privacyEvidence});
+ assert.equal(JSON.parse(buildMigration(inactive).entries[0].payload).active,false);
 });
 test('location withdrawal captures remain binding: unresolved blocks, verified hides, later active approvals require explicit proof',()=>{
  const data=input();
