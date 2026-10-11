@@ -4,7 +4,10 @@
 current origin. Host the approved static site and API together. The request uses
 `cache: 'no-store'`, `credentials: 'omit'`, redirect rejection and no browser key.
 The API must return the existing 21 public fields for each active property;
-`PUBLIC_PROPERTY_COLUMNS` remains the projection contract. Public numbers still
+`PUBLIC_PROPERTY_COLUMNS` remains the projection contract. Existing optional
+`price_label`, `emoji`, `bg` and amenity fields accept null without rewriting the
+source projection; the established mapper retains its presentation defaults.
+`active` remains a required boolean. Public numbers still
 come from Office and the canonical `?prop=<number>` links are unchanged.
 
 For a separately hosted API, set `window.MAVO_CATALOG_API_ORIGIN` to its HTTPS
@@ -45,7 +48,7 @@ creation, permission grants and legacy Auth restoration remain outside the reade
 The new reader tests were observed failing before implementation and passing
 afterward. They cover configuration, exact projection/privacy, error/empty cases,
 explicit rollback, gallery/card/share mapping and mocked Office receipt behavior
-for budgets4999/5000/5001. `npm test`:120 passed. The synthetic preview builder
+for budgets4999/5000/5001. `npm test`:121 passed. The synthetic preview builder
 continues to force its own fake API regardless of production provider/origin
 settings and blocks writes/messages/admin independently through its guard/CSP.
 

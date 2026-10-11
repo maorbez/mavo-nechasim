@@ -132,10 +132,17 @@
     if (!exactKeys(row, PUBLIC_PROPERTY_COLUMNS, PUBLIC_PROPERTY_COLUMNS) ||
         typeof row.id !== 'number' || canonicalPropertyId(row.id) !== row.id || row.active !== true ||
         !['rent', 'sale', 'commercial-rent', 'commercial-sale'].includes(row.type)) fail();
-    for (const key of ['price', 'price_label', 'title', 'location', 'extra', 'description', 'emoji', 'bg']) {
+    for (const key of ['price', 'title', 'location', 'extra', 'description']) {
       if (typeof row[key] !== 'string' || row[key].length > 12000) fail();
     }
-    for (const key of ['has_elevator', 'has_shelter', 'has_parking']) if (typeof row[key] !== 'boolean') fail();
+    // Existing nullable public columns are retained verbatim. The established
+    // display mapper alone supplies presentation defaults; it never rewrites rows.
+    for (const key of ['price_label', 'emoji', 'bg']) {
+      if (row[key] !== null && (typeof row[key] !== 'string' || row[key].length > 12000)) fail();
+    }
+    for (const key of ['has_elevator', 'has_shelter', 'has_parking']) {
+      if (row[key] !== null && typeof row[key] !== 'boolean') fail();
+    }
     for (const key of ['rooms', 'baths', 'sqm']) {
       const value = row[key];
       if (value !== null && value !== '' && !(typeof value === 'number' && Number.isFinite(value) && value >= 0) &&

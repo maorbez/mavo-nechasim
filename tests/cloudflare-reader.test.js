@@ -38,6 +38,22 @@ test('browser reads provider and origin config without overwriting them or creat
   const result=await window.loadMavoProperties({renderStatus:false});
   assert.equal(result.source,'cloudflare');assert.equal(window.SUPABASE_KEY,undefined);assert.equal(window.SUPABASE_URL,undefined);
 });
+test('legitimate nullable public metadata preserves exact source nulls and established display defaults', async () => {
+  const source=row({price_label:null,emoji:null,bg:null,has_elevator:null,has_shelter:null,has_parking:null});
+  const result=await db.loadMavoProperties({renderStatus:false,fetchImpl:async()=>response([source])});
+  assert.equal(result.source,'cloudflare');assert.equal(result.degraded,false);
+  const property=result.properties[0];
+  assert.equal(property.priceLabel,'₪ 5,000');assert.equal(property.emoji,'🏠');
+  assert.equal(property.bg,'linear-gradient(135deg,#1a3a5c,#2d6a9f)');
+  assert.equal(property.hasElevator,false);assert.equal(property.hasShelter,false);assert.equal(property.hasParking,false);
+  assert.deepEqual(db.validatePublicProjection(source),source);
+  const known=db.mapDbRow(row());assert.equal(known.hasElevator,false);assert.equal(known.hasShelter,true);assert.equal(known.hasParking,false);
+  for(const overrides of [{active:null},{price:null},{title:null},{location:null},{extra:null},{description:null},{price_label:0},{emoji:0},{bg:0},{has_elevator:'unknown'}]) {
+    const invalid=await db.loadMavoProperties({renderStatus:false,fetchImpl:async()=>response([row(overrides)])});
+    assert.equal(invalid.source,'unavailable');assert.deepEqual(invalid.properties,[]);
+  }
+});
+
 test('malformed, private, inactive, duplicate, excessive and invalid media responses fail closed with no stale fallback', async () => {
   const cases=[{},[row({customer_phone:'private'})],[row({id:'64'})],[row({id:0})],[row({active:false})],[row({lat:32})],[row({photos:['https://forms.mavorealestate.com/office/private.jpg']})],[row({has_parking:'yes'})],[row({type:'private'})],[row({sqm:-1})],[row({title:null})],[row({media_manifest:{version:1,cover_media_id:'x',items:[{id:'x',type:'image',url:asset('00'),private_path:'/office/private'}]}})],[row({media_manifest:{version:1,cover_media_id:'v',items:[{id:'v',type:'video',url:asset('00','mp4')}]}})],[row(),row()],Array.from({length:1001},(_,i)=>row({id:i+1,photos:[]}))];
   for(const data of cases) {
