@@ -2,7 +2,15 @@
 
 This directory is an isolated preparation candidate. It does not change the live
 website, Office, publisher, DNS, R2 access, or Supabase data. A synthetic static
-preview can be deployed separately; that does not deploy this Worker or prove D1.
+preview is deployed separately; that does not deploy this Worker or prove D1.
+
+Latest Maor instruction authorizes live migration and the signing-preserving
+Spaceship support request. Support chat received the request and escalated it.
+A separate D1 pilot database718823a0-f098-464d-b3dc-e510efcf2f08 has the schema
+verified; no live catalog import, publisher activation or DNS cutover is claimed.
+Fresh Office encrypted272-member backup independently restored. Native
+PostgreSQL/Auth recovery remains unverified and the original Supabase project
+will be retained; no destructive retirement is authorized.
 
 ## Observed system and decision
 
@@ -33,8 +41,8 @@ preview can be deployed separately; that does not deploy this Worker or prove D1
   live signing behavior. Reconcile on the latest proven release first.
 - Registrar self-service inspection found ordinary DNSSEC toggle and a zero-entry
   future custom-NS DS panel, not a DS-only withdrawal control. Ordinary disable
-  previously caused a cached-DS signing mismatch. Support draft is unsent. No DNS
-  changes are part of this preparation.
+  previously caused a cached-DS signing mismatch. Support request was sent with explicit owner authorization on 2026-10-11;
+  specialist response remains pending. No DNS change has been applied.
 
 ## Artifacts and interfaces
 
@@ -50,6 +58,11 @@ preview can be deployed separately; that does not deploy this Worker or prove D1
   Header `x-mavo-time` is Unix seconds, +/-300s; `x-mavo-signature` is hex HMAC-SHA256
   over `PUT\n/path\ntimestamp\nraw_body`. Max envelope 131072 bytes, projection
   65536 bytes. The existing publisher must use the same frozen dispatch on retry.
+- `GET /internal/publications/:id` and `GET /internal/publications` use the same
+  server-only signature over `GET\n/path\ntimestamp\n` (empty body). They expose
+  exact revision/dispatch/hash/Office identity only to the publisher, validate
+  payload hashes and include inactive tombstones for recovery. The full signed
+  inventory is bounded to1000. Anonymous/browser/tampered/stale requests deny.
 - Atomic revision CAS preserves identities, rejects stale/foreign writes; same
   dispatch/revision/hash replay is verified by actual DB payload readback, including
   overlapping initial requests. Receipt `{saved,replayed,provider:'cloudflare-d1',
@@ -58,6 +71,9 @@ preview can be deployed separately; that does not deploy this Worker or prove D1
 - Manifest keeps stable IDs, cover/order, image optional poster/fallback, and video
   required image poster/fallback. Unknown fields/private media URLs are rejected.
   Legacy null manifests/public Supabase bucket URLs remain source-compatible.
+  Optional price_label/emoji/bg and unknown amenities preserve their source nulls.
+  Six existing Postify media rows still require backed-up asset migration; these
+  URLs are not silently accepted by widening the public provider allowlist.
   Approximate-location rows with coordinates fail rather than silently redacting.
 - Metadata and hashes stay internal. Public reads use no-store and validate payload
   hashes. Privacy withdrawal must also address already cached media/links before a
@@ -89,7 +105,8 @@ node cloudflare/tools/build-preview.mjs --out /absolute/new-directory
 
 Node 24 with real `node:sqlite` was used. These tests are not actual Cloudflare D1
 runtime tests. Export tests use fake pg_dump; they cannot prove native restore.
-The source website files remain untouched. Browser/provider evidence is recorded
+The frontend source now has an explicit Cloudflare reader and Supabase rollback
+flag. No production deployment of that reader is claimed. Browser/provider evidence is recorded
 separately in the owner-local migration artifact folder.
 
 ## Next approved preparation versus eventual activation

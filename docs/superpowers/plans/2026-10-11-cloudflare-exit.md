@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- Current authorization permits isolated preparation/synthetic trial only. No live migration, private uploads, DNS/security changes, new credentials/charges, deletion or support sends.
+- Latest explicit Maor authorization permits completing the live public migration and sending the prepared Spaceship request. Keep exact existing access/billing scope; no customer sends, destructive retirement or new private-CRM exposure. Security-sensitive UI actions follow action-time confirmation policy. Preserve the separate Office signing executor deployment slot and recheck current source before integration.
 - Keep public numeric property IDs, stable Office links, gallery order/cover IDs, approximate-address privacy, users/permissions, private originals and existing URLs.
 - Only Maor's existing Office owner may publish/integrate; employees retain current draft and terminal privacy-withdrawal rights.
 - Reuse Task `task-f3dda0c9-a0b5-4d7e-b706-5561ba6999f9`; no duplicate publisher/task.
@@ -88,11 +88,11 @@ Consumes: exact provider release IDs, current encrypted backups/restore proof, a
 Produces: separately verified Office, publisher, public site, assets/API and recovery receipts.
 
 - [ ] Before any real cutover, verify fresh Supabase/Office-volume encrypted rollback and rehearsal, exact current source commits, DNSSEC/DS cache and isolated end-to-end pilot.
-- [ ] Use self-service DS-only signing-preserving route if actually available; support draft stays unsent until specifically authorized. Never repeat blind DNSSEC disable/NS switch.
+- [ ] Use self-service DS-only signing-preserving route if actually available; support request was explicitly authorized and sent; signing-preserving withdrawal remains pending. Never repeat blind DNSSEC disable/NS switch.
 - [ ] Present concrete activation targets and minimal required permissions only after preparation is reviewable; no implication static trial completed migration.
 - [ ] Coordinate one publisher pause/lease-safe drain, source snapshot/withdrawal reconciliation, assets-ready catalog switch and existing URL/domain continuity. Retain old provider and originals recoverably.
 - [ ] On failure roll back exact affected public revision/config after reconciling concurrent withdrawal and approval; never restore withdrawn historical rows.
 - [ ] Live verify Office save/reload/publish/withdraw, API public/private boundaries, image/video/fallback/Range/mobile/share and new update; inspect provider egress trends before claiming savings.
 - [ ] Update every relevant API/config/code/docs surface; exact destination readbacks. Send bounded completion evidence to Hermes through an authorized active route; file-readback alone is not delivery. Keep MC pending if supported writer absent.
 
-Preparation may continue within its current permission. Task3 onward live/provider/security steps are not completed or authorized merely by this plan.
+Live work is now explicitly authorized by Maor. Completion still requires exact provider/readback evidence; this plan is not proof that gates passed.

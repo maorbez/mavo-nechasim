@@ -1,4 +1,4 @@
-// Prepared replacement API. No live bindings, secrets, Office adapter or deployment.
+// Public catalog API candidate. Deployment and provider bindings are recorded separately.
 // D1 holds an approved public projection, never Office customers or Auth users.
 export const PUBLIC_COLUMNS=['id','type','price','price_label','title','location','rooms','baths','sqm','extra','description','emoji','bg','lat','lng','photos','has_elevator','has_shelter','has_parking','active','media_manifest'];
 const encoder=new TextEncoder();
@@ -40,10 +40,11 @@ function validateManifest(m,id){
 }
 export function validateProjection(p){
  if(!keys(p,PUBLIC_COLUMNS)||PUBLIC_COLUMNS.some(k=>!Object.hasOwn(p,k))||!positive(p.id)||!['rent','sale','commercial-rent','commercial-sale'].includes(p.type))throw Error('invalid_projection');
- for(const k of ['price','price_label','title','location','extra','description','emoji','bg'])if(typeof p[k]!=='string'||p[k].length>12000)throw Error('invalid_projection');
- for(const k of ['has_elevator','has_shelter','has_parking','active'])if(typeof p[k]!=='boolean')throw Error('invalid_projection');
+ for(const k of ['price','price_label','title','location','extra','description','emoji','bg'])if(!(p[k]===null&&['price_label','emoji','bg'].includes(k))&&(typeof p[k]!=='string'||p[k].length>12000))throw Error('invalid_projection');
+ for(const k of ['has_elevator','has_shelter','has_parking'])if(p[k]!==null&&typeof p[k]!=='boolean')throw Error('invalid_projection');
+ if(typeof p.active!=='boolean')throw Error('invalid_projection');
  for(const k of ['rooms','baths','sqm'])if(p[k]!==null&&p[k]!==''&&!(typeof p[k]==='number'&&Number.isFinite(p[k])&&p[k]>=0)&&!(typeof p[k]==='string'&&/^\d+(\.\d+)?$/.test(p[k])))throw Error('invalid_projection');
- for(const [k,min,max] of [['lat',-90,90],['lng',-180,180]])if(p[k]!==null&&!(typeof p[k]==='number'&&Number.isFinite(p[k])&&p[k]>=min&&p[k]<=max))throw Error('invalid_projection');
+ for(const [k,min,max] of [['lat',-90,90],['lng',-180,180]])if(p[k]!==null&&!(typeof p[k]==='number'&&Number.isFinite(p[k])&&p[k]>=Number(min)&&p[k]<=Number(max)))throw Error('invalid_projection');
  if(p.extra==='מיקום משוער'&&(p.lat!==null||p.lng!==null))throw Error('private_coordinates');
  if(!Array.isArray(p.photos)||p.photos.length>80||!p.photos.every(x=>legacyPublicPhoto(x,p.id)))throw Error('invalid_projection');
  validateManifest(p.media_manifest,p.id);
@@ -59,7 +60,7 @@ async function boundedBody(request){
  const reader=request.body.getReader(),parts=[];let n=0;
  try{while(true){const {value,done}=await reader.read();if(done)break;n+=value.byteLength;if(n>131072){await reader.cancel();throw Error('body_too_large');}parts.push(value);}}
  finally{reader.releaseLock();}
- const all=new Uint8Array(n);let offset=0;for(const p of parts){all.set(p,offset);offset+=p.length;}return new TextDecoder('utf-8',{fatal:true}).decode(all);
+ const all=new Uint8Array(n);let offset=0;for(const p of parts){all.set(p,offset);offset+=p.length;}return new TextDecoder('utf-8',{fatal:true,ignoreBOM:false}).decode(all);
 }
 function response(request,data,status=200){
  const headers={'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer'};
@@ -68,6 +69,25 @@ function response(request,data,status=200){
 }
 async function verifiedRow(row){
  const p=validateProjection(JSON.parse(row.payload));if(await digest(canonical(p))!==row.payload_hash)throw Error('catalog_integrity');return p;
+}
+async function authorized(request,env,path,raw=''){
+ if(!env.PUBLISHER_HMAC||env.PUBLISHER_HMAC.length<32)return false;
+ const time=request.headers.get('x-mavo-time')||'',sig=request.headers.get('x-mavo-signature')||'';
+ if(request.headers.has('origin')||!/^\d{10}$/.test(time)||Math.abs(Date.now()/1000-Number(time))>300||!/^([a-f0-9]{64})$/.test(sig))return false;
+ return crypto.subtle.verify('HMAC',await hmacKey(env.PUBLISHER_HMAC),Uint8Array.from(sig.match(/../g),x=>parseInt(x,16)),signedMessage(request.method,path,time,raw));
+}
+async function internalState(request,env,path){
+ if(!await authorized(request,env,path))return response(request,{error:'forbidden'},403);
+ if(!env.CATALOG)return response(request,{error:'catalog_unavailable'},503);
+ const state=async r=>({schema_version:1,office_property_id:r.office_property_id,revision:r.revision,dispatch_id:r.dispatch_id,payload_hash:r.payload_hash,property:await verifiedRow(r)});
+ if(path==='/internal/publications'){
+  const rows=await env.CATALOG.prepare('SELECT * FROM catalog ORDER BY id LIMIT 1001').bind().all();
+  if(rows.results.length>1000)throw Error('catalog_bound_exceeded');
+  return response(request,await Promise.all(rows.results.map(state)));
+ }
+ const id=Number(path.split('/').at(-1));if(!positive(id))return response(request,{error:'not_found'},404);
+ const row=await env.CATALOG.prepare('SELECT * FROM catalog WHERE id=?').bind(id).first();
+ return row?response(request,await state(row)):response(request,{error:'not_found'},404);
 }
 async function publish(request,env,path){
  if(!env.PUBLISHER_HMAC||env.PUBLISHER_HMAC.length<32)return response(request,{error:'publisher_not_configured'},503);
@@ -102,7 +122,9 @@ export default {async fetch(request,env){
  const url=new URL(request.url),path=url.pathname;
  try{
   if(path.startsWith('/internal/')){
-   if(request.method!=='PUT'||!/^\/internal\/publications\/[1-9][0-9]*$/.test(path)||url.search)return response(request,{error:'not_found'},404);
+   if(url.search)return response(request,{error:'not_found'},404);
+   if(request.method==='GET'&&(path==='/internal/publications'||/^\/internal\/publications\/[1-9][0-9]*$/.test(path)))return await internalState(request,env,path);
+   if(request.method!=='PUT'||!/^\/internal\/publications\/[1-9][0-9]*$/.test(path))return response(request,{error:'not_found'},404);
    return await publish(request,env,path);
   }
   if(path==='/api/properties'||/^\/api\/properties\/[1-9][0-9]*$/.test(path)){

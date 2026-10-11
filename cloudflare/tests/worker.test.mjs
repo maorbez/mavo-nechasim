@@ -17,6 +17,35 @@ async function write(env,body,alter={}){
  return worker.fetch(new Request('https://synthetic.invalid'+path,{method:'PUT',headers:{'content-type':'application/json','x-mavo-time':time,'x-mavo-signature':signed,...alter},body:raw}),env);
 }
 const envelope=(revision=1,expected_revision=null,p=row())=>({schema_version:1,office_property_id:'synthetic-office-123',revision,expected_revision,dispatch_id:'synthetic-dispatch-'+revision,property:p});
+async function internalRead(env,path='/internal/publications/123',alter={}){
+ const time=String(Math.floor(Date.now()/1000));
+ const signature=await signatureFor(env.PUBLISHER_HMAC,'GET',path,time,'');
+ return worker.fetch(new Request('https://synthetic.invalid'+path,{headers:{'x-mavo-time':time,'x-mavo-signature':signature,...alter}}),env);
+}
+test('signed state read reconciles exact active and withdrawn revisions without public exposure',async()=>{
+ const {env}=setup();assert.equal((await internalRead(env)).status,404);
+ await write(env,envelope());await write(env,envelope(2,1,{...row(),active:false}));
+ const response=await internalRead(env);assert.equal(response.status,200);
+ const state=await response.json();assert.equal(state.schema_version,1);assert.equal(state.office_property_id,'synthetic-office-123');
+ assert.equal(state.revision,2);assert.equal(state.dispatch_id,'synthetic-dispatch-2');assert.match(state.payload_hash,/^[a-f0-9]{64}$/);assert.equal(state.property.active,false);
+ assert.deepEqual(await (await worker.fetch(new Request('https://synthetic.invalid/api/properties'),env)).json(),[]);
+});
+test('internal state and full backup inventory reject anonymous, browser and tampered requests',async()=>{
+ const {env}=setup();await write(env,envelope());
+ for(const path of ['/internal/publications','/internal/publications/123']){
+  assert.equal((await worker.fetch(new Request('https://synthetic.invalid'+path),env)).status,403);
+  assert.equal((await internalRead(env,path,{Origin:'https://mavorealestate.com'})).status,403);
+  assert.equal((await internalRead(env,path,{'x-mavo-signature':'0'.repeat(64)})).status,403);
+  assert.equal((await internalRead(env,path,{'x-mavo-time':'1'})).status,403);
+ }
+});
+test('signed full catalog backup includes tombstones and fails on corrupted data',async()=>{
+ const {env,sql}=setup();await write(env,envelope());await write(env,envelope(2,1,{...row(),active:false}));
+ const inventory=await internalRead(env,'/internal/publications');assert.equal(inventory.status,200);
+ const states=await inventory.json();assert.equal(states.length,1);assert.equal(states[0].property.active,false);
+ sql.prepare('UPDATE catalog SET payload=? WHERE id=?').run(JSON.stringify({...row(),active:false,price:'9000'}),123);
+ assert.equal((await internalRead(env)).status,503);assert.equal((await internalRead(env,'/internal/publications')).status,503);
+});
 test('anonymous writes and missing publisher secret deny',async()=>{
  const {env}=setup();const a=await worker.fetch(new Request('https://synthetic.invalid/internal/publications/123',{method:'PUT',body:'{}'}),env);assert.equal(a.status,403);
  delete env.PUBLISHER_HMAC;assert.equal((await worker.fetch(new Request('https://synthetic.invalid/internal/publications/123',{method:'PUT',body:'{}'}),env)).status,503);
@@ -60,6 +89,11 @@ test('withdrawal hides detail/list and older revision cannot revive it',async()=
 });
 test('private fields and approximate coordinates fail closed',()=>{
  assert.throws(()=>validateProjection({...row(),office_property_id:'private'}));assert.throws(()=>validateProjection({...row(),owner_phone:'private'}));assert.throws(()=>validateProjection({...row(),lat:32,lng:34}));
+});
+test('legacy optional display fields and unknown amenities retain exact null values',()=>{
+ const p={...row(),price_label:null,emoji:null,bg:null,has_elevator:null,has_shelter:null,has_parking:null};
+ assert.deepEqual(validateProjection(p),p);
+ assert.throws(()=>validateProjection({...p,active:null}));assert.throws(()=>validateProjection({...p,title:null}));
 });
 test('legacy photos preserve approved public assets but reject private credential URLs',()=>{
  const approved='https://tnkiwgewdancvmkhzlwz.supabase.co/storage/v1/object/public/property-photos/legacy-public.jpg';
