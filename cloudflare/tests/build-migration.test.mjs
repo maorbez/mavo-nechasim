@@ -5,13 +5,23 @@ import {mkdtemp,chmod,readFile,stat,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {DatabaseSync} from 'node:sqlite';
-import {buildMigration,hashInputs,canonicalHash,verifyFrozenMigration,writeMigration,verifyMigration} from '../tools/build-migration.mjs';
+import * as migration from '../tools/build-migration.mjs';
+const {buildMigration,hashInputs,canonicalHash,verifyFrozenMigration,writeMigration,verifyMigration}=migration;
 const hash='a'.repeat(64),old='https://tnkiwgewdancvmkhzlwz.supabase.co/storage/v1/object/public/property-photos/old.jpg';
 const target=(id=64,index='00',ext='webp')=>`https://media.mavorealestate.com/property-${id}/revision-3/${index}-${hash}.${ext}`;
 const row=(id=64,overrides={})=>({id,type:'rent',price:'5000',price_label:null,title:'Public listing',location:'City',rooms:2.5,baths:1,sqm:60,extra:'מיקום משוער',description:'Public facts',emoji:null,bg:null,lat:null,lng:null,photos:[old],has_elevator:null,has_shelter:true,has_parking:false,active:true,media_manifest:null,...overrides});
 const office=(id='office-64',number=64,overrides={})=>({id,property_number:number,revision:3,archived_at:null,public_listing_enabled:false,type:'rent',...overrides});
 const replace=(source_url=old,url=target(),overrides={})=>({source_url,url,sha256:hash,verified:true,...overrides});
-function input(overrides={}){const value={sourceRows:[row()],sourceLinks:[{property_number:64,office_property_id:null}],officeProperties:[office()],removals:[],mediaReplacements:[replace()],existingCatalog:[],inactiveProjections:[],approvals:[],...overrides};return {...value,frozenInputs:hashInputs(value)};}
+function privacy(data,overrides={}){
+ const propertyStates=data.officeProperties.map(p=>({property_id:p.id,workflow_status:'new',stage:'in_office',lifecycle_stage:'in_office',public_location_mode:'exact',effective_available:true}));
+ const base={schema_version:1,propertyStates,websiteSettings:[],locationWithdrawals:[],...overrides};
+ const columns={office_crm_properties:['id','property_number','archived_at','public_listing_enabled','workflow_status','stage','lifecycle_stage','public_location_mode'],office_property_pipeline:['property_id','revision'],office_property_website_settings:['property_id','available'],office_location_withdrawals:['id','property_id','revision','status','catalog_backend'],office_publication_removals:['property_id','revision','status','channels_json']};
+ const counts={office_crm_properties:data.officeProperties.length,office_property_pipeline:data.officeProperties.filter(p=>p.revision!==null).length,office_property_website_settings:base.websiteSettings.length,office_location_withdrawals:base.locationWithdrawals.length,office_publication_removals:data.removals.length};
+ base.capture={complete:true,scope:'full-office',captured_at:'2026-10-11T12:00:00Z',snapshot_sha256:'0'.repeat(64),tables:Object.fromEntries(Object.keys(columns).map(k=>[k,{present:true,columns:columns[k],count:counts[k]}]))};
+ return base;
+}
+function input(overrides={}){const value={sourceRows:[row()],sourceLinks:[{property_number:64,office_property_id:null}],officeProperties:[office()],removals:[],mediaReplacements:[replace()],existingCatalog:[],inactiveProjections:[],approvals:[],...overrides};if(!Object.hasOwn(value,'privacyEvidence'))value.privacyEvidence=privacy(value);return {...value,frozenInputs:hashInputs(value)};}
+
 const state=entry=>({schema_version:1,office_property_id:entry.office_property_id,revision:entry.revision,dispatch_id:entry.dispatch_id,payload_hash:entry.payload_hash,property:JSON.parse(entry.payload)});
 
 test('uses authoritative Office numbers/current revision, preserves nullable source and false publication flag without hiding',()=>{
@@ -105,4 +115,47 @@ test('private exclusive output verifies checksums, refuses corruption/permission
  await assert.rejects(verifyMigration(dir,input({...data,sourceRows:[row(64,{title:'Changed'})]})),/frozen_inputs_changed/);
  await chmod(join(dir,'plan.private.json'),0o644);await assert.rejects(verifyMigration(dir,data),/file_not_private/);await chmod(join(dir,'plan.private.json'),0o600);
  await writeFile(join(dir,'plan.private.sql'),'INSERT evil;');await assert.rejects(verifyMigration(dir,data),/checksum_mismatch/);
+});
+
+
+test('readiness requires full fresh capture/table schemas/counts and exact state for every established Office property',()=>{
+ const data=input();
+ const invalid=[undefined,{...data.privacyEvidence,capture:{...data.privacyEvidence.capture,complete:false}},{...data.privacyEvidence,propertyStates:[]},{...data.privacyEvidence,capture:{...data.privacyEvidence.capture,snapshot_sha256:'missing'}}];
+ for(const privacyEvidence of invalid)assert.throws(()=>buildMigration(input({...data,privacyEvidence})));
+ for(const table of Object.keys(data.privacyEvidence.capture.tables)){
+  const p=structuredClone(data.privacyEvidence);p.capture.tables[table].present=false;assert.throws(()=>buildMigration(input({...data,privacyEvidence:p})));
+ }
+ const schema=structuredClone(data.privacyEvidence);schema.capture.tables.office_crm_properties.columns=schema.capture.tables.office_crm_properties.columns.filter(k=>k!=='workflow_status');assert.throws(()=>buildMigration(input({...data,privacyEvidence:schema})));
+ const counts=structuredClone(data.privacyEvidence);counts.capture.tables.office_property_website_settings.count=1;assert.throws(()=>buildMigration(input({...data,privacyEvidence:counts})));
+ const extra=structuredClone(data.privacyEvidence);extra.propertyStates.push({...extra.propertyStates[0],property_id:'foreign'});assert.throws(()=>buildMigration(input({...data,privacyEvidence:extra})));
+});
+test('actual effective website availability and independent terminal classifications veto public rows, not publicflag=false',()=>{
+ const data=input();assert.equal(JSON.parse(buildMigration(data).entries[0].payload).active,true);
+ for(const change of [{workflow_status:'closed_by_us'},{workflow_status:'closed_other'},{workflow_status:'not_relevant'},{stage:'rented'},{stage:'sold'},{stage:'archived'},{lifecycle_stage:'not_relevant'},{effective_available:false}]){
+  const propertyStates=[{...data.privacyEvidence.propertyStates[0],...change}];
+  const websiteSettings=change.effective_available===false?[{property_id:'office-64',available:false}]:[];
+  const plan=buildMigration(input({...data,privacyEvidence:privacy(data,{propertyStates,websiteSettings})}));
+  assert.equal(JSON.parse(plan.entries[0].payload).active,false);assert.equal(data.removals.length,0);
+ }
+ const mismatch=privacy(data,{websiteSettings:[{property_id:'office-64',available:false}]});assert.throws(()=>buildMigration(input({...data,privacyEvidence:mismatch})));
+});
+test('unclear lifecycle, unknown terminal states and unsanitized current approximate privacy block exposure',()=>{
+ const data=input();
+ for(const change of [{workflow_status:'unknown'},{stage:'unknown'},{lifecycle_stage:'unknown'},{stage:'reserved'},{lifecycle_stage:'recruiting'}])assert.throws(()=>buildMigration(input({...data,privacyEvidence:privacy(data,{propertyStates:[{...data.privacyEvidence.propertyStates[0],...change}]})})));
+ const exact=row(64,{extra:'',lat:32,lng:34.8});const p=privacy(data,{propertyStates:[{...data.privacyEvidence.propertyStates[0],public_location_mode:'approximate'}]});assert.throws(()=>buildMigration(input({...data,sourceRows:[exact],privacyEvidence:p})));
+});
+test('location withdrawal captures remain binding: unresolved blocks, verified hides, later active approvals require explicit proof',()=>{
+ const data=input();
+ const job=status=>({id:'withdrawal-64',property_id:'office-64',revision:3,status,catalog_backend:'supabase',schema_provenance:'captured-column'});
+ for(const status of ['queued','processing','failed'])assert.throws(()=>buildMigration(input({...data,privacyEvidence:privacy(data,{locationWithdrawals:[job(status)]})})),/unresolved_location_withdrawal/);
+ const verified=privacy(data,{locationWithdrawals:[job('verified')]});const plan=buildMigration(input({...data,privacyEvidence:verified}));assert.equal(JSON.parse(plan.entries[0].payload).active,false);
+ const older=privacy(data,{locationWithdrawals:[{...job('verified'),revision:2}]});assert.throws(()=>buildMigration(input({...data,privacyEvidence:older})),/current_location_approval_proof_required/);
+ const defaulted=privacy(data,{locationWithdrawals:[{...job('verified'),schema_provenance:'absent-column-supabase-default'}]});defaulted.capture.tables.office_location_withdrawals.columns=defaulted.capture.tables.office_location_withdrawals.columns.filter(k=>k!=='catalog_backend');assert.equal(JSON.parse(buildMigration(input({...data,privacyEvidence:defaulted})).entries[0].payload).active,false);
+ const wrongDefault=structuredClone(defaulted);wrongDefault.locationWithdrawals[0].catalog_backend='cloudflare-d1';assert.throws(()=>buildMigration(input({...data,privacyEvidence:wrongDefault})));
+});
+test('readiness preprocessing freezes all captured privacy evidence and fresh mismatches cannot refreeze an existing plan',()=>{
+ const data=input(),unfrozen={...data};delete unfrozen.frozenInputs;
+ assert.equal(typeof migration.prepareMigrationInput,'function');const prepared=migration.prepareMigrationInput(unfrozen);const plan=buildMigration(prepared);assert.equal(verifyFrozenMigration(plan,prepared),true);
+ const fresh=structuredClone(prepared);fresh.privacyEvidence.propertyStates[0].workflow_status='closed_other';fresh.frozenInputs=hashInputs(fresh);assert.throws(()=>verifyFrozenMigration(plan,fresh),/frozen_inputs_changed/);
+ const oldFrozen={...fresh,frozenInputs:prepared.frozenInputs};assert.throws(()=>migration.prepareMigrationInput(oldFrozen),/frozen_inputs_changed/);
 });

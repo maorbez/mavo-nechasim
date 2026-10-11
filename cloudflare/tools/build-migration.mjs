@@ -2,6 +2,17 @@
 // Input sourceRows must have exactly the Worker's21 public columns. Other arrays
 // are owner-local evidence: sourceLinks, officeProperties, removals,
 // mediaReplacements, existingCatalog, inactiveProjections and approvals.
+// privacyEvidence is required: complete full-Office transaction capture, table
+// presence/columns/counts, captured_at and snapshot_sha256; one propertyStates
+// row per Office ID with workflow_status/stage/lifecycle_stage/public_location_mode
+// and captured effective_available; full websiteSettings and locationWithdrawals.
+// Availability uses the actual settings row, or Office's canonical true default
+// ONLY when a complete captured table proves row absence. publicflag=false is
+// never a privacy veto. Unresolved location jobs block; verified jobs stay binding.
+// A newer active approval after such a job requires separate current proof.
+// Capture proof and verification assertions are caller-supplied, not network proof.
+// prepareMigrationInput validates readiness and freezes an initial normalized
+// input; use verifyFrozenMigration against fresh evidence before import.
 // mediaReplacements [{source_url,url,sha256,verified:true}] are a CALLER-SUPPLIED
 // verification assertion; this compiler cannot verify R2 bytes or live withdrawals.
 // officeProperties require established {id,property_number,revision,archived_at,
@@ -36,13 +47,14 @@ export const canonicalHash=v=>sha(serialize(v));
 const exact=(v,keys,required=keys)=>object(v)&&Object.keys(v).every(k=>keys.includes(k))&&required.every(k=>Object.hasOwn(v,k));
 function arrays(input){
  if(!object(input))throw Error('invalid_input');
+ if(!object(input.privacyEvidence))throw Error('missing_privacy_capture');
  for(const name of INPUTS)if(!Array.isArray(input[name]))throw Error('missing_input_array');
  return input;
 }
 export function hashInputs(input){
  arrays(input);
  // Top-level evidence row order is immaterial. Nested media order remains exact.
- return {schema_version:1,...Object.fromEntries(INPUTS.map(name=>[name+'_sha256',canonicalHash(input[name].map(canonical).sort((a,b)=>{const x=serialize(a),y=serialize(b);return x<y?-1:x>y?1:0;}))]))};
+ return {schema_version:1,privacyEvidence_sha256:canonicalHash(input.privacyEvidence),...Object.fromEntries(INPUTS.map(name=>[name+'_sha256',canonicalHash(input[name].map(canonical).sort((a,b)=>{const x=serialize(a),y=serialize(b);return x<y?-1:x>y?1:0;}))]))};
 }
 function freeze(input,expected){
  const current=hashInputs(input);
@@ -120,6 +132,59 @@ function withdrawalNumbers(input,office){
  }
  return withdrawn;
 }
+const READINESS_SCHEMAS={
+ office_crm_properties:['id','property_number','archived_at','public_listing_enabled','workflow_status','stage','lifecycle_stage','public_location_mode'],
+ office_property_pipeline:['property_id','revision'],office_property_website_settings:['property_id','available'],
+ office_location_withdrawals:['id','property_id','revision','status'],office_publication_removals:['property_id','revision','status','channels_json']
+};
+function readiness(input,office){
+ const e=input.privacyEvidence,c=e&&e.capture;
+ if(!exact(e,['schema_version','capture','propertyStates','websiteSettings','locationWithdrawals'])||e.schema_version!==1||
+  !exact(c,['complete','scope','captured_at','snapshot_sha256','tables'])||c.complete!==true||c.scope!=='full-office'||typeof c.captured_at!=='string'||!Number.isFinite(Date.parse(c.captured_at))||!HASH.test(c.snapshot_sha256)||
+  !Array.isArray(e.propertyStates)||!Array.isArray(e.websiteSettings)||!Array.isArray(e.locationWithdrawals)||!exact(c.tables,Object.keys(READINESS_SCHEMAS)))throw Error('privacy_capture_incomplete');
+ const counts={office_crm_properties:input.officeProperties.length,office_property_pipeline:input.officeProperties.filter(p=>p.revision!==null).length,office_property_website_settings:e.websiteSettings.length,office_location_withdrawals:e.locationWithdrawals.length,office_publication_removals:input.removals.length};
+ for(const [name,required] of Object.entries(READINESS_SCHEMAS)){
+  const t=c.tables[name];
+  if(!exact(t,['present','columns','count'])||t.present!==true||!Array.isArray(t.columns)||!t.columns.every(k=>typeof k==='string'&&k.length>0)||new Set(t.columns).size!==t.columns.length||required.some(k=>!t.columns.includes(k))||!Number.isSafeInteger(t.count)||t.count!==counts[name])throw Error('privacy_schema_or_count_unresolved');
+ }
+ const settings=new Map(),states=new Map(),forced=new Set(),sources=new Map(input.sourceRows.map(p=>[p.id,p]));
+ for(const s of e.websiteSettings){
+  if(!exact(s,['property_id','available'])||!token(s.property_id)||!office.ids.has(s.property_id)||settings.has(s.property_id)||typeof s.available!=='boolean')throw Error('invalid_website_availability_capture');
+  settings.set(s.property_id,s.available);
+ }
+ for(const s of e.propertyStates){
+  if(!exact(s,['property_id','workflow_status','stage','lifecycle_stage','public_location_mode','effective_available'])||!token(s.property_id)||!office.ids.has(s.property_id)||states.has(s.property_id)||
+   !['negotiation','after_meeting','in_progress','no_answer','new','frozen','office_only','owner_shared','broker_shared','closed_by_us','closed_other','not_relevant','review'].includes(s.workflow_status)||
+   !['in_office','reserved','rented','sold','archived'].includes(s.stage)||!['recruiting','in_office','not_relevant'].includes(s.lifecycle_stage)||!['exact','approximate'].includes(s.public_location_mode)||typeof s.effective_available!=='boolean')throw Error('unresolved_property_privacy_state');
+  if(s.effective_available!==(settings.has(s.property_id)?settings.get(s.property_id):true))throw Error('unresolved_effective_availability');
+  states.set(s.property_id,s);
+  const p=office.ids.get(s.property_id),source=sources.get(p.property_number);
+  const terminal=['not_relevant','closed_by_us','closed_other'].includes(s.workflow_status)||['rented','sold','archived'].includes(s.stage)||s.lifecycle_stage==='not_relevant'||p.archived_at!==null;
+  if((terminal||s.effective_available===false)&&positive(p.property_number))forced.add(p.property_number);
+  if(source&&source.active===true&&!forced.has(p.property_number)){
+   if(s.stage==='reserved'||s.lifecycle_stage==='recruiting')throw Error('unresolved_public_lifecycle');
+   if(s.public_location_mode==='approximate'&&(source.extra!=='מיקום משוער'||source.lat!==null||source.lng!==null))throw Error('current_privacy_projection_mismatch');
+  }
+ }
+ if(states.size!==office.ids.size)throw Error('uncaptured_property_privacy_state');
+ const locationIds=new Set(),locationProperties=new Set(),backendColumn=c.tables.office_location_withdrawals.columns.includes('catalog_backend');
+ for(const w of e.locationWithdrawals){
+  if(!exact(w,['id','property_id','revision','status','catalog_backend','schema_provenance'])||!token(w.id)||!token(w.property_id)||locationIds.has(w.id)||locationProperties.has(w.property_id)||!positive(w.revision)||!['queued','processing','failed','verified'].includes(w.status)||!['supabase','cloudflare-d1'].includes(w.catalog_backend)||
+   w.schema_provenance!==(backendColumn?'captured-column':'absent-column-supabase-default')||!backendColumn&&w.catalog_backend!=='supabase')throw Error('invalid_location_withdrawal_capture');
+  const p=office.ids.get(w.property_id);
+  if(!p||!positive(p.revision)||w.revision>p.revision||!positive(p.property_number))throw Error('foreign_or_unresolved_location_withdrawal');
+  locationIds.add(w.id);locationProperties.add(w.property_id);
+  if(w.status!=='verified')throw Error('unresolved_location_withdrawal');
+  if(sources.get(p.property_number)?.active===true&&p.revision>w.revision)throw Error('current_location_approval_proof_required');
+  forced.add(p.property_number);
+ }
+ return forced;
+}
+export function prepareMigrationInput(input){
+ arrays(input);const office=officeLedger(input);withdrawalNumbers(input,office);readiness(input,office);
+ const frozen=hashInputs(input);if(Object.hasOwn(input,'frozenInputs'))freeze(input,input.frozenInputs);
+ return {...input,frozenInputs:frozen};
+}
 function blankTombstone(p){
  if(!['rent','sale','commercial-rent','commercial-sale'].includes(p.type))throw Error('missing_tombstone_public_type');
  return {id:p.property_number,type:p.type,price:'',price_label:null,title:'',location:'',rooms:null,baths:null,sqm:null,extra:'',description:'',emoji:null,bg:null,lat:null,lng:null,photos:[],has_elevator:null,has_shelter:null,has_parking:null,active:false,media_manifest:null};
@@ -136,7 +201,9 @@ function catalogState(input){
 }
 const quote=v=>v===null?'NULL':typeof v==='number'?String(v):"'"+v.replaceAll("'","''")+"'";
 export function buildMigration(input){
- arrays(input);const frozen=freeze(input,input.frozenInputs),media=verifiedMedia(input),office=officeLedger(input),withdrawn=withdrawalNumbers(input,office),existing=catalogState(input);
+ arrays(input);const frozen=freeze(input,input.frozenInputs),office=officeLedger(input),withdrawn=withdrawalNumbers(input,office);
+ for(const number of readiness(input,office))withdrawn.add(number);
+ const media=verifiedMedia(input),existing=catalogState(input);
  const projections=new Map(),links=new Map(),inactive=new Map();
  for(const r of input.sourceRows){if(!positive(r.id)||projections.has(r.id))throw Error('duplicate_or_invalid_public_number');projections.set(r.id,migrateProjection(r,media));}
  for(const r of input.sourceLinks){
