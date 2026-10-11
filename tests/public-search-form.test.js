@@ -31,3 +31,16 @@ test('removing a mapped neighborhood does not retain its inferred city or previo
  const s=buildSearch({deal:'buy',category:'commercial',budget:'1000000',cities:[],areas:[],geography:{catalog_version:'2026-10-08',locations:[{city_id:'6200',whole_city:true,area_ids:[]}],cities:['בת ים'],areas:[]},requirements:[]});
  assert.deepEqual(s.cities,['בת ים']);assert.deepEqual(s.areas,[]);assert.equal(s.notes,'');assert.deepEqual(s.requirements,[]);
 });
+
+
+test('real submission requires a canonical Office receipt and preserves exact budget with mocked transport',async()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),source=fs.readFileSync(require.resolve('../looking.js'),'utf8');
+ const start=source.indexOf("  form.addEventListener('submit',async e=>{"),end=source.indexOf("  form.querySelectorAll('.next')",start);
+ for(const budget of [4999,5000,5001])for(const reply of [{ok:true,saved:true,receipt:'test-receipt',routing:'active_search'},{ok:true,saved:false,receipt:'test-receipt',routing:'active_search'},{ok:true,saved:true,routing:'active_search'},{ok:true,saved:true,receipt:'test-receipt',routing:'unknown'}]) {
+  let handler,successes=0,errors=0,requests=0;
+  const body={searches:[buildSearch({deal:'rent',category:'residential',budget:String(budget),geography:{locations:[],cities:[],areas:[]},requirements:[]})]},controls=new Map();
+  const context={form:{addEventListener:(_,fn)=>handler=fn,querySelectorAll:()=>[]},busy:false,step:1,INTAKE_READY:true,ENDPOINT:'https://forms.mavorealestate.com/public/search-requests',validate:()=>true,clearError(){},payload:()=>body,requestKey:async()=> 'fixed-test-key',$:id=>{if(!controls.has(id))controls.set(id,{});return controls.get(id);},success(){successes++;},showError(){errors++;},AbortController,setTimeout,clearTimeout,root:{fetch:async(url,init)=>{requests++;assert.equal(url,context.ENDPOINT);assert.equal(init.method,'POST');assert.equal(init.credentials,'omit');assert.equal(init.headers.Authorization,undefined);const sent=JSON.parse(init.body);assert.equal(sent.searches[0].budget_max,budget);assert.equal(sent.idempotency_key,'fixed-test-key');return {ok:true,json:async()=>reply};}}};
+  vm.runInNewContext(source.slice(start,end),context);await handler({preventDefault(){}});
+  assert.equal(requests,1);assert.equal(successes,reply.saved===true&&reply.receipt&&reply.routing==='active_search'?1:0);assert.equal(errors,successes?0:1);assert.equal(body.searches[0].budget_max,budget);
+ }
+});

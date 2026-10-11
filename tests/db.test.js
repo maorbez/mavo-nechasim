@@ -18,6 +18,7 @@ test('canonicalPropertyId accepts only positive safe integers', function () {
 test('Supabase reader uses active rows, stable ordering, and office id unchanged', async function () {
   let request;
   const rows = await db.fetchPropertiesFromDB({
+    provider: 'supabase',
     fetchImpl: async function (url, init) {
       request = { url: url, init: init };
       return {
@@ -40,7 +41,7 @@ test('Supabase reader uses active rows, stable ordering, and office id unchanged
 test('public media manifest is selected and mapped without internal fields or stale-media fallback',async()=>{
  const url='https://tnkiwgewdancvmkhzlwz.supabase.co/storage/v1/object/public/property-photos/test/image.jpg';let request;
  const manifest={version:1,cover_media_id:'photo',items:[{id:'photo',type:'image',url,private_path:'/office/private'}],office_property_id:'private'};
- const result=await db.fetchPropertiesFromDB({fetchImpl:async input=>{request=input;return {ok:true,json:async()=>[{id:64,photos:['old.jpg'],media_manifest:manifest}]};}});
+ const result=await db.fetchPropertiesFromDB({provider:'supabase',fetchImpl:async input=>{request=input;return {ok:true,json:async()=>[{id:64,photos:['old.jpg'],media_manifest:manifest}]};}});
  assert.ok(new URL(request).searchParams.get('select').split(',').includes('media_manifest'));
  assert.deepEqual(result[0].media_manifest,{version:1,cover_media_id:'photo',items:[{id:'photo',type:'image',url}]});
  assert.equal(db.mapDbRow({id:64}).media_manifest,null);
@@ -57,7 +58,7 @@ test('a successful empty live inventory is authoritative and never falls back', 
   });
 
   assert.deepEqual(result.properties, []);
-  assert.equal(result.source, 'supabase');
+  assert.equal(result.source, 'cloudflare');
   assert.equal(result.degraded, false);
   assert.equal(fallbackCalls, 0);
 });

@@ -618,7 +618,7 @@ async function submitModalForm(e) {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (res.ok) { saveLeadToDB(payload); closeModalBtn(); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
+    if (res.ok) { closeModalBtn(); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
     else { showToast('שגיאה בשליחה — נסה שוב.'); }
   } catch { showToast('שגיאה בשליחה — נסה שוב.'); }
   finally { btn.disabled = false; btn.textContent = origText; }
@@ -711,35 +711,10 @@ async function submitForm(e) {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (res.ok) { saveLeadToDB(payload); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
+    if (res.ok) { showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
     else { showToast('שגיאה בשליחה — נסה שוב.'); }
   } catch { showToast('שגיאה בשליחה — נסה שוב.'); }
   finally { btn.disabled = false; btn.textContent = origText; }
-}
-
-// Backup every lead into Supabase (in addition to the email). Silent no-op until the leads table exists.
-async function saveLeadToDB(p) {
-  try {
-    if (!window.SUPABASE_URL || !window.SUPABASE_KEY) return;
-    await fetch(window.SUPABASE_URL + '/rest/v1/leads', {
-      method: 'POST',
-      headers: {
-        apikey: window.SUPABASE_KEY,
-        Authorization: 'Bearer ' + window.SUPABASE_KEY,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal'
-      },
-      body: JSON.stringify({
-        name: p.name || '',
-        phone: p.phone || '',
-        email: (p.email && p.email !== 'לא צוין') ? p.email : '',
-        subject: p.subject || p.interest || '',
-        message: (p.message && p.message !== 'לא צוין') ? p.message : '',
-        property: p.property || '',
-        consent: p.marketing_consent === 'כן'
-      })
-    });
-  } catch (_) { /* email already sent; DB backup is best-effort */ }
 }
 
 function showToast(msg) {
@@ -1166,7 +1141,7 @@ function initLazySections() {
 // INIT
 // ============================
 document.addEventListener('DOMContentLoaded', async () => {
-  // Live Supabase is authoritative; degraded snapshots are always disclosed in the UI.
+  // Live catalog is authoritative; outages are disclosed without stale listings.
   properties = await loadProperties();
 
   // Dynamically render property cards from data (replaces hardcoded HTML cards)

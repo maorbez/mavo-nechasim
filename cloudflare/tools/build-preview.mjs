@@ -62,17 +62,29 @@ function patch(file,text){
   // This is copied output only; the original product files are never edited.
   if(file==='db.js'){
     text=text.replace(/  const DEFAULT_SUPABASE_URL = .*\n/,'').replace(/  const DEFAULT_SUPABASE_KEY = .*\n/,'');
-    const start=text.indexOf('    const supabaseUrl =');const end=text.indexOf('\n    if (!response.ok)',start);
+    const start=text.indexOf('  async function fetchPropertiesFromDB(options) {');
+    const end=text.indexOf('  function renderPropertyDataStatus',start);
     if(start<0||end<0)throw new Error('Copied inventory reader changed; review patch before building');
-    text=text.slice(0,start)+`    const url = '/api/properties.json';
-    const response = await fetchWithTimeout(fetchImpl, url, {cache:'no-store',credentials:'omit'}, opts.timeoutMs || 8000);
+    text=text.slice(0,start)+`  async function fetchPropertiesFromDB(options) {
+    const opts=options||{};
+    const fetchImpl=opts.fetchImpl||(root&&root.fetch?root.fetch.bind(root):null);
+    const response=await fetchWithTimeout(fetchImpl,'/api/properties.json',{cache:'no-store',credentials:'omit'},opts.timeoutMs||8000);
+    if(!response.ok)throw new Error('Synthetic catalog unavailable');
+    const data=await response.json();
+    if(!Array.isArray(data))throw new Error('Invalid synthetic catalog');
+    return data.map(mapDbRow);
+  }
+
 `+text.slice(end);
-    text=text.replace(/    SUPABASE_(?:URL|KEY):[^\n]*\n/g,'').replaceAll("source: 'supabase'","source: 'synthetic-preview'");
+    const providerStart=text.indexOf('  function catalogProvider(options) {');
+    const providerEnd=text.indexOf('  function catalogApiOrigin',providerStart);
+    if(providerStart<0||providerEnd<0)throw new Error('Copied provider selector changed; review patch');
+    text=text.slice(0,providerStart)+"  function catalogProvider() { return 'synthetic-preview'; }\n\n"+text.slice(providerEnd);
+
   }
   if(file==='app.js'){
     text=operationReplacement(text,'submitModalForm',"async function submitModalForm(e) {\n  e.preventDefault();showToast('סביבת בדיקה: הפנייה לא נשלחה ולא נשמרה.');\n}");
     text=operationReplacement(text,'submitForm',"async function submitForm(e) {\n  e.preventDefault();showToast('סביבת בדיקה: הפנייה לא נשלחה ולא נשמרה.');\n}");
-    text=operationReplacement(text,'saveLeadToDB',"async function saveLeadToDB() {\n  return false; // Synthetic preview has no lead writer.\n}");
     text=operationReplacement(text,'waLink',"function waLink() {\n  return '#preview-disabled';\n}");
     text=text.replace(/const WA_NUMBER = .*;/,"const WA_NUMBER = '';").replace(/const CONTACT_EMAIL = .*;/,"const CONTACT_EMAIL = '';");
   }

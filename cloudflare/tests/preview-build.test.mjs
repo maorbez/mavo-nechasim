@@ -43,6 +43,8 @@ test('copied inventory reader returns synthetic same-origin rows without any pro
   const rows=await context.module.exports.fetchPropertiesFromDB({fetchImpl:async(url,init)=>{observed={url,init};return {ok:true,json:async()=>JSON.parse(await readFile(join(out,'api/properties.json'),'utf8'))};}});
   assert.equal(observed.url,'/api/properties.json');assert.equal(observed.init.credentials,'omit');assert.equal(observed.init.cache,'no-store');assert.equal(observed.init.headers,undefined);assert.equal(rows[0].id,990001);
   assert.equal(context.module.exports.SUPABASE_KEY,undefined);
+  const result=await context.module.exports.loadMavoProperties({provider:'supabase',apiOrigin:'https://evil.example',renderStatus:false,fetchImpl:async(url,init)=>{assert.equal(url,'/api/properties.json');assert.equal(init.headers,undefined);return {ok:true,json:async()=>[]};}});
+  assert.equal(result.source,'synthetic-preview');assert.equal(result.degraded,false);
 });
 
 test('guard rejects production APIs and all writes and intercepts messaging and submit actions',async t=>{
