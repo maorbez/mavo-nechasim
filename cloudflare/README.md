@@ -8,7 +8,9 @@ a live public migration or an end-to-end publisher connection.
 Latest Maor instruction authorizes live migration and the signing-preserving
 Spaceship support request. Support chat received the request and escalated it.
 A separate D1 pilot database718823a0-f098-464d-b3dc-e510efcf2f08 has the schema
-verified; no live catalog import, publisher activation or DNS cutover is claimed.
+verified. The real signed pilot API was verified after owner confirmation at
+2026-10-11T19:28Z; no production catalog import, publisher activation or DNS
+cutover is claimed.
 Fresh Office encrypted272-member backup independently restored. Native
 PostgreSQL/Auth recovery remains unverified and the original Supabase project
 will be retained; no destructive retirement is authorized.
@@ -52,8 +54,11 @@ will be retained; no destructive retirement is authorized.
 
 `worker.mjs` + `schema.sql`: prepared public catalog API. Future D1 binding name
 `CATALOG` is bound to pilot database718823a0-f098-464d-b3dc-e510efcf2f08.
-Server-only `PUBLISHER_HMAC` remains unconfigured pending its separate owner
-confirmation; no production import or publisher activation occurred.
+Server-only `PUBLISHER_HMAC` was owner-confirmed and saved encrypted in production
+settings of the isolated pilot Worker. The protected publisher credential file
+contains exactly `publisher_hmac`; values are never placed in source/browser code.
+Active pilot version `15a297e0` is Ready. No production import or publisher
+activation occurred.
 
 - `GET/HEAD /api/properties`: active public projections, ordered numeric IDs,
   bounded 1001-row read, fail closed over 1000. `GET/HEAD /api/properties/:id` returns
@@ -141,18 +146,26 @@ Do not claim Supabase exited or media savings until those conditions pass.
 - Spaceship support request was sent and read back in chat; senior email case
   `SPS-QHV-5830` / engagement `SPS-EIZ-7660` confirms received/working. It does
   **not** confirm parent DS removal. No DNS/NS/signing change has been made.
-- Pilot Worker actual code version `af1a8ebd` and `CATALOG` D1 binding are saved.
-  Schema table/index/immutable-identity trigger readback is verified; catalog
-  contains no imported property rows. Public pilot requests return403/1010 and
-  cannot serve as signed/public API behavioral proof. Do not bypass the refusal.
+- Pilot Worker code version `af1a8ebd`, `CATALOG` D1 binding and secret deployment
+  `15a297e0` are saved. Exact existing publisher transport headers/signature now
+  receive200 from public and signed internal reads; no spoofed browser identity
+  or security-policy change. Earlier plain-client403/1010 evidence is historical.
+  Twenty-three actual pilot checks passed: write/readback hash, replay, concurrent
+  identical requests, CAS/stale/foreign denial, private-field/browser/anonymous
+  denial and withdrawal. The two synthetic pilot rows990001/990002 were withdrawn
+  and retained inactive; public list is empty and details404. This pilot database
+  is isolated: production import requires an empty production catalog, not these
+  synthetic tombstones. No real Office or public-source record was mutated.
 - 303 immutable R2 objects totaling169043548bytes were written with conditional
   create and independently authenticated-read checked for bytes/hash/size/MIME.
   All evidence remains `public_verified:false, verified:false` until the real
   public origin is readable. Sources/private Office originals remain intact.
 - The one unavailable source is property13's legacy Postify MOV (404); its seven
   photos are valid. Source Office/Drive media tables contain no recovery copy.
-  A content decision is pending; no video/reference is fabricated or silently
-  replaced.304unique references must all be resolved before a faithful import.
+  Maor explicitly approved migration with its seven existing photos only. The
+  unavailable video/reference and exact source-projection hash remain in private
+  recovery evidence. The authorized desired projection has303 unique references;
+  source Supabase and Office records are unchanged until cutover.
 - Fresh source63rows/307objects and real Office43-property/10-removal ledger were
   captured.23null links reconcile through established Office numbers;28 public
   numbers have no Office record and stay legacy read-only. Office flag=false is

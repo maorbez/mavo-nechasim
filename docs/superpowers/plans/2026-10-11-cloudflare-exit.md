@@ -47,7 +47,7 @@ Consumes: frozen signed envelope from the single publisher; produces exact publi
 
 - [x] RED/GREEN real SQLite tests cover HMAC/tamper/stale clock, browser denial, private fields/URLs, approximate coords, stable cover/IDs/fallback, CAS/stale/link conflicts, overlapping replay, integrity readback and inactive withdrawal.
 - [x] Independent reviewer checks preparation boundary and source compatibility; fix important findings and rerun suite.
-- [ ] After concrete authorization for any required new binding/secret, deploy a separate synthetic Worker+D1 and run the same behavioral scenarios against real D1; do not settle Office intents.
+- [x] After explicit owner confirmation, save encrypted pilot PUBLISHER_HMAC and verify actual Worker15a297e0/D1:23 signed/public write/readback/replay/CAS/privacy/withdrawal checks passed; two owned synthetic rows remain inactive, public list empty. No Office intents settled. Production requires a separate empty catalog.
 - [x] Add offline migration import gate with identity/revision reconciliation, current withdrawal ledger and frozen input hashes; test source snapshot changes. Actual public readiness/import remains pending.
 
 ### Task 3: Existing Office/publisher compatibility adapter
