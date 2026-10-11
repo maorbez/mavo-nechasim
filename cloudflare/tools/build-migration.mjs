@@ -15,8 +15,9 @@
 // Capture proof and verification assertions are caller-supplied, not network proof.
 // prepareMigrationInput validates readiness and freezes an initial normalized
 // input; use verifyFrozenMigration against fresh evidence before import.
-// mediaReplacements [{source_url,url,sha256,verified:true}] are a CALLER-SUPPLIED
-// verification assertion; this compiler cannot verify R2 bytes or live withdrawals.
+// mediaReplacements [{source_url,url,sha256,public_verified:false,stage_proof}]
+// carry explicit authenticated private-stage assertions, frozen with the input.
+// This offline compiler cannot verify bytes itself or claim public readiness.
 // officeProperties require established {id,property_number,revision,archived_at,
 // public_listing_enabled,type?}. A null number is retained privately but never
 // allocated. Absent withdrawn numbers need an exact inactiveProjections row or
@@ -75,9 +76,15 @@ function sourceURL(value){
 function verifiedMedia(input){
  const replacements=new Map();
  for(const r of input.mediaReplacements){
-  if(!exact(r,['source_url','url','sha256','verified'])||!sourceURL(r.source_url)||r.verified!==true||!HASH.test(r.sha256)||typeof r.url!=='string')throw Error('unverified_media_replacement');
+  if(!exact(r,['source_url','url','sha256','public_verified','stage_proof'])||!sourceURL(r.source_url)||r.public_verified!==false||!HASH.test(r.sha256)||typeof r.url!=='string')throw Error('unverified_media_replacement');
   const match=/^https:\/\/media\.mavorealestate\.com\/property-([1-9][0-9]*)\/revision-[1-9][0-9]*\/[0-9]{2,3}-([a-f0-9]{64})\.(jpg|png|webp|mp4)$/.exec(r.url);
   if(!match||match[2]!==r.sha256||replacements.has(r.source_url))throw Error('invalid_media_replacement');
+  const stage=r.stage_proof;
+  if(!exact(stage,['schema_version','bucket','object_name','sha256','bytes','mime','authenticated_read','readback_at','evidence_sha256'])||
+     stage.schema_version!==1||stage.bucket!=='mavo-public-media'||stage.object_name!==new URL(r.url).pathname.slice(1)||
+     stage.sha256!==r.sha256||!positive(stage.bytes)||stage.bytes>25*1024*1024||
+     stage.mime!==({jpg:'image/jpeg',png:'image/png',webp:'image/webp',mp4:'video/mp4'})[match[3]]||
+     stage.authenticated_read!==true||typeof stage.readback_at!=='string'||!/^\d{4}-\d{2}-\d{2}T.*(?:Z|\+00:00)$/.test(stage.readback_at)||!Number.isFinite(Date.parse(stage.readback_at))||!HASH.test(stage.evidence_sha256))throw Error('unverified_media_replacement');
   const sourcePath=new URL(r.source_url).pathname;
   const sourceVideo=/\.(mp4|mov)$/i.test(sourcePath),sourceImage=/\.(jpg|jpeg|png|webp)$/i.test(sourcePath);
   if(!(sourceVideo||sourceImage)||sourceVideo!==(match[3]==='mp4'))throw Error('media_kind_changed');
@@ -242,7 +249,7 @@ export function buildMigration(input){
  }
  if(existing.size)throw Error('unexpected_catalog_identity');
  const sql=entries.filter(e=>e.operation==='insert').map(e=>'INSERT INTO catalog (id,office_property_id,revision,dispatch_id,payload_hash,active,payload) VALUES ('+[e.id,e.office_property_id,e.revision,e.dispatch_id,e.payload_hash,e.active,e.payload].map(quote).join(',')+');').join('\n');
- return {schema_version:1,provider:'cloudflare-d1',media_verification:'caller-supplied-only',frozen_inputs:frozen,entries,sql,summary:{rows:entries.length,active:entries.filter(e=>e.active===1).length,inactive:entries.filter(e=>e.active===0).length,linked:entries.filter(e=>e.office_property_id!==null).length,legacy_readonly:entries.filter(e=>e.office_property_id===null).length,inserts:entries.filter(e=>e.operation==='insert').length,noops:entries.filter(e=>e.operation==='verified_noop').length}};
+ return {schema_version:1,provider:'cloudflare-d1',media_verification:'authenticated-stage-only',public_delivery_verified:false,frozen_inputs:frozen,entries,sql,summary:{rows:entries.length,active:entries.filter(e=>e.active===1).length,inactive:entries.filter(e=>e.active===0).length,linked:entries.filter(e=>e.office_property_id!==null).length,legacy_readonly:entries.filter(e=>e.office_property_id===null).length,inserts:entries.filter(e=>e.operation==='insert').length,noops:entries.filter(e=>e.operation==='verified_noop').length}};
 }
 export function verifyFrozenMigration(plan,freshInput){
  if(!object(plan)||plan.schema_version!==1)throw Error('invalid_plan');

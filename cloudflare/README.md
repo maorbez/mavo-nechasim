@@ -1,5 +1,13 @@
 # MAVO Cloudflare preparation — 2026-10-11
 
+Latest local follow-up2026-10-12: explicit authenticated stage contract is implemented
+and all72CF/24compiler/121site checks pass. Actual303 derivative objects passed fresh
+authenticated full-byte/hash/size/raw-MIME/hash-metadata readback. Preliminary
+67-row SQL (33active/34inactive,39linked/28legacy-readonly) was imported/reread only
+in disposable local SQLite. No provider import is authorized by that preliminary
+plan: refresh source/privacy evidence and use an empty production D1 before
+activation. Private stage proof never becomes public_verified=true implicitly.
+
 The frontend and Office activation remain candidates. The original live website,
 Office publisher, DNS and Supabase source remain unchanged. Actual pilot Worker
 code/D1 binding and private R2 staging are deployed separately; they do not prove
@@ -106,15 +114,15 @@ All output hashes are in `hashmanifest.json`; no translated/admin/gallery/share 
 real-property-photo bundle. Public keyless map tiles/CDN are presentation dependencies.
 Noindex is a crawler request; the synthetic preview remains publicly accessible.
 
-## Private R2 delivery gate — pilot code deployed; binding pending
+## Private R2 delivery gate — bound pilot verified; public origin pending
 
 The actual303-object staging ledger includes65 objects belonging to inactive or
 withdrawn listings. A direct public bucket/custom domain or r2.dev route would
 expose those files. Keep the bucket private and route media through the reviewed
 Worker with binding `PUBLIC_MEDIA_BUCKET` -> existing `mavo-public-media`.
-This new binding is prepared in the owner dashboard but awaits its distinct
-security-sensitive access confirmation. Reviewed gateway code is now deployed
-as pilot version `aa5e8d76`; this is not the public MAVO media origin.
+Maor approved this exact bucket binding; it is applied as Ready100% pilot
+version `1825bff3`, retaining reviewed code from `aa5e8d76`, CATALOG and encrypted
+HMAC. This is the isolated pilot, not the public MAVO media origin.
 The binding itself offers storage read/write capabilities; the reviewed code
 exposes only GET/HEAD delivery, never list/upload/delete operations.
 
@@ -134,11 +142,13 @@ passed. Independent review found no important issue. Exact editor source hash
 was verified before the pilot code deployment;12 read-only actual-provider checks
 then passed: CATALOG/HMAC retained, inactive fixtures unchanged, and unbound
 GET/HEAD/Range503, media writes405, malformed/query/private routes denied.
-No bucket binding was granted and no real media bytes were publicly delivered.
-Before live release prove
-all65 inactive objects deny GET/HEAD/Range, including warmed URLs/cache rules,
-while selected image/video/poster/fallback bytes and Range remain correct. The
-final media domain and original providers are unchanged; no public proof yet.
+After binding,49 actual-provider checks passed: synthetic selected PNG/MP4,
+poster/fallback exact full bytes/hash/size/MIME, HEAD and single/suffix Range;
+malformed ranges/writes/private reads denied. All65 inactive staged object URLs
+denied GET/HEAD/Range (195 requests). Warmed deselected URLs and all synthetic
+media denied after recoverable withdrawal. Two owned pilot rows remain inactive;
+production must use a separate empty catalog. Final media domain, original
+Office/site and publisher flags remain unchanged. This is pilot proof only.
 
 ## Run local evidence
 
@@ -239,19 +249,21 @@ Hermes-session receipt is not; no supported Mission Control status writer was
 available. Private detailed receipts are under the existing owner-local
 `live-activation-20261011` artifact folder, not in public source.
 
-### Publisher sequencing blockers found by integration review
+### Private staging and post-activation verification
 
-The current Office candidate R2 `put_verified` still performs anonymous media
-readback before catalog CAS. The active-only media gate will deny a fresh URL
-until its catalog revision is active, so that candidate cannot publish new media.
-The offline import compiler similarly requires verified replacements even for
-inactive assets. Do not mark private authenticated proof as anonymous/public
-proof or temporarily expose the raw bucket. Separate authenticated immutable
-staging proof from post-activation public proof in the publisher/import workflow.
+The Office candidate now uses authenticated `put_prepared` before CAS and checks
+every selected preserved URL privately. Raw MIME, bytes/hash/size and Worker hash
+metadata must match. Public full-byte verification of unique selected photos,
+manifest URL/poster/fallback happens afterward. Legacy `put_verified` remains
+separate. The compiler accepts explicit versioned authenticated stage proof,
+preserving `public_verified:false`; its output says authenticated-stage-only and
+`public_delivery_verified:false`. No raw bucket exposure or invented public proof.
 
-After catalog CAS, the current Cloudflare publisher does not compensate a failed
-media/page readback: its restore_previous intentionally refuses a write, leaving
-unknown_pending for reconciliation. Release must add and test exact-attempt CAS
-compensation/recovery without resurrecting withdrawn rows or overwriting a newer
-selection, with fresh canonical authorization. These integration fixes are not
-implemented by the nine Worker gate tests and remain required before activation.
+Confirmed post-CAS failure may withdraw only the exact signed attempted state
+with a deterministic monotonic content-free tombstone. Unknown transport outcomes
+read back first; cleanup replay is read-only. Office recomputes exact proof,
+records failed settlement without a success receipt and retires prior current
+receipts as history. Newer/foreign projections are never overwritten. Staging
+failure preserves the prior listing; after CAS, failure withdrawal hides it.
+These are Office source candidates, not a live Office deployment. Final full
+Office suite/review and domain/source/backup/legacy-denial gates remain required.

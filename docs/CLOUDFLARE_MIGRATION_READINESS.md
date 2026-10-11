@@ -72,6 +72,18 @@ lacks that column, only explicit
 `schema_provenance:'absent-column-supabase-default'` with backend `supabase` is
 accepted. Complete capture of zero rows is valid, including the old schema.
 
-This gate does not make unverified media ready. Every referenced asset still
-needs its caller-supplied verified immutable R2 replacement; a missing asset
-blocks the whole plan. No real SQL/import or network verification is performed.
+Every referenced asset needs an explicit immutable R2 replacement:
+`{source_url,url,sha256,public_verified:false,stage_proof}`. The stage proof has
+exact fields `{schema_version:1,bucket:'mavo-public-media',object_name,sha256,
+bytes,mime,authenticated_read:true,readback_at,evidence_sha256}`. Key/hash/MIME,
+bounded positive size and timestamp/evidence digest must match. It is frozen
+with mediaReplacements; it is an assertion the release controller must back with
+authenticated full-byte readback, including raw MIME and Worker hash metadata.
+Inactive objects require private readiness too, but their public denial is
+expected. Legacy ambiguous `verified:true` assertions are rejected.
+
+Compiler output remains `media_verification:'authenticated-stage-only'` and
+`public_delivery_verified:false`. Missing media blocks the whole plan. Offline
+SQL preparation/import and actual network verification are distinct. Before
+cutover, freshly recheck source/privacy fingerprints, then verify selected active
+media200/hash/size/MIME/Range and inactive/unselected404 on the actual media origin.

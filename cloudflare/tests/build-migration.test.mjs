@@ -11,7 +11,7 @@ const hash='a'.repeat(64),old='https://tnkiwgewdancvmkhzlwz.supabase.co/storage/
 const target=(id=64,index='00',ext='webp')=>`https://media.mavorealestate.com/property-${id}/revision-3/${index}-${hash}.${ext}`;
 const row=(id=64,overrides={})=>({id,type:'rent',price:'5000',price_label:null,title:'Public listing',location:'City',rooms:2.5,baths:1,sqm:60,extra:'מיקום משוער',description:'Public facts',emoji:null,bg:null,lat:null,lng:null,photos:[old],has_elevator:null,has_shelter:true,has_parking:false,active:true,media_manifest:null,...overrides});
 const office=(id='office-64',number=64,overrides={})=>({id,property_number:number,revision:3,archived_at:null,public_listing_enabled:false,type:'rent',...overrides});
-const replace=(source_url=old,url=target(),overrides={})=>({source_url,url,sha256:hash,verified:true,...overrides});
+const replace=(source_url=old,url=target(),overrides={})=>({source_url,url,sha256:hash,public_verified:false,stage_proof:{schema_version:1,bucket:'mavo-public-media',object_name:new URL(url).pathname.slice(1),sha256:hash,bytes:123,mime:url.endsWith('.mp4')?'video/mp4':url.endsWith('.png')?'image/png':url.endsWith('.jpg')?'image/jpeg':'image/webp',authenticated_read:true,readback_at:'2026-10-11T20:00:00Z',evidence_sha256:'b'.repeat(64)},...overrides});
 function privacy(data,overrides={}){
  const propertyStates=data.officeProperties.map(p=>({property_id:p.id,workflow_status:'new',stage:'in_office',lifecycle_stage:'in_office',public_location_mode:'exact',effective_available:true}));
  const base={schema_version:1,propertyStates,websiteSettings:[],locationWithdrawals:[],...overrides};
@@ -99,6 +99,22 @@ test('media replacement cannot silently change an approved image into video or v
  assert.throws(()=>buildMigration(input({sourceRows:[row(64,{photos:[sourceVideo]})],mediaReplacements:[replace(sourceVideo,target())]})));
  const invalidManifest={version:1,cover_media_id:'photo',items:[{id:'photo',type:'image',url:target(64,'00','mp4')}]};
  assert.throws(()=>buildMigration(input({sourceRows:[row(64,{photos:[],media_manifest:invalidManifest})],mediaReplacements:[replace(target(64,'00','mp4'),target())]})));
+});
+
+test('explicit private stage proof prepares active and inactive projections without claiming public delivery',()=>{
+ const staged={source_url:old,url:target(),sha256:hash,public_verified:false,stage_proof:{schema_version:1,bucket:'mavo-public-media',object_name:new URL(target()).pathname.slice(1),sha256:hash,bytes:123,mime:'image/webp',authenticated_read:true,readback_at:'2026-10-11T20:00:00Z',evidence_sha256:'b'.repeat(64)}};
+ for(const active of [true,false]){
+  const data=input({sourceRows:[row(64,{active})],mediaReplacements:[staged]}),plan=buildMigration(data);
+  assert.equal(JSON.parse(plan.entries[0].payload).active,active);
+  assert.equal(plan.media_verification,'authenticated-stage-only');assert.equal(plan.public_delivery_verified,false);
+  assert.equal(data.mediaReplacements[0].public_verified,false);
+  for(const bad of [{authenticated_read:false},{bucket:'private-crm'},{object_name:'private/file'},{sha256:'0'.repeat(64)},{bytes:0},{bytes:26*1024*1024},{mime:'video/mp4'},{readback_at:'invalid'},{evidence_sha256:'invalid'}]){
+   assert.throws(()=>buildMigration(input({...data,mediaReplacements:[{...staged,stage_proof:{...staged.stage_proof,...bad}}]})));
+  }
+  assert.throws(()=>buildMigration(input({...data,mediaReplacements:[{...staged,public_verified:true}]})));
+  const fresh=input({...data,mediaReplacements:[{...staged,stage_proof:{...staged.stage_proof,bytes:124}}]});
+  assert.throws(()=>verifyFrozenMigration(plan,fresh),/frozen_inputs_changed/);
+ }
 });
 
 test('private nested/extra fields, approximate coordinates, invalid projection and unsupported types block',()=>{
