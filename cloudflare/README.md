@@ -106,14 +106,15 @@ All output hashes are in `hashmanifest.json`; no translated/admin/gallery/share 
 real-property-photo bundle. Public keyless map tiles/CDN are presentation dependencies.
 Noindex is a crawler request; the synthetic preview remains publicly accessible.
 
-## Private R2 delivery gate — reviewed candidate, not deployed
+## Private R2 delivery gate — pilot code deployed; binding pending
 
 The actual303-object staging ledger includes65 objects belonging to inactive or
 withdrawn listings. A direct public bucket/custom domain or r2.dev route would
 expose those files. Keep the bucket private and route media through the reviewed
 Worker with binding `PUBLIC_MEDIA_BUCKET` -> existing `mavo-public-media`.
 This new binding is prepared in the owner dashboard but awaits its distinct
-security-sensitive access confirmation; neither binding nor media gate is live.
+security-sensitive access confirmation. Reviewed gateway code is now deployed
+as pilot version `aa5e8d76`; this is not the public MAVO media origin.
 The binding itself offers storage read/write capabilities; the reviewed code
 exposes only GET/HEAD delivery, never list/upload/delete operations.
 
@@ -129,7 +130,12 @@ rule may override the gate. Already authorized streams/downloaded external
 copies cannot be recalled by this code.
 
 TDD RED then GREEN: nine focused tests and all71 Cloudflare tests passed; site121
-passed. Independent review found no important issue. Before live release prove
+passed. Independent review found no important issue. Exact editor source hash
+was verified before the pilot code deployment;12 read-only actual-provider checks
+then passed: CATALOG/HMAC retained, inactive fixtures unchanged, and unbound
+GET/HEAD/Range503, media writes405, malformed/query/private routes denied.
+No bucket binding was granted and no real media bytes were publicly delivered.
+Before live release prove
 all65 inactive objects deny GET/HEAD/Range, including warmed URLs/cache rules,
 while selected image/video/poster/fallback bytes and Range remain correct. The
 final media domain and original providers are unchanged; no public proof yet.

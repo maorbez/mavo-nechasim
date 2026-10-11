@@ -106,3 +106,5 @@ Live work is now explicitly authorized by Maor. Completion still requires exact 
 
 - [ ] Repair existing publisher/import sequencing: authenticated immutable preparation before CAS, gated anonymous media/page proof after activation; preserve prior public revision on preparation failure. Do not falsify public_verified or expose inactive files.
 - [ ] Add exact-attempt CAS compensation/recovery for failed post-activation media/page proof with fresh withdrawal/approval ledger; test concurrent selection, superseded/privacy changes and unknown write outcomes. Current Cloudflare restore_previous refuses writes and is a release blocker.
+
+- [x] Deploy reviewed gateway code to existing isolated pilot asaa5e8d76 after exact source readback;12 actual read-only provider checks passed, preserving CATALOG/HMAC and inactive fixtures. Bucket binding still ungranted, final origin/selected bytes/Range not proved.
