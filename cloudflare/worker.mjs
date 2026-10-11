@@ -70,6 +70,56 @@ function response(request,data,status=200){
 async function verifiedRow(row){
  const p=validateProjection(JSON.parse(row.payload));if(await digest(canonical(p))!==row.payload_hash)throw Error('catalog_integrity');return p;
 }
+function referencesMedia(p,url){
+ return p.active===true&&(p.photos.includes(url)||p.media_manifest?.items.some(item=>[item.url,item.poster_url,item.fallback_url].includes(url)));
+}
+function mediaRange(value,size){
+ if(value===null)return null;
+ const m=/^bytes=(\d*)-(\d*)$/.exec(value);if(!m||(!m[1]&&!m[2]))throw Error('invalid_range');
+ let start,end;
+ if(!m[1]){const suffix=Number(m[2]);if(!Number.isSafeInteger(suffix)||suffix<=0)throw Error('invalid_range');start=Math.max(0,size-suffix);end=size-1;}
+ else {start=Number(m[1]);end=m[2]?Number(m[2]):size-1;}
+ if(!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start<0||start>=size||end<start)throw Error('invalid_range');
+ end=Math.min(end,size-1);return {offset:start,length:end-start+1};
+}
+async function publicMedia(request,env,url){
+ if(!['GET','HEAD'].includes(request.method))return response(request,{error:'method_not_allowed'},405);
+ const m=/^\/property-([1-9][0-9]*)\/revision-([1-9][0-9]*)\/[0-9]{2,3}-([a-f0-9]{64})\.(jpg|png|webp|mp4)$/.exec(url.pathname);
+ if(!m||url.search||!positive(Number(m[1])))return response(request,{error:'not_found'},404);
+ if(!env.CATALOG||!env.PUBLIC_MEDIA_BUCKET)return response(request,{error:'media_unavailable'},503);
+ const number=Number(m[1]),key=url.pathname.slice(1),approvedURL='https://media.mavorealestate.com'+url.pathname;
+ const eligible=async()=>{
+  const r=await env.CATALOG.prepare('SELECT payload,payload_hash FROM catalog WHERE id=? AND active=1').bind(number).first();
+  return r&&referencesMedia(await verifiedRow(r),approvedURL);
+ };
+ if(!await eligible())return response(request,{error:'not_found'},404);
+ const mime={jpg:'image/jpeg',png:'image/png',webp:'image/webp',mp4:'video/mp4'}[m[4]];
+ const valid=o=>o&&o.key===key&&Number.isSafeInteger(o.size)&&o.size>0&&o.customMetadata?.sha256===m[3]&&o.httpMetadata?.contentType===mime&&typeof o.httpEtag==='string'&&/^"[^"\r\n]{1,150}"$/.test(o.httpEtag);
+ const metadata=await env.PUBLIC_MEDIA_BUCKET.head(key);
+ if(!metadata)return response(request,{error:'not_found'},404);
+ if(!valid(metadata))throw Error('media_integrity');
+ let range;
+ try{range=request.method==='HEAD'?null:mediaRange(request.headers.get('range'),metadata.size);}
+ catch {return new Response(null,{status:416,headers:{'content-range':'bytes */'+metadata.size,'cache-control':'no-store','x-content-type-options':'nosniff'}});}
+ let object;
+ if(request.method==='GET'){
+  object=await env.PUBLIC_MEDIA_BUCKET.get(key,range?{range}:undefined);
+  if(!object)return response(request,{error:'not_found'},404);
+  if(!valid(object)||object.size!==metadata.size||object.httpEtag!==metadata.httpEtag||!object.body)throw Error('media_integrity');
+ }
+ // Recheck after asynchronous storage I/O. A withdrawal/new selection must not
+ // leave a fetched but not-yet-returned private object available to a caller.
+ if(!await eligible()){
+  if(object?.body)await object.body.cancel().catch(()=>{});
+  return response(request,{error:'not_found'},404);
+ }
+ // Ignore the R2 object's original immutable cache directive. Every new request
+ // must pass the current catalog gate, including known URLs after withdrawal.
+ const headers={'content-type':mime,'content-length':String(range?range.length:metadata.size),'cache-control':'no-store','accept-ranges':'bytes','etag':metadata.httpEtag,'x-content-type-options':'nosniff','referrer-policy':'no-referrer'};
+ if(range)headers['content-range']=`bytes ${range.offset}-${range.offset+range.length-1}/${metadata.size}`;
+ const origin=request.headers.get('origin');if(['https://mavorealestate.com','https://www.mavorealestate.com'].includes(origin)){headers['access-control-allow-origin']=origin;headers.vary='Origin';}
+ return new Response(request.method==='HEAD'?null:object.body,{status:range?206:200,headers});
+}
 async function authorized(request,env,path,raw=''){
  if(!env.PUBLISHER_HMAC||env.PUBLISHER_HMAC.length<32)return false;
  const time=request.headers.get('x-mavo-time')||'',sig=request.headers.get('x-mavo-signature')||'';
@@ -121,6 +171,7 @@ async function publish(request,env,path){
 export default {async fetch(request,env){
  const url=new URL(request.url),path=url.pathname;
  try{
+  if(url.hostname==='media.mavorealestate.com'||path.startsWith('/property-'))return await publicMedia(request,env,url);
   if(path.startsWith('/internal/')){
    if(url.search)return response(request,{error:'not_found'},404);
    if(request.method==='GET'&&(path==='/internal/publications'||/^\/internal\/publications\/[1-9][0-9]*$/.test(path)))return await internalState(request,env,path);

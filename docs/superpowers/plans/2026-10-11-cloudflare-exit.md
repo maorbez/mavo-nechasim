@@ -96,3 +96,10 @@ Produces: separately verified Office, publisher, public site, assets/API and rec
 - [ ] Update every relevant API/config/code/docs surface; exact destination readbacks. Send bounded completion evidence to Hermes through an authorized active route; file-readback alone is not delivery. Keep MC pending if supported writer absent.
 
 Live work is now explicitly authorized by Maor. Completion still requires exact provider/readback evidence; this plan is not proof that gates passed.
+
+### Additional privacy release gate — 2026-10-11
+
+- [x] Identify65 staged objects of inactive/withdrawn properties; retain private bucket.
+- [x] Implement/review active-catalog-reference media gateway, HEAD/Range/no-store/post-I/O recheck;9 focused/71CF/121site tests pass.
+- [ ] Confirm the distinct PUBLIC_MEDIA_BUCKET -> existing private mavo-public-media service binding at action time; prepared dashboard form only.
+- [ ] Deploy/read back the exact reviewed gateway while preserving CATALOG/HMAC; prove selected bytes/Range and all65 inactive GET/HEAD/Range denial, including warmed cache routes. Never enable raw public bucket/r2.dev delivery.

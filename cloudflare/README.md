@@ -106,6 +106,34 @@ All output hashes are in `hashmanifest.json`; no translated/admin/gallery/share 
 real-property-photo bundle. Public keyless map tiles/CDN are presentation dependencies.
 Noindex is a crawler request; the synthetic preview remains publicly accessible.
 
+## Private R2 delivery gate — reviewed candidate, not deployed
+
+The actual303-object staging ledger includes65 objects belonging to inactive or
+withdrawn listings. A direct public bucket/custom domain or r2.dev route would
+expose those files. Keep the bucket private and route media through the reviewed
+Worker with binding `PUBLIC_MEDIA_BUCKET` -> existing `mavo-public-media`.
+This new binding is prepared in the owner dashboard but awaits its distinct
+security-sensitive access confirmation; neither binding nor media gate is live.
+The binding itself offers storage read/write capabilities; the reviewed code
+exposes only GET/HEAD delivery, never list/upload/delete operations.
+
+Only an exact immutable property/revision/hash URL referenced by an active,
+hash-verified CATALOG projection may be served. Photos and selected manifest
+URLs/posters/fallbacks qualify. Storage key/hash metadata/size/MIME/ETag are
+checked; active references are checked again after storage I/O. Delivery uses
+no-store, ignores stored cache-control, supports HEAD and single/suffix byte
+ranges, and rejects malformed/multipart ranges. Media-host API, private, write
+and query routes deny. Authenticated upload/readback byte hashes remain required;
+object metadata is not per-request content hashing. No external Cache Everything
+rule may override the gate. Already authorized streams/downloaded external
+copies cannot be recalled by this code.
+
+TDD RED then GREEN: nine focused tests and all71 Cloudflare tests passed; site121
+passed. Independent review found no important issue. Before live release prove
+all65 inactive objects deny GET/HEAD/Range, including warmed URLs/cache rules,
+while selected image/video/poster/fallback bytes and Range remain correct. The
+final media domain and original providers are unchanged; no public proof yet.
+
 ## Run local evidence
 
 ```sh
@@ -170,7 +198,7 @@ Do not claim Supabase exited or media savings until those conditions pass.
   captured.23null links reconcile through established Office numbers;28 public
   numbers have no Office record and stay legacy read-only. Office flag=false is
   not a withdrawal. Failed/requested terminal removals still suppress import.
-- Offline compiler23tests plus fullCF62/site121pass. The actual complete privacy
+- Offline compiler23tests plus fullCF71/site121pass. The actual complete privacy
   capture covers43 properties,39 pipeline revisions,11 settings, zero location
   withdrawal jobs and10 removals. Actual `yad2` removal channels remain valid;
   no removal is discarded. The two approximate Office records are archived and
