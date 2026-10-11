@@ -1,8 +1,9 @@
 # MAVO Cloudflare preparation — 2026-10-11
 
-This directory is an isolated preparation candidate. It does not change the live
-website, Office, publisher, DNS, R2 access, or Supabase data. A synthetic static
-preview is deployed separately; that does not deploy this Worker or prove D1.
+The frontend and Office activation remain candidates. The original live website,
+Office publisher, DNS and Supabase source remain unchanged. Actual pilot Worker
+code/D1 binding and private R2 staging are deployed separately; they do not prove
+a live public migration or an end-to-end publisher connection.
 
 Latest Maor instruction authorizes live migration and the signing-preserving
 Spaceship support request. Support chat received the request and escalated it.
@@ -35,10 +36,13 @@ will be retained; no destructive retirement is authorized.
   D1 is a SQLite public projection, not a PostgreSQL/Auth/RLS replacement.
 - Existing publisher is the only publishing controller. Its completion validation
   and inventory consumers currently depend on Supabase/PostgREST. R2-only flags
-  do not remove that dependency. A versioned publisher adapter is still required.
-- Existing Office `6f8f766` and `4595d99` signing releases must be retained. The
-  prepared R2 branch does not contain them; deploying it directly would regress
-  live signing behavior. Reconcile on the latest proven release first.
+  do not remove that dependency. A versioned publisher adapter is locally implemented/reviewed in the separate
+  Office candidate `dd5bc4e`; integration preserves latest live source `5d2366a`.
+  All2350 Office tests and independent review passed locally. Actual deployment
+  and single-publisher activation remain required.
+- Existing Office `6f8f766` and `4595d99` signing releases must be retained. Latest live source is now5d2366a/Railway31f07111; its separate executor
+  verified190files/74settings/211original rows and released the deployment slot.
+  Candidate integration must preserve that release before final testing.
 - Registrar self-service inspection found ordinary DNSSEC toggle and a zero-entry
   future custom-NS DS panel, not a DS-only withdrawal control. Ordinary disable
   previously caused a cached-DS signing mismatch. Support request was sent with explicit owner authorization on 2026-10-11;
@@ -47,7 +51,9 @@ will be retained; no destructive retirement is authorized.
 ## Artifacts and interfaces
 
 `worker.mjs` + `schema.sql`: prepared public catalog API. Future D1 binding name
-`CATALOG`; future server-only HMAC binding `PUBLISHER_HMAC`. Neither was created.
+`CATALOG` is bound to pilot database718823a0-f098-464d-b3dc-e510efcf2f08.
+Server-only `PUBLISHER_HMAC` remains unconfigured pending its separate owner
+confirmation; no production import or publisher activation occurred.
 
 - `GET/HEAD /api/properties`: active public projections, ordered numeric IDs,
   bounded 1001-row read, fail closed over 1000. `GET/HEAD /api/properties/:id` returns
@@ -129,3 +135,59 @@ Do not claim Supabase exited or media savings until those conditions pass.
   — verify current free plan and limits before any deployment.
 - [Spaceship custom nameservers](https://www.spaceship.com/knowledgebase/connect-domain-custom-nameservers/)
   — registrar transition reference; not evidence a safe DS-only control exists.
+
+## Activation observation — 2026-10-11
+
+- Spaceship support request was sent and read back in chat; senior email case
+  `SPS-QHV-5830` / engagement `SPS-EIZ-7660` confirms received/working. It does
+  **not** confirm parent DS removal. No DNS/NS/signing change has been made.
+- Pilot Worker actual code version `af1a8ebd` and `CATALOG` D1 binding are saved.
+  Schema table/index/immutable-identity trigger readback is verified; catalog
+  contains no imported property rows. Public pilot requests return403/1010 and
+  cannot serve as signed/public API behavioral proof. Do not bypass the refusal.
+- 303 immutable R2 objects totaling169043548bytes were written with conditional
+  create and independently authenticated-read checked for bytes/hash/size/MIME.
+  All evidence remains `public_verified:false, verified:false` until the real
+  public origin is readable. Sources/private Office originals remain intact.
+- The one unavailable source is property13's legacy Postify MOV (404); its seven
+  photos are valid. Source Office/Drive media tables contain no recovery copy.
+  A content decision is pending; no video/reference is fabricated or silently
+  replaced.304unique references must all be resolved before a faithful import.
+- Fresh source63rows/307objects and real Office43-property/10-removal ledger were
+  captured.23null links reconcile through established Office numbers;28 public
+  numbers have no Office record and stay legacy read-only. Office flag=false is
+  not a withdrawal. Failed/requested terminal removals still suppress import.
+- Offline compiler23tests plus fullCF62/site121pass. The actual complete privacy
+  capture covers43 properties,39 pipeline revisions,11 settings, zero location
+  withdrawal jobs and10 removals. Actual `yad2` removal channels remain valid;
+  no removal is discarded. The two approximate Office records are archived and
+  remain inactive. Active approximate records without canonical sanitized-text
+  proof fail closed; the initial compiler offers no proof override. See
+  `../docs/CLOUDFLARE_MIGRATION_READINESS.md`.
+  Actual normalized input with303unverified public replacements is rejected as
+  `unverified_media_replacement`; no SQL/import was produced. Before import,
+  refetch source/Office/removals and verify the frozen input hashes again.
+
+### Old public provider withdrawal gate
+
+A Cloudflare-only withdrawal must not leave a previously exposed Supabase
+catalog row/storage endpoint readable, or allow a raw historical rollback to
+revive it. Before production backend cutover, verify new delivery and then
+recoverably revoke old anonymous/public catalog and bucket delivery, retaining
+owner-authenticated source and encrypted recovery. Capture the existing grants
+and bucket configuration first; actual anonymous-denial readback is mandatory.
+The exact original21-column grants, seven policies and public bucket metadata
+were captured through owner read-only SQL at2026-10-11T17:30Z. Revocation and
+ledger-gated recovery scripts are prepared privately but have not been executed.
+If old public delivery cannot be revoked, activation is blocked unless the one
+publisher provides verified per-provider withdrawals. No second writer, blanket
+snapshot restore or implicit fallback is permitted. Rollback must reconcile the
+fresh withdrawal/approval ledger; restoring access to stale withdrawn rows is
+not a safe rollback. CDN and third-party cached immutable-media lifetimes remain
+separate limits and are not proven revoked by a catalog404.
+
+Canonical Tasks and bounded existing Hermes topic context were updated and read
+back at2026-10-11T17:22Z. Native context-loader readback is verified, active
+Hermes-session receipt is not; no supported Mission Control status writer was
+available. Private detailed receipts are under the existing owner-local
+`live-activation-20261011` artifact folder, not in public source.

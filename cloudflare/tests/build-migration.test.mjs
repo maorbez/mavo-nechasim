@@ -60,6 +60,13 @@ test('archives force withdrawal, other channels do not hide website, absent inac
  const plan=buildMigration(input({officeProperties:[office(),office('office-67',67,{type:null,revision:4})],inactiveProjections:[supplied],removals:[{property_id:'office-67',revision:4,status:'verified',channels:['website']}]}));
  assert.deepEqual(JSON.parse(plan.entries[1].payload),supplied);
 });
+test('real Office yad2 channel preserves website withdrawals and does not withdraw a website by itself',()=>{
+ const removed=buildMigration(input({removals:[{property_id:'office-64',revision:3,status:'failed',channels:['website','yad2']}]}));
+ assert.equal(JSON.parse(removed.entries[0].payload).active,false);
+ const other=buildMigration(input({removals:[{property_id:'office-64',revision:3,status:'verified',channels:['yad2']}]}));
+ assert.equal(JSON.parse(other.entries[0].payload).active,true);
+ for(const channel of ['yad2/private','yad2 website','2website'])assert.throws(()=>buildMigration(input({removals:[{property_id:'office-64',revision:3,status:'failed',channels:[channel]}]})),/invalid_removal_ledger/);
+});
 test('unknown/foreign removals, missing tombstone deal type, malformed status and ahead-of-current revisions block',()=>{
  for(const overrides of [{removals:[{property_id:'foreign',revision:3,status:'verified',channels:['website']}]},{officeProperties:[office(),office('office-67',67,{type:null})],removals:[{property_id:'office-67',revision:3,status:'verified',channels:['website']}]},{removals:[{property_id:'office-64',revision:4,status:'verified',channels:['website']}]},{removals:[{property_id:'office-64',revision:3,status:'unknown',channels:['website']}]},{inactiveProjections:[row(99,{photos:[],active:false})]}])assert.throws(()=>buildMigration(input(overrides)));
 });

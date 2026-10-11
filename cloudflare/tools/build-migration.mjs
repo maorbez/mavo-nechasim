@@ -127,7 +127,7 @@ function withdrawalNumbers(input,office){
  for(const p of office.ids.values())if(p.archived_at!==null){if(p.property_number===null)throw Error('withdrawal_number_unknown');withdrawn.add(p.property_number);}
  for(const r of input.removals){
   if(!exact(r,['property_id','revision','status','channels'])||!token(r.property_id)||!positive(r.revision)||
-   !['requested','pending','running','failed','verified','terminal','withdrawn'].includes(r.status)||!Array.isArray(r.channels)||!r.channels.length||!r.channels.every(c=>typeof c==='string'&&/^[a-z][a-z_-]{0,60}$/.test(c)))throw Error('invalid_removal_ledger');
+   !['requested','pending','running','failed','verified','terminal','withdrawn'].includes(r.status)||!Array.isArray(r.channels)||!r.channels.length||!r.channels.every(c=>typeof c==='string'&&/^[a-z][a-z0-9_-]{0,60}$/.test(c)))throw Error('invalid_removal_ledger');
   const p=office.ids.get(r.property_id);
   if(!p||!positive(p.revision)||r.revision>p.revision)throw Error('foreign_or_stale_removal_ledger');
   if(r.channels.includes('website')){if(p.property_number===null)throw Error('withdrawal_number_unknown');withdrawn.add(p.property_number);}
