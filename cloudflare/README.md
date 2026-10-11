@@ -232,3 +232,20 @@ back at2026-10-11T17:22Z. Native context-loader readback is verified, active
 Hermes-session receipt is not; no supported Mission Control status writer was
 available. Private detailed receipts are under the existing owner-local
 `live-activation-20261011` artifact folder, not in public source.
+
+### Publisher sequencing blockers found by integration review
+
+The current Office candidate R2 `put_verified` still performs anonymous media
+readback before catalog CAS. The active-only media gate will deny a fresh URL
+until its catalog revision is active, so that candidate cannot publish new media.
+The offline import compiler similarly requires verified replacements even for
+inactive assets. Do not mark private authenticated proof as anonymous/public
+proof or temporarily expose the raw bucket. Separate authenticated immutable
+staging proof from post-activation public proof in the publisher/import workflow.
+
+After catalog CAS, the current Cloudflare publisher does not compensate a failed
+media/page readback: its restore_previous intentionally refuses a write, leaving
+unknown_pending for reconciliation. Release must add and test exact-attempt CAS
+compensation/recovery without resurrecting withdrawn rows or overwriting a newer
+selection, with fresh canonical authorization. These integration fixes are not
+implemented by the nine Worker gate tests and remain required before activation.

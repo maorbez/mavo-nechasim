@@ -103,3 +103,6 @@ Live work is now explicitly authorized by Maor. Completion still requires exact 
 - [x] Implement/review active-catalog-reference media gateway, HEAD/Range/no-store/post-I/O recheck;9 focused/71CF/121site tests pass.
 - [ ] Confirm the distinct PUBLIC_MEDIA_BUCKET -> existing private mavo-public-media service binding at action time; prepared dashboard form only.
 - [ ] Deploy/read back the exact reviewed gateway while preserving CATALOG/HMAC; prove selected bytes/Range and all65 inactive GET/HEAD/Range denial, including warmed cache routes. Never enable raw public bucket/r2.dev delivery.
+
+- [ ] Repair existing publisher/import sequencing: authenticated immutable preparation before CAS, gated anonymous media/page proof after activation; preserve prior public revision on preparation failure. Do not falsify public_verified or expose inactive files.
+- [ ] Add exact-attempt CAS compensation/recovery for failed post-activation media/page proof with fresh withdrawal/approval ledger; test concurrent selection, superseded/privacy changes and unknown write outcomes. Current Cloudflare restore_previous refuses writes and is a release blocker.
