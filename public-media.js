@@ -1,5 +1,5 @@
 /* Public media presentation only. Asset identity and publishing belong to Office. */
-(function(root,factory){const api=factory();if(root)root.MavoMedia=api;if(typeof module==='object'&&module.exports)module.exports=api;})(typeof window==='undefined'?null:window,function(){
+(function(root,factory){const api=factory(root);if(root)root.MavoMedia=api;if(typeof module==='object'&&module.exports)module.exports=api;})(typeof window==='undefined'?null:window,function(root){
   'use strict';
   const PUBLIC_ORIGIN='https://tnkiwgewdancvmkhzlwz.supabase.co';
   const PUBLIC_PATH='/storage/v1/object/public/property-photos/';
@@ -8,6 +8,13 @@
   function safePublicUrl(value){
     if(typeof value!=='string'||value.length>2000||/[\x00-\x20\\%]/.test(value)||/(?:^|\/)\.{1,2}(?:\/|$)/.test(value))return false;
     try{const u=new URL(value);return !u.username&&!u.password&&!u.search&&!u.hash&&((u.origin===PUBLIC_ORIGIN&&u.pathname.startsWith(PUBLIC_PATH)&&u.pathname.length>PUBLIC_PATH.length)||(u.origin==='https://media.mavorealestate.com'&&/^\/property-[1-9][0-9]*\/revision-[1-9][0-9]*\/[0-9]{2,3}-[a-f0-9]{64}\.(jpg|png|webp|mp4)$/.test(u.pathname)));}catch{return false;}
+  }
+  function deliveryUrl(value){
+    if(typeof value!=='string'||!value.startsWith('https://media.mavorealestate.com/'))return value;
+    if(!safePublicUrl(value))throw new Error('Invalid public media identity');
+    const origin=root?.MAVO_PUBLIC_MEDIA_DELIVERY_ORIGIN||'https://media.mavorealestate.com';
+    if(!['https://media.mavorealestate.com','https://mavo-catalog-pilot-20261011.maor-bezalel.workers.dev'].includes(origin))throw new Error('Invalid public media delivery origin');
+    return origin+new URL(value).pathname;
   }
   function resolve(property){
     const source=property?.media_manifest;
@@ -60,7 +67,7 @@
     const video=host.ownerDocument.createElement('video');video.controls=true;video.muted=true;video.defaultMuted=true;video.playsInline=true;video.preload='metadata';video.style.cssText='width:100%;height:100%;object-fit:contain;background:#242424;display:block';video.setAttribute('aria-label','סרטון הנכס');if(item.poster_url)host.ownerDocument.defaultView.MavoPhoto.setPoster(video,item.poster_url);
     video.addEventListener('loadedmetadata',()=>{if(host.contains(video))options.onLoad?.(video);});
     video.addEventListener('error',()=>{if(!host.contains(video))return;host.replaceChildren();mountStill(host,selection,{...options,item,loading:'eager'});const notice=host.ownerDocument.createElement('div');notice.className='gallery-media-notice';notice.textContent='הסרטון אינו זמין כרגע';host.appendChild(notice);},{once:true});
-    host.appendChild(video);video.src=item.url;return video;
+    host.appendChild(video);video.src=deliveryUrl(item.url);return video;
   }
   function mountGallery(host,thumbs,selection,options={}){
     thumbs.replaceChildren();const buttons=[];
@@ -72,5 +79,5 @@
     });
     if(selection.cover)show(selection.cover);else{host.replaceChildren();const empty=host.ownerDocument.createElement('span');empty.textContent='מבוא נכסים';host.appendChild(empty);}
   }
-  return {resolve,sanitizeManifest,imageCandidates,isVideoUrl,safePublicUrl,shareUrl,mountStill,mountGalleryItem,mountGallery};
+  return {resolve,sanitizeManifest,imageCandidates,isVideoUrl,safePublicUrl,deliveryUrl,shareUrl,mountStill,mountGalleryItem,mountGallery};
 });

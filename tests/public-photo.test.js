@@ -114,3 +114,17 @@ test('every legacy fallback is a content-addressed branded public WebP, with no 
     assert.ok(bytes.includes(Buffer.from('mavo-photo-branding-v5')));
   }
 });
+
+test('public photo requests use configured delivery without altering source identity',async()=>{
+ const canonical='https://media.mavorealestate.com/property-42/revision-3/00-'+('a'.repeat(64))+'.webp';
+ const delivery='https://mavo-catalog-pilot-20261011.maor-bezalel.workers.dev'+new URL(canonical).pathname;
+ const f=fixture('/',{MavoMedia:{deliveryUrl:url=>url===canonical?delivery:url}}),img=f.element();
+ f.api.setSource(img,canonical);assert.ok(f.pending.some(item=>item.url===delivery));assert.ok(!f.pending.some(item=>item.url===canonical));
+ f.resolve(delivery);f.resolve('/assets/brand/photo-badge-v5.png');await f.flush();assert.match(img.src,/^blob:/);
+});
+
+test('a denied gated asset never requests a local legacy fallback',async()=>{
+ let requests=0;const canonical='https://media.mavorealestate.com/property-42/revision-3/00-'+('a'.repeat(64))+'.webp';
+ const crypto=require('node:crypto');const f=fixture('/',{crypto:crypto.webcrypto,TextEncoder,fetch:async()=>{requests++;throw Error('must not revive');}}),img=f.element();
+ f.api.setSource(img,canonical);f.pending[0].onerror();await f.flush();assert.equal(requests,0);assert.equal(img.dataset.mavoPhoto,'unavailable');assert.equal(img.dataset.mavoSourceUrl,canonical);
+});

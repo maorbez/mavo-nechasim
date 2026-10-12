@@ -52,12 +52,14 @@ function arrays(input){
  if(!object(input))throw Error('invalid_input');
  if(!object(input.privacyEvidence))throw Error('missing_privacy_capture');
  for(const name of INPUTS)if(!Array.isArray(input[name]))throw Error('missing_input_array');
+ if(Object.hasOwn(input,'preservedCatalog')&&!Array.isArray(input.preservedCatalog))throw Error('invalid_preserved_catalog');
  return input;
 }
 export function hashInputs(input){
  arrays(input);
  // Top-level evidence row order is immaterial. Nested media order remains exact.
- return {schema_version:1,privacyEvidence_sha256:canonicalHash(input.privacyEvidence),...Object.fromEntries(INPUTS.map(name=>[name+'_sha256',canonicalHash(input[name].map(canonical).sort((a,b)=>{const x=serialize(a),y=serialize(b);return x<y?-1:x>y?1:0;}))]))};
+ const names=Object.hasOwn(input,'preservedCatalog')?[...INPUTS,'preservedCatalog']:INPUTS;
+ return {schema_version:1,privacyEvidence_sha256:canonicalHash(input.privacyEvidence),...Object.fromEntries(names.map(name=>[name+'_sha256',canonicalHash(input[name].map(canonical).sort((a,b)=>{const x=serialize(a),y=serialize(b);return x<y?-1:x>y?1:0;}))]))};
 }
 function freeze(input,expected){
  const current=hashInputs(input);
@@ -247,6 +249,14 @@ export function buildMigration(input){
   }
   entries.push(entry);
  }
+ const preserved=new Set();
+ for(const state of input.preservedCatalog||[]){
+  const id=state?.property?.id,current=existing.get(id);
+  if(![990001,990002].includes(id)||preserved.has(id)||state.office_property_id!=='synthetic-pilot-'+id||state.property.active!==false||!current||serialize(current)!==serialize(state))throw Error('invalid_preserved_catalog');
+  preserved.add(id);existing.delete(id);
+  entries.push({id,office_property_id:state.office_property_id,revision:state.revision,revision_source:'preserved-pilot',dispatch_id:state.dispatch_id,payload_hash:state.payload_hash,active:0,payload:serialize(state.property),operation:'preserved_exact'});
+ }
+ entries.sort((a,b)=>a.id-b.id);
  if(existing.size)throw Error('unexpected_catalog_identity');
  const sql=entries.filter(e=>e.operation==='insert').map(e=>'INSERT INTO catalog (id,office_property_id,revision,dispatch_id,payload_hash,active,payload) VALUES ('+[e.id,e.office_property_id,e.revision,e.dispatch_id,e.payload_hash,e.active,e.payload].map(quote).join(',')+');').join('\n');
  return {schema_version:1,provider:'cloudflare-d1',media_verification:'authenticated-stage-only',public_delivery_verified:false,frozen_inputs:frozen,entries,sql,summary:{rows:entries.length,active:entries.filter(e=>e.active===1).length,inactive:entries.filter(e=>e.active===0).length,linked:entries.filter(e=>e.office_property_id!==null).length,legacy_readonly:entries.filter(e=>e.office_property_id===null).length,inserts:entries.filter(e=>e.operation==='insert').length,noops:entries.filter(e=>e.operation==='verified_noop').length}};

@@ -267,3 +267,9 @@ receipts as history. Newer/foreign projections are never overwritten. Staging
 failure preserves the prior listing; after CAS, failure withdrawal hides it.
 These are Office source candidates, not a live Office deployment. Final full
 Office suite/review and domain/source/backup/legacy-denial gates remain required.
+
+## Temporary delivery without DNS — candidate
+
+The existing scoped pilot origin can transport both catalog and media without a DNS change. Preserve canonical `media.mavorealestate.com` references and hashes; only site/publisher/share delivery is translated. The current Worker already resolves those canonical active references on its workers.dev media path. A dedicated public configuration file and exact publisher delivery override select that one existing origin; no arbitrary proxy or wider credentials.
+
+Keep exact inactive owned pilot tombstones through frozen compiler `preservedCatalog` evidence. Do not omit or delete them to manufacture an empty baseline. Fresh source63rows/43Office properties and303private assets are verified;67source inserts plus2preserved rows are prepared, NOT IMPORTED. Site126/CF74/compiler25 tests pass; original website/runtime/config unchanged. Old public Supabase denial remains a privacy activation gate; the current no-security-change instruction requires owner clarification before that action. See `docs/superpowers/plans/2026-10-12-no-dns-cloudflare.md` and the Office project release ledger. No production success is claimed.

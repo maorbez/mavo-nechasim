@@ -92,3 +92,21 @@ test('gallery thumbnails preserve manifest order while the selected cover opens 
 test('a gallery whose only image fails displays an unavailable state rather than a broken blank image',()=>{
  const m=api(),host=hostFixture(),s=m.resolve({media_manifest:manifest('photo-a',[image])});m.mountGalleryItem(host,s,s.cover);host.children[0].fire('error');assert.equal(host.children[0]?.textContent,'התמונה אינה זמינה כרגע');
 });
+
+test('temporary delivery alias preserves canonical identity and rejects arbitrary origins',()=>{
+ const vm=require('node:vm'),origin='https://mavo-catalog-pilot-20261011.maor-bezalel.workers.dev';
+ const canonical='https://media.mavorealestate.com/property-42/revision-3/00-'+('a'.repeat(64))+'.mp4';
+ const window={MAVO_PUBLIC_MEDIA_DELIVERY_ORIGIN:origin};vm.runInNewContext(fs.readFileSync(require.resolve('../public-media'),'utf8'),{window,URL});
+ assert.equal(window.MavoMedia.deliveryUrl(canonical),origin+new URL(canonical).pathname);
+ assert.equal(window.MavoMedia.deliveryUrl(base+'fixture/a.jpg'),base+'fixture/a.jpg');
+ window.MAVO_PUBLIC_MEDIA_DELIVERY_ORIGIN='https://evil.test';assert.throws(()=>window.MavoMedia.deliveryUrl(canonical));
+ window.MAVO_PUBLIC_MEDIA_DELIVERY_ORIGIN=origin;assert.throws(()=>window.MavoMedia.deliveryUrl(canonical+'?secret=x'));
+});
+
+test('explicit video transport uses the alias while cover, gallery and poster identities stay canonical',()=>{
+ const vm=require('node:vm'),origin='https://mavo-catalog-pilot-20261011.maor-bezalel.workers.dev';
+ const window={MAVO_PUBLIC_MEDIA_DELIVERY_ORIGIN:origin};vm.runInNewContext(fs.readFileSync(require.resolve('../public-media'),'utf8'),{window,URL});
+ const prefix='https://media.mavorealestate.com/property-42/revision-3/00-'+('a'.repeat(64));const item={id:'video',type:'video',url:prefix+'.mp4',poster_url:prefix+'.webp',fallback_url:prefix+'.webp'};
+ const s=window.MavoMedia.resolve({media_manifest:{version:1,cover_media_id:'video',items:[item]}}),host=hostFixture();window.MavoMedia.mountGalleryItem(host,s,s.cover);
+ assert.equal(host.children[0].src,origin+new URL(item.url).pathname);assert.equal(host.children[0].dataset.protectedPoster,item.poster_url);assert.equal(s.cover.url,item.url);assert.equal(s.items[0].id,'video');assert.equal(host.children[0].muted,true);
+});

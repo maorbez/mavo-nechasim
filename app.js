@@ -411,7 +411,7 @@ function buildVideoNode(src, autoplay) {
     return f;
   }
   const v = document.createElement('video');
-  v.src = src; v.controls = true; v.playsInline = true;
+  v.src = MavoMedia.deliveryUrl(src); v.controls = true; v.playsInline = true;
   if (autoplay) v.autoplay = true;
   v.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#242424;display:block';
   return v;

@@ -22,7 +22,7 @@
       source.referrerPolicy = 'no-referrer';
       source.onload = () => resolve(source);
       source.onerror = () => reject(new Error('Public photo unavailable'));
-      source.src = url;
+      source.src = root.MavoMedia?.deliveryUrl ? root.MavoMedia.deliveryUrl(url) : url;
     });
   }
 
@@ -40,6 +40,8 @@
     try {
       return await load(url);
     } catch (error) {
+      // A gated R2 failure is authoritative; never revive a local legacy copy.
+      if (url.startsWith('https://media.mavorealestate.com/')) throw error;
       // Some legacy public hosts forbid canvas CORS. Only verified, prebuilt
       // public derivatives may replace them; never proxy Office/private media.
       if (!root.crypto?.subtle || !root.fetch) throw error;
@@ -102,6 +104,7 @@
     }
     dispose(element);
     protect(element);
+    element.dataset.mavoSourceUrl = url;
     if (kind === 'background') element.style.backgroundImage = 'none';
     else element.removeAttribute(kind);
     const state = { cancelled: false, blobUrl: null, observer: null };

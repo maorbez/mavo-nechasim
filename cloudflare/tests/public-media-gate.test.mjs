@@ -65,3 +65,10 @@ test('video poster and fallback are eligible only while referenced by the active
  const p={...row(),photos:[],media_manifest:{version:1,cover_media_id:'v',items:[{id:'v',type:'video',url:video,poster_url:url,fallback_url:url}]}};
  await publish(env,p);assert.equal((await read(env)).status,200);await publish(env,{...p,active:false},2,1);assert.equal((await read(env)).status,404);
 });
+
+test('existing Worker delivery alias resolves canonical reference with identical withdrawal gates',async()=>{
+ const {env}=setup();await publish(env);const alias='https://mavo-catalog-pilot-20261011.maor-bezalel.workers.dev/'+key;
+ assert.equal((await read(env,{},alias)).status,200);assert.equal((await read(env,{headers:{Origin:'https://mavorealestate.com',Range:'bytes=0-3'}},alias)).status,206);
+ await publish(env,{...row(),active:false},2,1);
+ for(const options of [{},{method:'HEAD'},{headers:{Range:'bytes=0-3'}}])assert.equal((await read(env,options,alias)).status,404);
+});

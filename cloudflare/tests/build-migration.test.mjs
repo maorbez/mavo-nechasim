@@ -204,3 +204,13 @@ test('readiness preprocessing freezes all captured privacy evidence and fresh mi
  const fresh=structuredClone(prepared);fresh.privacyEvidence.propertyStates[0].workflow_status='closed_other';fresh.frozenInputs=hashInputs(fresh);assert.throws(()=>verifyFrozenMigration(plan,fresh),/frozen_inputs_changed/);
  const oldFrozen={...fresh,frozenInputs:prepared.frozenInputs};assert.throws(()=>migration.prepareMigrationInput(oldFrozen),/frozen_inputs_changed/);
 });
+
+test('explicitly frozen owned inactive pilot tombstones survive import without omission or rewrite',()=>{
+ const p=row(990001,{active:false,photos:[]}),s={schema_version:1,office_property_id:'synthetic-pilot-990001',revision:4,dispatch_id:'pilot-withdraw-4',payload_hash:canonicalHash(p),property:p};
+ const data=input({existingCatalog:[s],preservedCatalog:[s]});const plan=buildMigration(data);
+ assert.equal(plan.entries.length,2);assert.equal(plan.entries.find(e=>e.id===990001).operation,'preserved_exact');assert.doesNotMatch(plan.sql,/990001/);
+ assert.ok(plan.frozen_inputs.preservedCatalog_sha256);assert.equal(verifyFrozenMigration(plan,data),true);
+ for(const changed of [{...s,revision:5},{...s,office_property_id:'foreign'},{...s,property:{...p,active:true}}])assert.throws(()=>buildMigration(input({existingCatalog:[changed],preservedCatalog:[s]})));
+ assert.throws(()=>buildMigration(input({existingCatalog:[s]})),/unexpected_catalog_identity/);
+ assert.throws(()=>verifyFrozenMigration(plan,{...data,preservedCatalog:[]}));
+});

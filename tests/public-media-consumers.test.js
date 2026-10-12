@@ -44,3 +44,12 @@ test('closing the property modal stops playing native media',()=>{
  let paused=0;const code=fs.readFileSync(require.resolve('../app.js'),'utf8'),context=vm.createContext({document:{getElementById:()=>({classList:{remove(){}}}),body:{style:{}},querySelectorAll:()=>[{pause(){paused++;}}]}});
  vm.runInContext(code.slice(code.indexOf('function closeModalBtn'),code.indexOf('async function submitModalForm')),context);context.closeModalBtn();assert.equal(paused,1);
 });
+
+test('every public catalog page loads public temporary configuration before the reader',()=>{
+ const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'..');
+ const pages=fs.readdirSync(root).filter(p=>p.endsWith('.html')&&fs.readFileSync(path.join(root,p),'utf8').includes('src="db.js?'));
+ assert.ok(pages.length>=8);
+ for(const p of pages){const html=fs.readFileSync(path.join(root,p),'utf8');assert.ok(html.indexOf('src="public-catalog-config.js?')<html.indexOf('src="public-media.js?'),p);assert.ok(html.indexOf('src="public-catalog-config.js?')>=0,p);}
+ const vm=require('node:vm'),window={};vm.runInNewContext(fs.readFileSync(path.join(root,'public-catalog-config.js'),'utf8'),{window});
+ assert.equal(window.MAVO_CATALOG_PROVIDER,'cloudflare');assert.equal(window.MAVO_CATALOG_API_ORIGIN,'https://mavo-catalog-pilot-20261011.maor-bezalel.workers.dev');assert.equal(window.MAVO_PUBLIC_MEDIA_DELIVERY_ORIGIN,window.MAVO_CATALOG_API_ORIGIN);
+});

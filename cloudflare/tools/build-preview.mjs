@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 
 const source=fileURLToPath(new URL('../../',import.meta.url));
 const pages=['index.html','search.html','looking.html','privacy.html','accessibility.html','florentin.html','neve-tzedek.html','north-tel-aviv.html','bat-yam.html','kerem-hateimanim.html','lev-hair.html'];
-const scripts=['db.js','app.js','catalog.js','components.js','public-media.js','public-photo.js','hood-map.js','map-base.js','looking.js','looking-regions.js'];
+const scripts=['db.js','app.js','catalog.js','components.js','public-catalog-config.js','public-media.js','public-photo.js','hood-map.js','map-base.js','looking.js','looking-regions.js'];
 const styles=['style.css','brand.css','looking.css','public-photo.css','legal.css'];
 const assets=['assets/brand/symbol-transparent.svg','assets/brand/symbol-transparent-light.svg','assets/brand/symbol-transparent-gold.svg','assets/brand/logo-hebrew-transparent-light.svg','assets/brand/favicon-v37.svg','assets/brand/favicon-v37.png','assets/brand/apple-touch-icon-v37.png','assets/brand/photo-badge-v5.png','assets/brand/Heebo.ttf','assets/brand/Heebo-OFL.txt','assets/brand/mavo-share-v32.png','assets/regions/neighborhood-catalog-2026-10-08.json'];
 const directories=['assets/neighborhoods','assets/maps'];
@@ -60,6 +60,7 @@ function operationReplacement(text,name,body){
 }
 function patch(file,text){
   // This is copied output only; the original product files are never edited.
+  if(file==='public-catalog-config.js')return '// Synthetic preview: production delivery configuration intentionally omitted.\n';
   if(file==='db.js'){
     text=text.replace(/  const DEFAULT_SUPABASE_URL = .*\n/,'').replace(/  const DEFAULT_SUPABASE_KEY = .*\n/,'');
     const start=text.indexOf('  async function fetchPropertiesFromDB(options) {');
