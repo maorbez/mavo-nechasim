@@ -55,6 +55,20 @@ function waLink(p) {
 
 // ---- Load properties through the shared read-only inventory client ----
 let properties = []; // single source of truth, filled on init
+let currentPropertyId = null, publicDetailSignature = '';
+function updatePublicCatalog(result) {
+  properties = result.properties;
+  if(currentPropertyId!==null){
+    const fresh=properties.find(p=>p.id===currentPropertyId);
+    if(!fresh||JSON.stringify(fresh)!==publicDetailSignature){closeLightbox();closeModalBtn();}
+  }
+  const scope={city:document.body.dataset.city||'',hood:document.body.dataset.hood||''};
+  const scoped=properties.filter(p=>MavoCatalog.inScope(p,scope));
+  renderPropertiesGrid(scoped);buildNeighborhoodFilters(scoped);applyCatalogFilters();
+  if(map)renderMapCatalog(properties);
+}
+
+// ============================
 
 async function loadProperties() {
   if (!window.loadMavoProperties) {
@@ -67,7 +81,7 @@ async function loadProperties() {
 // ============================
 // MAP
 // ============================
-let map, markers = [], activeFilter = 'all';
+let map, markers = [], areaMarkers = [], mapRegions = null, activeFilter = 'all';
 
 function initMap(props) {
   map = L.map('mainMap', {
@@ -81,19 +95,31 @@ function initMap(props) {
   addMavoBasemap(map);
 
   setupMapAreas(props);
-  props.forEach(p => addMarker(p));
-  updateMapCount(props);
+  renderMapCatalog(props);
 
   // Fix rendering after container paint
   setTimeout(() => map.invalidateSize(), 300);
+}
+
+function renderMapCatalog(props) {
+  markers.forEach(m=>map.removeLayer(m));markers=[];
+  const area=document.getElementById('mapArea');if(area)fillMapAreas(area,props);
+  props.forEach(p=>addMarker(p));applyMapFilters();
+}
+
+function fillMapAreas(select,props){
+ const value=select.value||'',old=[...select.options].find(o=>o.value===value)?.text;
+ select.replaceChildren(new Option('כל האזורים',''));
+ const seen=new Set(['']);props.forEach(p=>{const l=MavoCatalog.location(p);for(const [v,text] of [[l.city+'|',l.city],[l.city+'|'+l.hood,l.city+' · '+l.hood]]){if(!l.city||(!l.hood&&v!==l.city+'|')||seen.has(v))continue;seen.add(v);select.add(new Option(text,v));}});
+ if(value&&!seen.has(value))select.add(new Option(old||value,value));select.value=value;
 }
 
 function setupMapAreas(props) {
  const root=document.querySelector('.map-controls')||document.getElementById('mainMap')?.parentElement;if(!root||document.getElementById('mapArea'))return;
  const label=document.createElement('label');label.htmlFor='mapArea';label.textContent='אזור במפה';
  const select=document.createElement('select');select.id='mapArea';select.style.cssText='min-height:44px;padding:8px 12px;margin:8px;border:1px solid #8C8475;background:#F8F3E9;color:#242424;border-radius:6px';select.add(new Option('כל האזורים',''));
- const seen=new Set();props.forEach(p=>{const l=MavoCatalog.location(p);for(const [value,text] of [[l.city+'|',l.city],[l.city+'|'+l.hood,l.city+' · '+l.hood]]){if(!l.city||(!l.hood&&value!==l.city+'|')||seen.has(value))continue;seen.add(value);select.add(new Option(text,value));}});
- select.onchange=()=>{applyMapFilters();const visible=markers.filter(m=>map.hasLayer(m));if(visible.length)map.fitBounds(visible.map(m=>m.getLatLng()),{padding:[45,45],maxZoom:15});};label.appendChild(select);root.prepend(label);
+ fillMapAreas(select,props);
+ select.onchange=()=>{applyMapFilters();const visible=[...markers,...areaMarkers].filter(m=>map.hasLayer(m));if(visible.length)map.fitBounds(visible.map(m=>m.getLatLng()),{padding:[45,45],maxZoom:15});};label.appendChild(select);root.prepend(label);
 }
 
 function typeColor(type) {
@@ -154,6 +180,11 @@ function applyMapFilters() {
   const requiredAmenities = [['mapParking','hasParking'],['mapElevator','hasElevator'],['mapShelter','hasShelter']]
     .filter(([id]) => document.getElementById(id)?.checked).map(([,field]) => field);
   let count = 0;
+  const matches=p=>{
+    const r=parseFloat(p.rooms),[city,hood]=(document.getElementById('mapArea')?.value||'').split('|');
+    return MavoCatalog.matchesType(p,activeType)&&MavoCatalog.inScope(p,{city,hood})&&requiredAmenities.every(field=>p[field]===true)&&
+      (roomsMin===null&&roomsMax===null||Number.isFinite(r)&&(roomsMin===null||r>=roomsMin)&&(roomsMax===null||r<=roomsMax));
+  };
   markers.forEach(m => {
     const p = m._propData;
     let typeMatch = MavoCatalog.matchesType(p, activeType);
@@ -177,7 +208,17 @@ function applyMapFilters() {
     }
   });
   const cEl = document.getElementById('mapCount');
-  if(cEl) cEl.textContent = count;
+  const groups=MavoCatalog.mapGroups(properties.filter(matches),mapRegions);
+  areaMarkers.forEach(m=>map.removeLayer(m));areaMarkers=MavoCatalog.renderGeneralAreas(map,groups.area,openPropertyModal);
+  const areaCount=groups.area.reduce((n,g)=>n+g.rows.length,0);
+  if(cEl){
+    cEl.textContent=count+areaCount+groups.unlocated.length;
+    let note=document.getElementById('mapPlacementCount');
+    if(!note){note=document.createElement('span');note.id='mapPlacementCount';cEl.parentElement.appendChild(note);}
+    note.textContent=' · '+count+' במיקום מדויק · '+areaCount+' באזור כללי · '+groups.unlocated.length+' ללא מיקום במפה';
+    let unknown=document.getElementById('mapUnlocated');if(!unknown){unknown=document.createElement('div');unknown.id='mapUnlocated';cEl.parentElement.appendChild(unknown);}
+    MavoCatalog.renderUnlocated(unknown,groups.unlocated,openPropertyModal);
+  }
 }
 
 function updateMapCount(props) {
@@ -214,7 +255,7 @@ function buildNeighborhoodFilters(props) {
     const l=MavoCatalog.location(p);const key=l.city+'|'+l.hood;
     if(!l.hood||seen.has(key))return;seen.add(key);
     const btn=document.createElement('button');btn.className='filter-btn hood-btn';
-    btn.textContent=l.hood;btn.onclick=()=>filterByNeighborhood(btn,l.hood,l.city);container.appendChild(btn);
+    btn.textContent=l.hood;btn.classList.toggle('active',catalogFilters.hood===l.hood&&(!catalogFilters.city||catalogFilters.city===l.city));btn.onclick=()=>filterByNeighborhood(btn,l.hood,l.city);container.appendChild(btn);
   });
 }
 function filterByNeighborhood(el, hood, city) {
@@ -227,6 +268,9 @@ function filterByNeighborhood(el, hood, city) {
 // MODAL
 // ============================
 function openPropertyModal(p) {
+  // Event closures may predate a catalog refresh. Always resolve current identity.
+  p=properties.find(row=>row.id===p.id);if(!p)return;
+  currentPropertyId=p.id;publicDetailSignature=JSON.stringify(p);
   const overlay = document.getElementById('propModalOverlay');
   if (!overlay) { window.location.href='index.html?prop='+encodeURIComponent(p.id); return; }
 
@@ -546,7 +590,7 @@ function closeLightbox() {
   const vid = lb.querySelector('.lb-video');
   if (vid) { try { if (vid.pause) vid.pause(); } catch (e) {} vid.remove(); }
   const imgEl = document.getElementById('lightboxImg');
-  if (imgEl) { imgEl.onload = imgEl.onerror = null; MavoPhoto.dispose?.(imgEl); imgEl.style.display = ''; }
+  if (imgEl) { imgEl.onload = imgEl.onerror = null; MavoPhoto.dispose?.(imgEl); imgEl.removeAttribute?.('src'); imgEl.style.display = ''; }
   const notice = lb.querySelector('.lb-photo-notice'); if (notice) notice.remove();
   lb.classList.remove('open');
 }
@@ -587,7 +631,12 @@ function closeModal(e) {
 
 function closeModalBtn() {
   document.querySelectorAll('#galleryMain video').forEach(video => video.pause());
-  document.getElementById('propModalOverlay').classList.remove('open');
+  document.getElementById('propModalOverlay')?.classList.remove('open');
+  currentPropertyId=null;publicDetailSignature='';
+  document.getElementById('galleryMain')?.replaceChildren();document.getElementById('galleryThumbs')?.replaceChildren();
+  const main=document.getElementById('galleryMain');if(main?.dataset)main.dataset.lightbox='';_galleryImages=[];_lightboxImages=[];
+  for(const id of ['modalPrice','modalTitle','modalLocation','modalFeatures','modalDesc','modalAgent','modalFormSub','galleryBadge']){const el=document.getElementById(id);if(el)el.textContent='';}
+  for(const id of ['modalWA','modalWaze'])document.getElementById(id)?.removeAttribute('href');
   document.body.style.overflow = '';
 }
 
@@ -1142,17 +1191,11 @@ function initLazySections() {
 // ============================
 document.addEventListener('DOMContentLoaded', async () => {
   // Live catalog is authoritative; outages are disclosed without stale listings.
-  properties = await loadProperties();
-
-  // Dynamically render property cards from data (replaces hardcoded HTML cards)
-  const scope = {city:document.body.dataset.city||'',hood:document.body.dataset.hood||''};
-  const scoped = properties.filter(p=>MavoCatalog.inScope(p,scope));
-  renderPropertiesGrid(scoped);
+  const session=window.getMavoCatalogSession();session.subscribe(updatePublicCatalog);
+  const [regions]=await Promise.all([MavoCatalog.loadMapRegions(),session.refresh()]);mapRegions=regions;
+  if(map)renderMapCatalog(properties);
   setupHeroSearch(properties);
   applyCatalogFilters();
-
-  // Build neighborhood filters
-  buildNeighborhoodFilters(scoped);
 
   // Lazy-init the map only when it scrolls into view (keeps initial load + hero smooth)
   const mapEl = document.getElementById('mainMap');

@@ -106,3 +106,41 @@ The seven unbound standalone-gallery files remain unchanged and outside this
 catalog migration. Do not claim all historical media URLs gated. No DNS change
 was made; custom media-domain signing/DNS is separate remaining work. See
 `PUBLISHING_CONTRACT.md` for current gates and privacy-aware rollback.
+
+## Availability and map freshness candidate — 2026-10-13
+
+This candidate has passed local checks; production deployment/readback is pending. The exact 21 public fields,
+immutable property numbers, approved URLs, public branding and provider remain
+unchanged. `active` is publication visibility; Office's canonical stage and
+availability controls remain private, enforced by the trusted publishing workflow.
+
+Cards, search results and both maps share one page-local catalog session. Visible
+pages renew after 45 seconds, with a maximum 60-second display window measured
+from request start. Hidden/offline/pagehide clears display; visible/online/pageshow
+revalidates. Failed reads and authoritative empty results clear old listings.
+Generation checks prevent a late old response from reviving removed data. Removed
+or changed details close and clear gallery, text and links; filters and map bounds
+are preserved. This is bounded freshness, not instant revocation or a signed lease.
+
+Exact published coordinates retain their existing pins. Missing/private approximate
+coordinates use a separate labeled neighborhood-area group at the authoritative
+local region catalog's public reference point, or an unambiguous city-area group
+from its existing bounding box. These general areas are not property addresses,
+precise centers or navigation destinations. Original property coordinates and
+navigation rules are untouched. Unknown/ambiguous city labels remain in a visible
+list and count; the client never geocodes private text or invents neighborhood aliases.
+Main and neighborhood map counts include precise, general-area and unlocated rows.
+
+Fresh public read-only audit: 33 rows, with 22 precise positions, five neighborhood
+area matches, four city area matches and two unlocated rows. This is a resolver
+audit of current published rows, not a publication mutation or production render
+verification. Local synthetic render and regression evidence are separate from
+the existing production checkpoint above; deployment/readback remain pending.
+
+Candidate checks: site 139 and Cloudflare 74 tests pass. Isolated headless Chromium
+served the exact local candidate with synthetic API responses and blocked writes:
+desktop and 390px rendering, all 33 synthetic IDs/counts, general-area labels,
+withdrawn detail cleanup, retained filter/bounds and outage clearing passed.
+The separate synthetic-preview CSP blocks the existing RTL WebAssembly module;
+its guard was preserved. Exact candidate rendering with real basemap/RTL assets
+had no page errors. Neither test changes real publication state or proves deployment.

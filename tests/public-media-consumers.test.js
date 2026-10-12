@@ -41,7 +41,7 @@ test('the real property WhatsApp action uses the public preview only for explici
  const legacy=new URL(context.waLink({...property,media_manifest:null})).searchParams.get('text');assert.ok(legacy.includes('https://mavorealestate.com/?prop=64'));assert.ok(!legacy.includes('property-preview'));
 });
 test('closing the property modal stops playing native media',()=>{
- let paused=0;const code=fs.readFileSync(require.resolve('../app.js'),'utf8'),context=vm.createContext({document:{getElementById:()=>({classList:{remove(){}}}),body:{style:{}},querySelectorAll:()=>[{pause(){paused++;}}]}});
+ let paused=0;const code=fs.readFileSync(require.resolve('../app.js'),'utf8'),context=vm.createContext({document:{getElementById:()=>({replaceChildren(){},removeAttribute(){},classList:{remove(){}}}),body:{style:{}},querySelectorAll:()=>[{pause(){paused++;}}]}});
  vm.runInContext(code.slice(code.indexOf('function closeModalBtn'),code.indexOf('async function submitModalForm')),context);context.closeModalBtn();assert.equal(paused,1);
 });
 

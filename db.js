@@ -251,6 +251,47 @@
     return result;
   }
 
+  // One page-local display, shared by cards and every map. This bounded freshness
+  // window is not an instant revocation guarantee or a signed provider lease.
+  function createCatalogSession(options) {
+    const opts=options||{},load=opts.load||loadMavoProperties,now=opts.now||Date.now;
+    const later=opts.setTimeout||setTimeout,cancel=opts.clearTimeout||clearTimeout;
+    const listeners=new Set(),empty=()=>({properties:[],source:'unavailable',degraded:true,error:null});
+    let current=empty(),generation=0,pending=null,renewal,expiry;
+    const publish=value=>{current=value;listeners.forEach(fn=>fn(current));};
+    function pause(){generation++;pending=null;cancel(renewal);cancel(expiry);publish(empty());}
+    function refresh(){
+      if(opts.canLoad&& !opts.canLoad()){pause();return Promise.resolve(current);}
+      if(pending)return pending;
+      cancel(renewal);const own=++generation,started=now();
+      const finish=value=>{
+        if(own!==generation)return current;
+        cancel(expiry);
+        const result=value&&!value.degraded&&Array.isArray(value.properties)&&now()-started<60000?value:empty();
+        publish(result);
+        if(!result.degraded)expiry=later(()=>publish(empty()),Math.max(0,60000-(now()-started)));
+        renewal=later(()=>refresh(),45000);return current;
+      };
+      // Start synchronously so all subscribers reuse this exact request.
+      try{pending=Promise.resolve(load()).then(finish,()=>finish(empty()));}catch{pending=Promise.resolve(finish(empty()));}
+      const request=pending;request.finally(()=>{if(own===generation)pending=null;});return request;
+    }
+    return {get current(){return current;},refresh,pause,subscribe(fn){listeners.add(fn);fn(current);return ()=>listeners.delete(fn);}};
+  }
+  let catalogSession;
+  function getMavoCatalogSession(){
+    if(!catalogSession){
+      catalogSession=createCatalogSession({load:()=>loadMavoProperties({renderStatus:false}),canLoad:()=>!root.document.hidden&&root.navigator.onLine!==false});
+      catalogSession.subscribe(renderPropertyDataStatus);
+      const resume=()=>{if(!root.document.hidden&&root.navigator.onLine!==false)catalogSession.refresh();else catalogSession.pause();};
+      root.document.addEventListener('visibilitychange',resume);
+      root.addEventListener('offline',()=>catalogSession.pause());root.addEventListener('online',resume);
+      root.addEventListener('pagehide',()=>catalogSession.pause());root.addEventListener('pageshow',resume);
+      resume();
+    }
+    return catalogSession;
+  }
+
   return {
     MAVO_PUBLIC_SITE_URL: PUBLIC_SITE_URL,
     PUBLIC_PROPERTY_COLUMNS: PUBLIC_PROPERTY_COLUMNS,
@@ -260,6 +301,8 @@
     validatePublicProjection: validatePublicProjection,
     fetchPropertiesFromDB: fetchPropertiesFromDB,
     loadMavoProperties: loadMavoProperties,
+    createCatalogSession: createCatalogSession,
+    getMavoCatalogSession: getMavoCatalogSession,
     renderPropertyDataStatus: renderPropertyDataStatus
   };
 });

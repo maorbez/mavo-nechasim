@@ -469,11 +469,11 @@
 
 </div>
 
-<script src="catalog.js?v=28"></script>
+<script src="catalog.js?v=29"></script>
 <script src="public-photo.js?v=6"></script>
 <script src="public-catalog-config.js?v=1"></script>
 <script src="public-media.js?v=3"></script>
-<script src="db.js?v=37"></script>
+<script src="db.js?v=38"></script>
 <script>
 // ============================================
 // SEARCH PAGE — Mavo Nechasim
@@ -489,13 +489,14 @@ let activeRooms  = 'all';
 
 // ---- Load data ----
 async function loadData() {
-  if (!window.loadMavoProperties) throw new Error('db.js must load before search page logic');
-  const result = await window.loadMavoProperties();
-  allProps = result.properties;
+  const session=window.getMavoCatalogSession();session.subscribe(updateSearchCatalog);
+  await session.refresh();
 }
+function updateSearchCatalog(result){allProps=result.properties;buildFilters();applyFilters();}
 
 // ---- Build city + hood pills from data ----
 function buildFilters() {
+  const selectedHoods=new Set(activeHoods);
   const cityMap = Object.create(null);
   allProps.forEach(p => {
     const {city,hood}=MavoCatalog.location(p);
@@ -510,13 +511,15 @@ function buildFilters() {
   Object.keys(cityMap).forEach(city => {
     const btn = document.createElement('button');
     btn.className = 'city-pill';
+    if(activeCities.has(city))btn.classList.toggle('active');
     btn.textContent = city;
     btn.onclick = () => toggleCity(btn, city, cityMap);
     cp.appendChild(btn);
   });
 
   // Hoods (initially all)
-  renderHoods(cityMap, null);
+  const scoped=activeCities.size?Object.fromEntries([...activeCities].map(c=>[c,cityMap[c]||new Set()])):cityMap;
+  renderHoods(scoped,selectedHoods);activeHoods=selectedHoods;
   window._cityMap = cityMap;
 }
 
@@ -526,7 +529,7 @@ function toggleCity(btn, city, cityMap) {
   else activeCities.delete(city);
   activeHoods.clear();
   const filtered = activeCities.size > 0
-    ? Object.fromEntries([...activeCities].map(c => [c, cityMap[c]]))
+    ? Object.fromEntries([...activeCities].map(c => [c, cityMap[c]||new Set()]))
     : cityMap;
   renderHoods(filtered, null);
   applyFilters();

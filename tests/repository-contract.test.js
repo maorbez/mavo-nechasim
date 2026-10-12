@@ -53,7 +53,7 @@ test('canonical public URLs no longer point to retired origins', function () {
 test('search has no fabricated hardcoded listing fallback', function () {
   const html = read('search.html');
   assert.doesNotMatch(html, /const HARDCODED/);
-  assert.match(html, /window\.loadMavoProperties\(\)/);
+  assert.match(html, /window\.getMavoCatalogSession\(\)/);
 });
 
 test('deep links remain keyed by the exact public property id', function () {

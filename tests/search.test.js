@@ -62,3 +62,15 @@ test('every home room selection is supported by the search destination',()=>{
   const value=option[1]||option[2];assert.ok(html.includes('data-rooms="'+value+'"'),'unsupported room filter '+value);
  }
 });
+test('fresh search catalog retains city/hood/type/room/budget filters through empty and changed inventory',()=>{
+ const s=search([{id:1,type:'rent',rooms:2,price:'5000',location:'תל אביב, פלורנטין'}]);
+ s.elements.priceMax.value='5500';vm.runInContext("activeCities.add('תל אביב');activeHoods.add('תל אביב|פלורנטין');activeType='rent';activeRooms='2';",s.context);
+ s.context.fresh={properties:[]};vm.runInContext('updateSearchCatalog(fresh)',s.context);assert.deepEqual(s.results(),[]);
+ s.context.fresh={properties:[{id:2,type:'rent',rooms:2,price:'5000',location:'תל אביב, פלורנטין'},{id:3,type:'sale',rooms:2,price:'5000',location:'תל אביב, פלורנטין'},{id:4,type:'rent',rooms:2,price:'6000',location:'תל אביב, פלורנטין'}]};vm.runInContext('updateSearchCatalog(fresh)',s.context);assert.deepEqual(s.results(),[2]);assert.equal(s.elements.priceMax.value,'5500');
+});
+test('clicking a new city after refresh safely retains a disappeared selected city',()=>{
+ const s=search([{id:1,type:'rent',price:'5000',location:'תל אביב, פלורנטין'}]);vm.runInContext("activeCities.add('תל אביב')",s.context);
+ s.context.fresh={properties:[{id:2,type:'rent',price:'5000',location:'חיפה, הדר'}]};vm.runInContext('updateSearchCatalog(fresh)',s.context);
+ const button=s.elements.cityPills.children.find(b=>b.textContent==='חיפה');assert.doesNotThrow(()=>button.onclick());assert.deepEqual(s.results(),[2]);
+ assert.equal(vm.runInContext("activeCities.has('תל אביב') && activeCities.has('חיפה')",s.context),true);
+});
