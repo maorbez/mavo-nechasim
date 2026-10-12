@@ -26,6 +26,14 @@ Legacy public bucket photos remain source-compatible; the activation readback
 must confirm that the actual Cloudflare projection references only migrated R2
 assets before claiming no public Supabase traffic.
 
+The Cloudflare release carries an empty `public-photo-fallbacks.json` and no
+catalog-photo files under `assets/property-photos/`. The former twelve static
+copies bypassed the active-media gate at their direct Pages URLs, so they were
+removed from the hosted release; Git retains recovery history and private
+originals are untouched. The legacy renderer remains compatible with an explicit
+recovery mapping, but restoring those copies requires fresh publication/privacy
+review. Removing release files does not recall cached or previously saved copies.
+
 ## Deliberate recovery
 
 The old active-only, exact-column Supabase reader remains solely behind the

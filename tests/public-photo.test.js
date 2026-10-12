@@ -101,18 +101,23 @@ test('a CORS-blocked public source can use only its exact verified local derivat
   assert.match(img.src, /^blob:/); assert.equal(reads, 1);
 });
 
-test('every legacy fallback is a content-addressed branded public WebP, with no source URL in the map', () => {
-  const crypto = require('node:crypto'), path = require('node:path');
+test('the deployed fallback map cannot route around a catalog withdrawal', () => {
+  const path = require('node:path');
   const map = JSON.parse(fs.readFileSync(path.join(__dirname, '../public-photo-fallbacks.json'), 'utf8'));
-  assert.equal(Object.keys(map).length, 12);
-  for (const [key, relative] of Object.entries(map)) {
-    assert.match(key, /^[a-f0-9]{64}$/);
-    assert.match(relative, /^\/assets\/property-photos\/v5\/[a-f0-9]{64}\.webp$/);
-    const bytes = fs.readFileSync(path.join(__dirname, '..', relative));
-    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), path.basename(relative, '.webp'));
-    assert.equal(bytes.subarray(8,12).toString(), 'WEBP');
-    assert.ok(bytes.includes(Buffer.from('mavo-photo-branding-v5')));
+  assert.deepEqual(map, {}, 'legacy recovery code must not have a public static-photo route');
+});
+
+test('the Pages release contains no static catalog-photo copies outside the active-media gate', () => {
+  const path = require('node:path');
+  const directory = path.join(__dirname, '../assets/property-photos');
+  function files(root) {
+    if (!fs.existsSync(root)) return [];
+    return fs.readdirSync(root, { withFileTypes: true }).flatMap(entry => {
+      const filename = path.join(root, entry.name);
+      return entry.isDirectory() ? files(filename) : [filename];
+    });
   }
+  assert.equal(files(directory).length, 0, 'Pages can serve these known files even after a D1 withdrawal');
 });
 
 test('public photo requests use configured delivery without altering source identity',async()=>{
