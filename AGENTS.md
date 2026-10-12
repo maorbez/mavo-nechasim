@@ -1,6 +1,39 @@
 # Mavo Nechasim agent rules
 
-Latest workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
+## Current checkpoint — 2026-10-13 local / 2026-10-12 UTC
+
+Pages serves `7e2aa467bd028664735d9556850cbf5b5e61f7af`, built at 22:26:16Z;
+22:26:19Z anonymous HTTP readback matched all 14 checked release files and 33
+active rows with the exact 21 public fields. The availability/map reader is deployed.
+Office `a59698fa201d6e3b7cdb0699d5b67ae10b095872` / Railway
+`1e15b10d-bd68-443b-8b3c-85929fe17808` reached `SUCCESS`; 22:39Z preservation
+matched 197 runtime files, 217 original business rows, nine original media rows,
+roles, variables and schemas. The sole publisher remains `9ceeaeda`; no publisher
+replacement or DNS change belongs to this release.
+
+Owner-API fixture 75 was saved and reread: available → rented disabled publication
+and website settings; stale save returned 409; return to available did not publish.
+Recoverable archive returned 200 and later GET returned 403; anonymous record access
+was denied. All 70 signed catalog states stayed unchanged; no fixture was publicly
+approved and no customer message was sent. Six legacy public rows 16, 17, 24, 25,
+29 and 36 remain unbound to Office; preserve them without inferred bindings.
+
+Site 139 / Cloudflare 74 local checks and isolated synthetic desktop/mobile rendering
+passed. New release delivery is verified by HTTP, not a fresh native-browser render:
+the current native CUA attempt timed out. Earlier fixture 74 browser evidence below
+is historical and does not verify the new availability controls visually.
+
+**Full migration remains INCOMPLETE:** at 22:29:59Z legacy property 66 still served
+cached anonymous GET 200 and Range 206/HIT at FRA; property 64 returned 400 at that
+edge only. This does not prove global cache denial. Supabase `SU-504867` has an
+automated acknowledgement only; no resolution is recorded. Nameservers and parent
+DS remain unchanged; custom media DNS is still absent and signing-preserving DNS
+work remains separate. No original-object deletion, cache recall or full old-URL
+denial is claimed. Owner-local receipts: `mavo-availability-20261013` artifacts.
+
+## Historical checkpoint — 2026-10-12 21:48:51Z
+
+Historical workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
 isolated live fixture 74 acceptance and cleanup. Image publication verified Office
 revision 6 / D1 revision 8 at 21:36:26Z (two assets); video publication verified
 Office revision 7 / D1 revision 9 at 21:43:50Z (three assets). Exact saved Office
@@ -40,9 +73,19 @@ publishing code, URLs or provider migrations.
   Never expose Office credentials, publisher HMAC or a service-role key.
 - The sole server publisher owns approval, revision/CAS and saved Office receipts. It is
   running reviewed local runtime `9ceeaeda` at sole PID `42454`, with its lock and
-  queue baseline verified. Office Railway remains `f842b020`. Residual legacy CDN
+  queue baseline verified. Office Railway now runs `a59698fa`. Residual legacy CDN
   cache closure remains unresolved. Isolated fixture 74 E2E passed and cleanup was
   verified; other publications still require their own saved successful receipt.
+- Office availability uses the existing stage controls: `in_office` is זמין and
+  `rented` is הושכר. Returning to available does not approve or publish a listing.
+  Public `active` means publication visibility; never add private workflow fields
+  to the exact 21-field anonymous projection or invent Office links for legacy rows.
+- Cards/search/maps share a bounded catalog session: renew at 45 seconds, expire at
+  60 seconds, clear on hidden/offline/failure/empty and revalidate on return. Preserve
+  filters/bounds; removed or changed details must close and clear stale content.
+- Map all public rows using precise coordinates or explicitly labeled local catalog
+  neighborhood/city areas; show unknown areas in a visible list/count. Never geocode
+  private text or use a general-area marker as an exact navigation destination.
 - On live-source failure show no listings and a visible unavailable notice. Never revive a
   snapshot, local catalog-photo copy or another provider; a successful empty list is authoritative.
 - Legacy Supabase rollback requires fresh privacy/withdrawal reconciliation. Anonymous

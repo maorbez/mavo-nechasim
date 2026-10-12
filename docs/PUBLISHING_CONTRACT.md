@@ -1,6 +1,39 @@
 # Office CRM to public-site publishing contract
 
-Latest workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
+## Current checkpoint — 2026-10-13 local / 2026-10-12 UTC
+
+Pages serves `7e2aa467bd028664735d9556850cbf5b5e61f7af`, built at 22:26:16Z;
+22:26:19Z anonymous HTTP readback matched all 14 checked release files and 33
+active rows with the exact 21 public fields. The availability/map reader is deployed.
+Office `a59698fa201d6e3b7cdb0699d5b67ae10b095872` / Railway
+`1e15b10d-bd68-443b-8b3c-85929fe17808` reached `SUCCESS`; 22:39Z preservation
+matched 197 runtime files, 217 original business rows, nine original media rows,
+roles, variables and schemas. The sole publisher remains `9ceeaeda`; no publisher
+replacement or DNS change belongs to this release.
+
+Owner-API fixture 75 was saved and reread: available → rented disabled publication
+and website settings; stale save returned 409; return to available did not publish.
+Recoverable archive returned 200 and later GET returned 403; anonymous record access
+was denied. All 70 signed catalog states stayed unchanged; no fixture was publicly
+approved and no customer message was sent. Six legacy public rows 16, 17, 24, 25,
+29 and 36 remain unbound to Office; preserve them without inferred bindings.
+
+Site 139 / Cloudflare 74 local checks and isolated synthetic desktop/mobile rendering
+passed. New release delivery is verified by HTTP, not a fresh native-browser render:
+the current native CUA attempt timed out. Earlier fixture 74 browser evidence below
+is historical and does not verify the new availability controls visually.
+
+**Full migration remains INCOMPLETE:** at 22:29:59Z legacy property 66 still served
+cached anonymous GET 200 and Range 206/HIT at FRA; property 64 returned 400 at that
+edge only. This does not prove global cache denial. Supabase `SU-504867` has an
+automated acknowledgement only; no resolution is recorded. Nameservers and parent
+DS remain unchanged; custom media DNS is still absent and signing-preserving DNS
+work remains separate. No original-object deletion, cache recall or full old-URL
+denial is claimed. Owner-local receipts: `mavo-availability-20261013` artifacts.
+
+## Historical checkpoint — 2026-10-12 21:48:51Z
+
+Historical workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
 isolated live fixture 74 acceptance and cleanup. Image publication verified Office
 revision 6 / D1 revision 8 at 21:36:26Z (two assets); video publication verified
 Office revision 7 / D1 revision 9 at 21:43:50Z (three assets). Exact saved Office
@@ -32,15 +65,46 @@ This contract is for agents and the sole server publisher. Office CRM is canonic
 for private records, originals, immutable property numbers and owner approval.
 Cloudflare D1/Worker and private R2 now supply the public projection/media; GitHub
 Pages remains the read-only presentation layer. The publisher is resumed with its
-queue baseline verified. Isolated fixture 74 live E2E and recoverable cleanup
-passed; residual legacy CDN cache closure remains unresolved. See the current no-DNS
-release status at the end of this document.
+queue baseline verified. Isolated fixture 75 availability API acceptance and
+cleanup passed; fixture 74 publication E2E remains historical evidence. Residual
+legacy CDN cache closure remains unresolved. The current checkpoint at the top
+supersedes the preserved no-DNS history below.
 
 The following Supabase-specific protocol and October 10 release notes document
 retained legacy compatibility and history. They do not authorize reopening old
 anonymous access or restoring stale projections after a newer withdrawal.
 
-## Identity and ownership
+## Current availability, visibility and legacy identities
+
+Use the established Office stages: `in_office` is available (זמין); `rented` is
+rented (הושכר). Current publication eligibility requires the canonical available
+Office state and effective website availability, plus the existing owner approval,
+privacy and revision checks. Reserved/recruiting/terminal states must not remain
+public through a status change. Moving to rented disables publication and website
+availability/auto-publication; reopening available does not publish or re-enable
+those settings automatically. Concurrent stale saves return 409.
+
+The public browser still receives exactly 21 fields; `active` is publication
+visibility, not a separate business availability status. A historical false
+`public_listing_enabled` flag alone is not authority to retroactively withdraw a
+migrated row. Explicit availability/privacy transitions use the authoritative
+Office withdrawal path and verified provider receipt. Preserve unbound legacy
+public numbers 16, 17, 24, 25, 29 and 36 as read-only public identities; never infer
+an Office binding from text, coordinates or an unrelated record.
+
+The shared reader renews every 45 seconds and expires display 60 seconds after
+request start; hidden/offline/pagehide, failures and empty results clear stale rows.
+Revalidation on visible/online/pageshow and generation guards prevent late-response
+revival. Removed/changed detail content is cleared, preserving inquiry drafts,
+filters and map bounds. These are bounded freshness limits, not instant revocation.
+
+Maps retain exact published pins and represent missing/private approximate coordinates
+as labeled general neighborhood/city areas from the local authoritative region
+catalog only. Unknown cities remain visibly listed/countable. General areas are
+never precise property coordinates or navigation destinations. Current resolver
+audit preserves all 33 rows: 22 precise, five neighborhood, four city, two unlocated.
+
+## Historical Supabase identity and ownership
 
 - Office CRM first creates `office_crm_properties` and allocates a persistent, immutable, positive numeric `property_number`.
 - The publisher must send that exact value as Supabase `public.properties.id`.
@@ -92,7 +156,7 @@ The readback response exposes the office save/status, canonical number provenanc
 - The browser reads only `active=true` rows ordered by `id`.
 - A successful empty live result is authoritative and displays no stale listings.
 - When the live API fails, do not revive a static or browser snapshot: it may contain an address the owner has since hidden. Show no listings and a visible unavailable-state notice.
-- If neither live data nor a saved snapshot is usable, the site displays no listings and a visible unavailable-state notice.
+- Saved snapshots are never a current recovery source; an unavailable live source displays no listings and a visible unavailable-state notice.
 - All public deep links use the canonical public domain (hosted on GitHub Pages) and the exact office number: `?prop=<property_number>`.
 
 ## Recovery debt
@@ -135,7 +199,7 @@ not a newly emptied database. Public display and infrastructure readback are ver
 isolated fixture 74 publication, update, withdrawal, replay denial and recoverable
 cleanup are now verified.
 
-## Live no-DNS cutover — 2026-10-12
+## Historical live no-DNS cutover — 2026-10-12 21:48Z
 
 Office `f842b020305ecb154086caa859e6eb5e1f01ee74` / Railway
 `77ea1377-fc2a-4b27-86fa-0a6aec4ec03a` is `SUCCESS`. Exact preservation matched

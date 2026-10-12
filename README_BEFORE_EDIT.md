@@ -1,6 +1,39 @@
 # Read before editing
 
-Latest workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
+## Current checkpoint — 2026-10-13 local / 2026-10-12 UTC
+
+Pages serves `7e2aa467bd028664735d9556850cbf5b5e61f7af`, built at 22:26:16Z;
+22:26:19Z anonymous HTTP readback matched all 14 checked release files and 33
+active rows with the exact 21 public fields. The availability/map reader is deployed.
+Office `a59698fa201d6e3b7cdb0699d5b67ae10b095872` / Railway
+`1e15b10d-bd68-443b-8b3c-85929fe17808` reached `SUCCESS`; 22:39Z preservation
+matched 197 runtime files, 217 original business rows, nine original media rows,
+roles, variables and schemas. The sole publisher remains `9ceeaeda`; no publisher
+replacement or DNS change belongs to this release.
+
+Owner-API fixture 75 was saved and reread: available → rented disabled publication
+and website settings; stale save returned 409; return to available did not publish.
+Recoverable archive returned 200 and later GET returned 403; anonymous record access
+was denied. All 70 signed catalog states stayed unchanged; no fixture was publicly
+approved and no customer message was sent. Six legacy public rows 16, 17, 24, 25,
+29 and 36 remain unbound to Office; preserve them without inferred bindings.
+
+Site 139 / Cloudflare 74 local checks and isolated synthetic desktop/mobile rendering
+passed. New release delivery is verified by HTTP, not a fresh native-browser render:
+the current native CUA attempt timed out. Earlier fixture 74 browser evidence below
+is historical and does not verify the new availability controls visually.
+
+**Full migration remains INCOMPLETE:** at 22:29:59Z legacy property 66 still served
+cached anonymous GET 200 and Range 206/HIT at FRA; property 64 returned 400 at that
+edge only. This does not prove global cache denial. Supabase `SU-504867` has an
+automated acknowledgement only; no resolution is recorded. Nameservers and parent
+DS remain unchanged; custom media DNS is still absent and signing-preserving DNS
+work remains separate. No original-object deletion, cache recall or full old-URL
+denial is claimed. Owner-local receipts: `mavo-availability-20261013` artifacts.
+
+## Historical checkpoint — 2026-10-12 21:48:51Z
+
+Historical workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
 isolated live fixture 74 acceptance and cleanup. Image publication verified Office
 revision 6 / D1 revision 8 at 21:36:26Z (two assets); video publication verified
 Office revision 7 / D1 revision 9 at 21:43:50Z (three assets). Exact saved Office
@@ -28,7 +61,7 @@ Spaceship work remains pending. No plan change, original-object deletion, cache
 recall or complete historical-URL denial is claimed.
 
 
-## Current release — 2026-10-12
+## Historical release — 2026-10-12 21:48Z
 
 GitHub Pages serves `264b05b74238a8659d7044aaeb5320de596cc26c` from the existing
 `master` root. Office `f842b020305ecb154086caa859e6eb5e1f01ee74` is deployed on
@@ -44,6 +77,26 @@ returned 206/HIT at HFA in the latest 21:39:34Z probe. Cache purge returned 403
 Isolated fixture 74 publish/update/withdraw/retry acceptance and recoverable
 cleanup passed. Full migration remains incomplete because legacy CDN denial and
 external DNS work remain unresolved.
+
+## Current availability and map behavior
+
+Office exposes the existing stage choices זמין (`in_office`) and הושכר (`rented`).
+Rented disables publication and website availability/auto-publication settings;
+changing back to available retains the disabled settings and does not publish.
+The trusted Office/publisher path enforces eligibility; public `active` remains
+visibility, and the browser receives no private business-stage field.
+
+Cards, search and maps renew one catalog session after 45 seconds and expire display
+at 60 seconds from request start. Hidden/offline/pagehide clears it; returning
+visible/online/pageshow revalidates. Failure and authoritative empty results clear
+rows, including any open withdrawn detail. Filters and map bounds survive refresh.
+
+The 33-row public resolver audit found 22 precise pins, five neighborhood-area rows,
+four city-area rows and two visibly unlocated rows. General areas come only from
+`assets/regions/neighborhood-catalog-2026-10-08.json`; they disclose no inferred
+property coordinates and offer no exact navigation. Unknown cities remain visible
+in the list/count. This audit and local synthetic rendering are separate from the
+new release's exact HTTP verification; fresh native visual verification is pending.
 
 ## System map
 

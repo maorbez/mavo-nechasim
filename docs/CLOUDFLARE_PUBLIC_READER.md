@@ -1,6 +1,39 @@
 # Public catalog reader configuration
 
-Latest workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
+## Current checkpoint — 2026-10-13 local / 2026-10-12 UTC
+
+Pages serves `7e2aa467bd028664735d9556850cbf5b5e61f7af`, built at 22:26:16Z;
+22:26:19Z anonymous HTTP readback matched all 14 checked release files and 33
+active rows with the exact 21 public fields. The availability/map reader is deployed.
+Office `a59698fa201d6e3b7cdb0699d5b67ae10b095872` / Railway
+`1e15b10d-bd68-443b-8b3c-85929fe17808` reached `SUCCESS`; 22:39Z preservation
+matched 197 runtime files, 217 original business rows, nine original media rows,
+roles, variables and schemas. The sole publisher remains `9ceeaeda`; no publisher
+replacement or DNS change belongs to this release.
+
+Owner-API fixture 75 was saved and reread: available → rented disabled publication
+and website settings; stale save returned 409; return to available did not publish.
+Recoverable archive returned 200 and later GET returned 403; anonymous record access
+was denied. All 70 signed catalog states stayed unchanged; no fixture was publicly
+approved and no customer message was sent. Six legacy public rows 16, 17, 24, 25,
+29 and 36 remain unbound to Office; preserve them without inferred bindings.
+
+Site 139 / Cloudflare 74 local checks and isolated synthetic desktop/mobile rendering
+passed. New release delivery is verified by HTTP, not a fresh native-browser render:
+the current native CUA attempt timed out. Earlier fixture 74 browser evidence below
+is historical and does not verify the new availability controls visually.
+
+**Full migration remains INCOMPLETE:** at 22:29:59Z legacy property 66 still served
+cached anonymous GET 200 and Range 206/HIT at FRA; property 64 returned 400 at that
+edge only. This does not prove global cache denial. Supabase `SU-504867` has an
+automated acknowledgement only; no resolution is recorded. Nameservers and parent
+DS remain unchanged; custom media DNS is still absent and signing-preserving DNS
+work remains separate. No original-object deletion, cache recall or full old-URL
+denial is claimed. Owner-local receipts: `mavo-availability-20261013` artifacts.
+
+## Historical checkpoint — 2026-10-12 21:48:51Z
+
+Historical workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
 isolated live fixture 74 acceptance and cleanup. Image publication verified Office
 revision 6 / D1 revision 8 at 21:36:26Z (two assets); video publication verified
 Office revision 7 / D1 revision 9 at 21:43:50Z (three assets). Exact saved Office
@@ -81,7 +114,7 @@ email transport. The obsolete silent Supabase lead backup was removed. The old
 browser-local admin page now links to the established Office CRM login; account
 creation, permission grants and legacy Auth restoration remain outside the reader.
 
-## Current verification and remaining work
+## Historical verification — 2026-10-12 21:48Z
 
 Pages `264b05b` is built and exact HTTP readback matched 18 checked files. All
 12 removed static catalog-photo paths return 404. The 33-row live catalog and
@@ -107,9 +140,11 @@ catalog migration. Do not claim all historical media URLs gated. No DNS change
 was made; custom media-domain signing/DNS is separate remaining work. See
 `PUBLISHING_CONTRACT.md` for current gates and privacy-aware rollback.
 
-## Availability and map freshness candidate — 2026-10-13
+## Deployed availability and map freshness — 2026-10-13
 
-This candidate has passed local checks; production deployment/readback is pending. The exact 21 public fields,
+Pages `7e2aa467bd028664735d9556850cbf5b5e61f7af` is deployed with exact 14-file
+anonymous HTTP readback and 33 active rows at 22:26:19Z on October 12 UTC.
+Fresh native visual verification is pending after a CUA timeout. The exact 21 public fields,
 immutable property numbers, approved URLs, public branding and provider remain
 unchanged. `active` is publication visibility; Office's canonical stage and
 availability controls remain private, enforced by the trusted publishing workflow.
@@ -135,12 +170,15 @@ Fresh public read-only audit: 33 rows, with 22 precise positions, five neighborh
 area matches, four city area matches and two unlocated rows. This is a resolver
 audit of current published rows, not a publication mutation or production render
 verification. Local synthetic render and regression evidence are separate from
-the existing production checkpoint above; deployment/readback remain pending.
+the current deployed-file/public-API HTTP verification; fresh native visual
+verification remains pending.
 
-Candidate checks: site 139 and Cloudflare 74 tests pass. Isolated headless Chromium
+Release checks: site 139 and Cloudflare 74 local tests passed. Isolated headless Chromium
 served the exact local candidate with synthetic API responses and blocked writes:
 desktop and 390px rendering, all 33 synthetic IDs/counts, general-area labels,
 withdrawn detail cleanup, retained filter/bounds and outage clearing passed.
 The separate synthetic-preview CSP blocks the existing RTL WebAssembly module;
 its guard was preserved. Exact candidate rendering with real basemap/RTL assets
-had no page errors. Neither test changes real publication state or proves deployment.
+had no page errors. Neither local render changes real publication state or proves
+live rendering.
+Deployment delivery is supported separately by the exact HTTP receipt above.
