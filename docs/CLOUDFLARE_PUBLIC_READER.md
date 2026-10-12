@@ -1,7 +1,37 @@
 # Public catalog reader configuration
 
-`db.js` defaults to the Cloudflare public catalog, `GET /api/properties` at the
-current origin. Host the approved static site and API together. The request uses
+Latest workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
+isolated live fixture 74 acceptance and cleanup. Image publication verified Office
+revision 6 / D1 revision 8 at 21:36:26Z (two assets); video publication verified
+Office revision 7 / D1 revision 9 at 21:43:50Z (three assets). Exact saved Office
+hashes, canonical Cloudflare projections and selected bytes matched. Native Chrome
+confirmed the reordered 960x640 cover and 640x480 video with the correct poster,
+muted playback; the normal publisher's 1440px/390px page verifier also passed.
+The video draft preserved the previous public revision. Verified withdrawal then
+returned 404 for all five unique URLs across both versions in 15 GET/HEAD/Range
+checks; stale approval returned 409 without revival. Recoverable archive returned
+200, subsequent fixture access returned 403, and the saved receipt confirms archived.
+All 69 original catalog states stayed unchanged through every action; no customer sends.
+Final readback at 21:48:51Z confirmed 33 active public rows and 70 total states,
+including archived fixture 74 inactive at D1 revision 10. No publication/removal/
+location job was active; the five historical failed removals were unchanged. Office
+source, 216 original business rows, six original media rows, roles and variables
+were preserved; the sole publisher still held its lock at PID `42454`.
+
+Publisher `9ceeaeda` / PID `42454` retains its verified 197 core / 714 full release
+files. Office remains `f842b020` / Railway `77ea1377`; Pages remains `264b05b`.
+**Full migration remains INCOMPLETE:** at 21:39:34Z both legacy property 64/66
+Range URLs still returned 206/HIT from HFA (Age 3386/3356), despite closed anonymous
+ACLs and a private bucket. Supabase ticket `SU-504867` is acknowledged, unresolved;
+purge remains 403 `FeatureNotEnabled`. DNS is unchanged and separate external
+Spaceship work remains pending. No plan change, original-object deletion, cache
+recall or complete historical-URL denial is claimed.
+
+
+The live `public-catalog-config.js` selects the exact existing Worker origin for
+`GET /api/properties` and public media delivery while Pages hosts the site. Without
+configuration, `db.js` defaults to the current origin and fails closed if no API
+exists there. The request uses
 `cache: 'no-store'`, `credentials: 'omit'`, redirect rejection and no browser key.
 The API must return the existing 21 public fields for each active property;
 `PUBLIC_PROPERTY_COLUMNS` remains the projection contract. Existing optional
@@ -51,16 +81,28 @@ email transport. The obsolete silent Supabase lead backup was removed. The old
 browser-local admin page now links to the established Office CRM login; account
 creation, permission grants and legacy Auth restoration remain outside the reader.
 
-## Local evidence and remaining release work
+## Current verification and remaining work
 
-The new reader tests were observed failing before implementation and passing
-afterward. They cover configuration, exact projection/privacy, error/empty cases,
-explicit rollback, gallery/card/share mapping and mocked Office receipt behavior
-for budgets4999/5000/5001. `npm test`:121 passed. The synthetic preview builder
-continues to force its own fake API regardless of production provider/origin
-settings and blocks writes/messages/admin independently through its guard/CSP.
+Pages `264b05b` is built and exact HTTP readback matched 18 checked files. All
+12 removed static catalog-photo paths return 404. The 33-row live catalog and
+238 selected assets passed exact bytes/hash/raw MIME/HEAD/Range/CORS readback;
+65 nonpublic objects and 36 inactive routes denied. Real Chrome photo/video and
+390px layout checks passed. Site 127 and Cloudflare 74 tests pass.
 
-These are local checks. Provider deployment, source exports/restores, actual D1/R2
-migration, DNS, browser/static caching, absence of Supabase traffic, Office saved
-readback, social preview metadata and real mobile/desktop rendering must still
-be verified by the release controller. No customer submission was sent here.
+Office `f842b020` / Railway `77ea1377` is live with exact preservation checks.
+The sole local publisher runs `9ceeaeda` at PID `42454`; its lock, 197 core
+files, all 714 release files and queue baseline were verified at 21:31Z.
+Old Supabase anonymous catalog/storage ACLs are closed and the
+bucket is private, but CDN cache closure is **INCOMPLETE**: the 2,237-check composite
+retained two public Range 206 responses; both property 64/66
+returned 206/HIT at HFA in the latest 21:39:34Z probe. Cache purge returned 403
+`FeatureNotEnabled`.
+Isolated fixture 74 publication lifecycle and recoverable cleanup passed. Complete
+cached-object denial remains unresolved. Private positive
+control used the authenticated database role, not an actual Supabase JWT session.
+No customer submission was sent during the site readback.
+
+The seven unbound standalone-gallery files remain unchanged and outside this
+catalog migration. Do not claim all historical media URLs gated. No DNS change
+was made; custom media-domain signing/DNS is separate remaining work. See
+`PUBLISHING_CONTRACT.md` for current gates and privacy-aware rollback.

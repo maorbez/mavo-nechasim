@@ -1,4 +1,63 @@
-# MAVO Cloudflare preparation — 2026-10-11
+# MAVO Cloudflare catalog and media — current release and history
+
+Latest workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
+isolated live fixture 74 acceptance and cleanup. Image publication verified Office
+revision 6 / D1 revision 8 at 21:36:26Z (two assets); video publication verified
+Office revision 7 / D1 revision 9 at 21:43:50Z (three assets). Exact saved Office
+hashes, canonical Cloudflare projections and selected bytes matched. Native Chrome
+confirmed the reordered 960x640 cover and 640x480 video with the correct poster,
+muted playback; the normal publisher's 1440px/390px page verifier also passed.
+The video draft preserved the previous public revision. Verified withdrawal then
+returned 404 for all five unique URLs across both versions in 15 GET/HEAD/Range
+checks; stale approval returned 409 without revival. Recoverable archive returned
+200, subsequent fixture access returned 403, and the saved receipt confirms archived.
+All 69 original catalog states stayed unchanged through every action; no customer sends.
+Final readback at 21:48:51Z confirmed 33 active public rows and 70 total states,
+including archived fixture 74 inactive at D1 revision 10. No publication/removal/
+location job was active; the five historical failed removals were unchanged. Office
+source, 216 original business rows, six original media rows, roles and variables
+were preserved; the sole publisher still held its lock at PID `42454`.
+
+Publisher `9ceeaeda` / PID `42454` retains its verified 197 core / 714 full release
+files. Office remains `f842b020` / Railway `77ea1377`; Pages remains `264b05b`.
+**Full migration remains INCOMPLETE:** at 21:39:34Z both legacy property 64/66
+Range URLs still returned 206/HIT from HFA (Age 3386/3356), despite closed anonymous
+ACLs and a private bucket. Supabase ticket `SU-504867` is acknowledged, unresolved;
+purge remains 403 `FeatureNotEnabled`. DNS is unchanged and separate external
+Spaceship work remains pending. No plan change, original-object deletion, cache
+recall or complete historical-URL denial is claimed.
+
+
+## Current live checkpoint — 2026-10-12
+
+Office `f842b020` / Railway `77ea1377` is SUCCESS with exact original-data/media/
+role/settings preservation; Pages serves `264b05b`. The existing scoped Worker/D1/
+private R2 route now supplies the public catalog/media without DNS changes.
+D1 import/readback matched 69 states (67 imported, two preserved inactive pilots).
+Public parity passed for 33 rows, 238 selected assets and all inactive/nonselected
+routes. Actual Chrome photos/video and 390px layout passed; 18 static source
+hashes matched and 12 removed catalog-photo URLs returned 404.
+
+The sole local publisher runs `9ceeaeda` at PID `42454`; its lock, 197 core
+files, all 714 release files and queue baseline were verified at 21:31Z. Office
+Railway remains `f842b020`; 2395 Office tests passed.
+Approved old anonymous catalog/storage ACLs are closed and the
+bucket is private; database-role positive reads passed, not an actual Supabase
+JWT-session test. CDN cache closure is **INCOMPLETE**: the 2,237-check composite
+retained two public Range 206 responses; both property 64/66
+returned 206/HIT at HFA in the latest 21:39:34Z probe. Cache purge returned 403
+`FeatureNotEnabled`.
+Isolated fixture 74 live publication E2E and recoverable cleanup passed; complete
+cached-object denial remains unresolved. Seven unbound standalone-gallery files remain separate and unchanged.
+No all-historical-media gating, cache recall or finished workflow claim is made.
+See `../docs/PUBLISHING_CONTRACT.md` and the updated no-DNS plan. Earlier dated
+sections below are historical preparation/pilot evidence.
+
+
+## Historical preparation — superseded by the current live checkpoint
+
+The following dated candidate/pilot observations are retained as history; they
+do not describe the current Office, publisher, site or D1 activation state.
 
 Latest local follow-up2026-10-12: explicit authenticated stage contract is implemented
 and all72CF/24compiler/121site checks pass. Actual303 derivative objects passed fresh
@@ -234,8 +293,10 @@ recoverably revoke old anonymous/public catalog and bucket delivery, retaining
 owner-authenticated source and encrypted recovery. Capture the existing grants
 and bucket configuration first; actual anonymous-denial readback is mandatory.
 The exact original21-column grants, seven policies and public bucket metadata
-were captured through owner read-only SQL at2026-10-11T17:30Z. Revocation and
-ledger-gated recovery scripts are prepared privately but have not been executed.
+were captured through owner read-only SQL at2026-10-11T17:30Z. The approved revocation was applied on October 12; table and 21-column SELECT,
+authenticated storage-policy scope and private bucket options were read back.
+The complete anonymous object-denial sweep remains pending at the current checkpoint.
+Ledger-gated recovery remains private and must reconcile newer withdrawals.
 If old public delivery cannot be revoked, activation is blocked unless the one
 publisher provides verified per-provider withdrawals. No second writer, blanket
 snapshot restore or implicit fallback is permitted. Rollback must reconcile the
@@ -251,7 +312,7 @@ available. Private detailed receipts are under the existing owner-local
 
 ### Private staging and post-activation verification
 
-The Office candidate now uses authenticated `put_prepared` before CAS and checks
+The deployed Office adapter uses authenticated `put_prepared` before CAS and checks
 every selected preserved URL privately. Raw MIME, bytes/hash/size and Worker hash
 metadata must match. Public full-byte verification of unique selected photos,
 manifest URL/poster/fallback happens afterward. Legacy `put_verified` remains
@@ -265,11 +326,19 @@ read back first; cleanup replay is read-only. Office recomputes exact proof,
 records failed settlement without a success receipt and retires prior current
 receipts as history. Newer/foreign projections are never overwritten. Staging
 failure preserves the prior listing; after CAS, failure withdrawal hides it.
-These are Office source candidates, not a live Office deployment. Final full
-Office suite/review and domain/source/backup/legacy-denial gates remain required.
+The implementation is deployed in Office `f842b020`; the sole local publisher
+now runs `9ceeaeda` at PID `42454`. Isolated fixture 74 workflow acceptance and
+recoverable cleanup passed. Complete legacy CDN denial remains unresolved;
+source/backup/full-suite preservation checks passed.
 
-## Temporary delivery without DNS — candidate
+## Temporary delivery without DNS — live route, isolated acceptance verified
 
 The existing scoped pilot origin can transport both catalog and media without a DNS change. Preserve canonical `media.mavorealestate.com` references and hashes; only site/publisher/share delivery is translated. The current Worker already resolves those canonical active references on its workers.dev media path. A dedicated public configuration file and exact publisher delivery override select that one existing origin; no arbitrary proxy or wider credentials.
 
-Keep exact inactive owned pilot tombstones through frozen compiler `preservedCatalog` evidence. Do not omit or delete them to manufacture an empty baseline. Fresh source63rows/43Office properties and303private assets are verified;67source inserts plus2preserved rows are prepared, NOT IMPORTED. Site126/CF74/compiler25 tests pass; original website/runtime/config unchanged. Old public Supabase denial remains a privacy activation gate; the current no-security-change instruction requires owner clarification before that action. See `docs/superpowers/plans/2026-10-12-no-dns-cloudflare.md` and the Office project release ledger. No production success is claimed.
+Keep exact inactive owned pilot tombstones through frozen compiler
+`preservedCatalog` evidence. The 67 source inserts plus two preserved states were
+imported and exactly reread; historical prepared filenames are not current status.
+Site 127 and Cloudflare 74 tests pass. Source/privacy parity was refreshed after
+Office deployment before the site switch. The authorized old-provider closure is
+applied, with complete anonymous object verification pending. See the current
+checkpoint and `../docs/superpowers/plans/2026-10-12-no-dns-cloudflare.md`.

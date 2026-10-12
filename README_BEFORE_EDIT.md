@@ -1,31 +1,91 @@
 # Read before editing
 
+Latest workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
+isolated live fixture 74 acceptance and cleanup. Image publication verified Office
+revision 6 / D1 revision 8 at 21:36:26Z (two assets); video publication verified
+Office revision 7 / D1 revision 9 at 21:43:50Z (three assets). Exact saved Office
+hashes, canonical Cloudflare projections and selected bytes matched. Native Chrome
+confirmed the reordered 960x640 cover and 640x480 video with the correct poster,
+muted playback; the normal publisher's 1440px/390px page verifier also passed.
+The video draft preserved the previous public revision. Verified withdrawal then
+returned 404 for all five unique URLs across both versions in 15 GET/HEAD/Range
+checks; stale approval returned 409 without revival. Recoverable archive returned
+200, subsequent fixture access returned 403, and the saved receipt confirms archived.
+All 69 original catalog states stayed unchanged through every action; no customer sends.
+Final readback at 21:48:51Z confirmed 33 active public rows and 70 total states,
+including archived fixture 74 inactive at D1 revision 10. No publication/removal/
+location job was active; the five historical failed removals were unchanged. Office
+source, 216 original business rows, six original media rows, roles and variables
+were preserved; the sole publisher still held its lock at PID `42454`.
+
+Publisher `9ceeaeda` / PID `42454` retains its verified 197 core / 714 full release
+files. Office remains `f842b020` / Railway `77ea1377`; Pages remains `264b05b`.
+**Full migration remains INCOMPLETE:** at 21:39:34Z both legacy property 64/66
+Range URLs still returned 206/HIT from HFA (Age 3386/3356), despite closed anonymous
+ACLs and a private bucket. Supabase ticket `SU-504867` is acknowledged, unresolved;
+purge remains 403 `FeatureNotEnabled`. DNS is unchanged and separate external
+Spaceship work remains pending. No plan change, original-object deletion, cache
+recall or complete historical-URL denial is claimed.
+
+
+## Current release — 2026-10-12
+
+GitHub Pages serves `264b05b74238a8659d7044aaeb5320de596cc26c` from the existing
+`master` root. Office `f842b020305ecb154086caa859e6eb5e1f01ee74` is deployed on
+Railway `77ea1377-fc2a-4b27-86fa-0a6aec4ec03a` with `SUCCESS` and exact source/
+data/role/settings preservation. Public catalog/media readback and real browser
+photo/video/mobile-sized rendering passed. The sole local publisher now runs
+`9ceeaeda` at PID `42454`; its lock, 197 core files, all 714 release files and
+queue baseline were verified at 21:31Z. Office Railway remains `f842b020`.
+Old anonymous ACLs are closed, but CDN cache closure is **INCOMPLETE**:
+two public Range responses were 206 in the composite; both property 64/66
+returned 206/HIT at HFA in the latest 21:39:34Z probe. Cache purge returned 403
+`FeatureNotEnabled`.
+Isolated fixture 74 publish/update/withdraw/retry acceptance and recoverable
+cleanup passed. Full migration remains incomplete because legacy CDN denial and
+external DNS work remain unresolved.
+
 ## System map
 
-| Surface | Provider-backed identity | Current public address | Responsibility |
+| Surface | Authority/provider | Current route | Responsibility |
 | --- | --- | --- | --- |
-| Office CRM | Railway project `mavo-properties`, service `mavo-office` | `https://mavo-office-production.up.railway.app/office/crm` | Creates the office record and allocates `property_number` |
-| Public inventory | Supabase project ref `tnkiwgewdancvmkhzlwz` | Data API; not a human-facing site | Stores the exact office number as `public.properties.id` |
-| Public catalog | GitHub Pages repository `maorbez/mavo-nechasim` | `https://mavorealestate.com/` | Read-only property display and stable `?prop=` links |
+| Office CRM | Railway project `mavo-properties`, existing `content-illumination` project ID | Existing Office CRM service | Private records, originals, numbers and owner approval |
+| Public inventory | Existing Cloudflare Worker and D1 catalog | Configured `mavo-catalog-pilot-20261011.maor-bezalel.workers.dev` origin | Exact public projection and revision/identity CAS |
+| Public media | Private R2 `mavo-public-media` bucket | Same Worker; canonical identities remain under `media.mavorealestate.com` | Current active-reference gate, bytes/MIME/Range/CORS |
+| Public site | GitHub Pages `maorbez/mavo-nechasim` | `https://mavorealestate.com/` | Read-only display and stable `?prop=` links |
+| Legacy recovery | Supabase `tnkiwgewdancvmkhzlwz` | Retained private source/Auth/objects | Privacy-reconciled recovery only; no automatic browser fallback |
 
-The office branding and generated address were updated in September 2026; old office URLs remain aliases. The public catalog uses its purchased domain on GitHub Pages; domain activation and HTTPS must be verified separately from these source settings. The separate WhatsApp bot service is not the Office CRM authority.
+Hostname, Pages hosting, nameservers and DNS are unchanged. Custom-media-domain
+signing/DNS work remains separate. The WhatsApp bot is not the Office CRM authority.
 
-## Non-negotiable identity rule
+## Identity and privacy
 
-The Office CRM row exists first. Its immutable numeric `property_number` is the public listing number. The trusted publisher writes that exact value into Supabase `properties.id`. Supabase must not allocate a number. `office_property_id` is only an idempotency link to the internal office row.
+Office creates the record first. Its persistent positive `property_number` is the
+public catalog ID; providers must not allocate or infer a number. Internal Office
+links never belong in anonymous projections. Historical textual number conflicts
+remain recovery debt and must not be renumbered from free text.
 
-Historical data contains a row whose free text mentions `#49` while its real database id is `23`. That text is not identity evidence. Do not renumber it until an authoritative Office CRM row readback proves the mapping.
+Outages display an unavailable notice with no stale listings. All migrated active
+references use canonical R2 identities delivered through the exact configured Worker.
+The twelve old static catalog-photo copies were removed and their public Pages URLs
+return 404. Seven separately published standalone-gallery files remain unbound and
+unchanged; saved/cached copies and all historical URLs are not claimed revoked.
+
+The approved old anonymous table and 21-column SELECT grants were revoked; the
+storage policy requires authenticated access and the bucket is private with its
+other options retained. Database-role positive reads passed; no actual Supabase
+JWT-session test is claimed. Private service reads remain positive for all 307
+objects. Full anonymous CDN object denial is incomplete; no cache-expiry guarantee,
+plan change or object deletion is claimed.
 
 ## Safe change sequence
 
-1. Read `docs/PUBLISHING_CONTRACT.md`.
-2. Inspect provider state and repository state separately.
-3. Make and test local changes.
-4. Before any live migration or publication, obtain explicit approval and verify a restorable backup.
-5. Verify the Supabase row, photo objects, active state, public deep link, and Office CRM publication receipt. A successful command alone is not completion.
+1. Read `docs/PUBLISHING_CONTRACT.md` and the no-DNS release status.
+2. Inspect exact source, current provider state and privacy/removal queues separately.
+3. Make and test scoped changes; preserve signing, source media and immutable IDs.
+4. Require existing explicit approval and restore-tested backups before live mutations.
+5. Verify the actual public projection, selected bytes, stable link and saved Office
+   receipt. Do not resume historical jobs or restore stale public access as rollback.
 
-Run the local checks with `npm test`.
-
-`tests/fixtures/live-properties-columns-2026-09-03.json` records the column names returned by a provider-backed `select=*&limit=1` read on 2026-09-03. It intentionally shows `created_at` and no `updated_at`; the compatibility migration adds the missing operational columns before installing its update trigger.
-
-For the provider and verification snapshot captured during recovery preparation, see `docs/RECOVERY_STATUS_2026-09-03.md`.
+Run `npm test` for runtime changes. The Supabase schema fixtures and prior recovery
+records are historical compatibility evidence, not current public-provider status.

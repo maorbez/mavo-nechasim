@@ -1,6 +1,44 @@
 # Office CRM to public-site publishing contract
 
-This contract is for agents and server publishers. The Office CRM is the authority for listing identity; Supabase is the public inventory provider; GitHub Pages is the read-only presentation layer.
+Latest workflow checkpoint — 2026-10-12 21:48:51Z: the site and sole publisher passed
+isolated live fixture 74 acceptance and cleanup. Image publication verified Office
+revision 6 / D1 revision 8 at 21:36:26Z (two assets); video publication verified
+Office revision 7 / D1 revision 9 at 21:43:50Z (three assets). Exact saved Office
+hashes, canonical Cloudflare projections and selected bytes matched. Native Chrome
+confirmed the reordered 960x640 cover and 640x480 video with the correct poster,
+muted playback; the normal publisher's 1440px/390px page verifier also passed.
+The video draft preserved the previous public revision. Verified withdrawal then
+returned 404 for all five unique URLs across both versions in 15 GET/HEAD/Range
+checks; stale approval returned 409 without revival. Recoverable archive returned
+200, subsequent fixture access returned 403, and the saved receipt confirms archived.
+All 69 original catalog states stayed unchanged through every action; no customer sends.
+Final readback at 21:48:51Z confirmed 33 active public rows and 70 total states,
+including archived fixture 74 inactive at D1 revision 10. No publication/removal/
+location job was active; the five historical failed removals were unchanged. Office
+source, 216 original business rows, six original media rows, roles and variables
+were preserved; the sole publisher still held its lock at PID `42454`.
+
+Publisher `9ceeaeda` / PID `42454` retains its verified 197 core / 714 full release
+files. Office remains `f842b020` / Railway `77ea1377`; Pages remains `264b05b`.
+**Full migration remains INCOMPLETE:** at 21:39:34Z both legacy property 64/66
+Range URLs still returned 206/HIT from HFA (Age 3386/3356), despite closed anonymous
+ACLs and a private bucket. Supabase ticket `SU-504867` is acknowledged, unresolved;
+purge remains 403 `FeatureNotEnabled`. DNS is unchanged and separate external
+Spaceship work remains pending. No plan change, original-object deletion, cache
+recall or complete historical-URL denial is claimed.
+
+
+This contract is for agents and the sole server publisher. Office CRM is canonical
+for private records, originals, immutable property numbers and owner approval.
+Cloudflare D1/Worker and private R2 now supply the public projection/media; GitHub
+Pages remains the read-only presentation layer. The publisher is resumed with its
+queue baseline verified. Isolated fixture 74 live E2E and recoverable cleanup
+passed; residual legacy CDN cache closure remains unresolved. See the current no-DNS
+release status at the end of this document.
+
+The following Supabase-specific protocol and October 10 release notes document
+retained legacy compatibility and history. They do not authorize reopening old
+anonymous access or restoring stale projections after a newer withdrawal.
 
 ## Identity and ownership
 
@@ -77,26 +115,85 @@ New explicit selections use the approximate public-location projection, retainin
 
 The optional verified share URL `https://forms.mavorealestate.com/public/property-preview/<number>` serves escaped public metadata from the exact verified Office receipt and redirects to the existing canonical property link. GET/HEAD only; no public CRM reader. Removal or pending/failed privacy withdrawal immediately denies this preview. Existing capability-based `share.html` is unrelated and unchanged.
 
-The coordinated release is deployed. Office and its immutable publisher run `257f194cbe6a04a5c0d0d7ca920b49836b3d3273`; the Office Railway deployment is `c5025829-bc1b-4794-9e30-e6bbfa316f0d`. GitHub Pages serves `c9c262163d6f590316ad4022b6c9c3efb914057d`, with exact public file readback. Authenticated Supabase access is available and `supabase/migrations/202610090001_public_media_manifest.sql` was applied to the existing project after encrypted backup/restore verification with the publisher paused. The nullable validated column, public SELECT grant and existing bucket limits of25MiB JPEG/PNG/WebP/MP4 were read back. The earlier dashboard-login and migration blockers are resolved. Future deployments must retain the coordinated Office/publisher/reader rollout and verify the column before deploying a reader that requires it.
+At the October 10 release, Office and its immutable publisher ran `257f194cbe6a04a5c0d0d7ca920b49836b3d3273`; the Office Railway deployment is `c5025829-bc1b-4794-9e30-e6bbfa316f0d`. GitHub Pages served `c9c262163d6f590316ad4022b6c9c3efb914057d`, with exact public file readback. Authenticated Supabase access is available and `supabase/migrations/202610090001_public_media_manifest.sql` was applied to the existing project after encrypted backup/restore verification with the publisher paused. The nullable validated column, public SELECT grant and existing bucket limits of25MiB JPEG/PNG/WebP/MP4 were read back. The earlier dashboard-login and migration blockers are resolved. Future deployments must retain the coordinated Office/publisher/reader rollout and verify the column before deploying a reader that requires it.
 
 Live acceptance is complete for both isolated image and video revisions. Image A remains the cover with gallery B/A. Video V uses poster/fallback B, which is excluded from gallery V/A. Office saved selection, public provider/asset bytes, canonical sharing metadata, actual playback and live desktop/mobile browser views passed. The previous public image row stayed unchanged during the video draft. After public withdrawal was verified, the owned fixture and its Drive folder were recoverably archived. All 62 original provider rows and NULL manifests remained unchanged. No customer sends; physical-device and third-party preview-cache behavior were not tested.
 
 Local acceptance commands remain `npm test` and `python3 tests/verify_public_media_migration.py`; the latter uses disposable PostgreSQL on a private Unix socket, no live credentials. Database checks include malformed/duplicate/private manifests, active-row RLS, private-column denial and write denial. Local fixtures are isolated; the explicitly authorized live synthetic fixture above is tracked separately and must be withdrawn with verified anonymous absence before recoverable Office archival.
 
-## Cloudflare candidate contract — 2026-10-12 (not production)
+## Deployed Cloudflare protocol — 2026-10-12; isolated E2E verified
 
-The private `mavo-public-media` bucket is bound only to the isolated catalog pilot. Its Worker serves GET/HEAD and single Range requests only when the exact object is referenced by a currently active public projection; inactive, deselected and foreign objects are denied. The bucket itself and `r2.dev` remain private. Office private CRM, source media, owner-only approvals and canonical property numbers remain unchanged.
+The private `mavo-public-media` bucket is bound to the existing scoped catalog Worker. Its Worker serves GET/HEAD and single Range requests only when the exact object is referenced by a currently active public projection; inactive, deselected and foreign objects are denied. The bucket itself and `r2.dev` remain private. Office private CRM, source media, owner-only approvals and canonical property numbers remain unchanged.
 
-The candidate Office publisher authenticates immutable uploads and all retained selected objects before the catalog CAS. Each stage proof binds bytes, filename SHA-256, raw MIME and R2 hash metadata. Anonymous delivery is checked only after the exact catalog revision is active. The migration compiler records `media_verification="authenticated-stage-only"` and `public_delivery_verified=false`; this is not proof of public delivery or permission to import a stale capture.
+The deployed Office publisher implementation authenticates immutable uploads and all retained selected objects before the catalog CAS. Each stage proof binds bytes, filename SHA-256, raw MIME and R2 hash metadata. Anonymous delivery is checked only after the exact catalog revision is active. The migration compiler records `media_verification="authenticated-stage-only"` and `public_delivery_verified=false`; this is not proof of public delivery or permission to import a stale capture.
 
-A confirmed post-CAS media/page failure can withdraw only that exact attempted identity/revision/dispatch using a deterministic content-free tombstone at revision N+1. The Office dispatch settles as blocked `publication_failed_withdrawn`, with no successful publication receipt. Unknown transport outcomes reconcile signed provider state before writing; newer or foreign states are never overwritten and old active projections are never resurrected. A staging failure retains the previous listing; a verified withdrawal hides the failed listing. See `cloudflare/README.md`, `docs/CLOUDFLARE_MIGRATION_READINESS.md` and the Office staging/recovery plan for the candidate protocol and activation gates.
+A confirmed post-CAS media/page failure can withdraw only that exact attempted identity/revision/dispatch using a deterministic content-free tombstone at revision N+1. The Office dispatch settles as blocked `publication_failed_withdrawn`, with no successful publication receipt. Unknown transport outcomes reconcile signed provider state before writing; newer or foreign states are never overwritten and old active projections are never resurrected. A staging failure retains the previous listing; a verified withdrawal hides the failed listing. See `cloudflare/README.md`, `docs/CLOUDFLARE_MIGRATION_READINESS.md` and the Office staging/recovery plan for the deployed protocol and remaining gates.
 
-The actual isolated pilot passed selected image/video/poster/fallback byte readbacks and all65 nonpublic staged object GET/HEAD/Range denials. Synthetic fixtures were withdrawn. Production still requires a fresh source/privacy capture, encrypted cutover backup, separate empty production D1, domain signing/cache safety, coordinated single-publisher activation, old public-provider denial and live Office/site acceptance. These candidate contracts do not replace the currently live Supabase integration until those gates are verified.
+The earlier isolated pilot checks remain historical evidence. The current live
+cutover below uses the existing bound D1 with exact preserved inactive pilot states,
+not a newly emptied database. Public display and infrastructure readback are verified;
+isolated fixture 74 publication, update, withdrawal, replay denial and recoverable
+cleanup are now verified.
 
-## Temporary no-DNS delivery candidate — 2026-10-12
+## Live no-DNS cutover — 2026-10-12
 
-Keep current public hostname/Pages hosting/NS. `public-catalog-config.js` selects the exact existing Worker origin for the public catalog and media delivery only. Immutable canonical media identities remain under `media.mavorealestate.com`; public-photo and video rendering translate delivery, as do Office R2 public reads and share-preview images. No arbitrary origin, private path or local fallback after gated denial. The Worker keeps its existing canonical active-reference gate and GET/HEAD/Range behavior; no new binding or credential.
+Office `f842b020305ecb154086caa859e6eb5e1f01ee74` / Railway
+`77ea1377-fc2a-4b27-86fa-0a6aec4ec03a` is `SUCCESS`. Exact preservation matched
+197 runtime files, 216 original business rows across 11 tables, six original media
+rows, roles/scopes and 74 prior variable fingerprints; only four approved public
+configuration additions and the approved additive schema were applied.
+The sole local publisher now runs `9ceeaeda63dce22c1117fc2504c028e1c52f4cac`
+at PID `42454`. Its lock, 197 core files, all 714 release files and exact queue
+baseline were verified at 21:31Z. Office Railway remains `f842b020`; the publisher
+patch does not change the Office deployment. Office 2395 tests passed. Runtime
+readiness is separate from the verified fixture receipts recorded below.
 
-The compiler may preserve only the exact captured inactive owned pilot990001/990002 states through optional, frozen `preservedCatalog` evidence. They produce no SQL and never appear publicly. All other unexpected/foreign/changed/active rows block import. The fresh plan is67source inserts plus2preserved states, not an import receipt.
+Pages built site `264b05b74238a8659d7044aaeb5320de596cc26c` at 20:31:55Z.
+`public-catalog-config.js` selects the exact existing Worker for catalog and media
+delivery. Immutable canonical media identities, gallery order, cover IDs and
+property numbers remain unchanged. No DNS, hostname, Pages hosting or nameserver
+change was made; custom media-domain signing/DNS remains separate work.
 
-This candidate is not production. Activation requires encrypted rollback, fresh source/privacy/preconditions, exact import/readback, complete tests/review, coordinated sole publisher and site switch, and anonymous old-Supabase catalog/media denial with private positive controls. The latest no-security-change constraint conflicts with the last gate; exact owner clarification is pending, and public activation remains held.
+Fresh source/privacy evidence, encrypted restore checks and destination readback
+passed. The migration readback matched 69 exact baseline states: 67 imported
+plus two preserved inactive owned pilots, 33 active and 36 inactive. The later
+isolated fixture 74 is tracked separately; the baseline count is not a current
+whole-catalog count. Public parity passed for all 33 rows and 238
+selected assets (147210789 bytes), including hash/raw MIME/HEAD/Range/CORS.
+All 65 nonpublic staged objects and 36 inactive catalog routes denied.
+
+Actual Chrome loaded a seven-photo gallery and a native video (readyState 4,
+576x1024, controls, no autoplay); a 390px viewport had no horizontal overflow.
+Ordinary HTTP matched all 18 checked site files, and all 12 removed static
+catalog-photo paths returned 404. The unchanged intake/privacy shell retains
+required privacy consent and optional marketing; this check sent no form.
+Seven separately published standalone-gallery files have no authoritative catalog
+binding and remain unchanged. No all-historical-media-URL gating or cache-recall
+claim is made.
+
+The approved legacy closure revoked anonymous table SELECT and all 21 column
+SELECT grants, restricted the storage read policy to authenticated access, and
+set the bucket private while preserving every other option and all objects.
+Authenticated database-role positive reads returned 33 active rows and 307 objects;
+this was not an actual Supabase JWT-session test. Private service readback remains
+positive for all 307 original objects. CDN cache closure is **INCOMPLETE**: the
+2,237-check composite retained two public Range 206 responses; the latest 21:39:34Z
+probe returned 206/HIT at HFA for both property 64/66. Cache purge returned 403
+`FeatureNotEnabled`; no object was changed or deleted and no plan was enabled.
+Full anonymous old-URL denial must not be claimed from closed ACLs alone.
+
+Isolated fixture 74 acceptance is complete: image Office 6 / D1 8 and video Office
+7 / D1 9 matched saved Office hashes, canonical provider projections and selected
+bytes. The previous public version stayed unchanged during the video draft. Native
+Chrome gallery/video and normal publisher 1440px/390px verification passed.
+Withdrawal, all 15 media denial checks, stale approval 409/no revival and recoverable
+archive passed; all 69 original catalog states were preserved throughout. Detailed
+receipts remain in the owner-local evening migration artifacts.
+
+Remaining gates: complete residual CDN cache denial, external signing-preserving
+DNS work and canonical handoff readback. Final source/data/role/privacy and
+sole-publisher readback passed at 21:48:51Z. The existing sole publisher is already resumed. Do not replay old migration plans over changed source or
+privacy work. Rollback must reconcile current approvals/withdrawals before any
+old public reader, grant or static-photo copy is restored. Deployment, public
+rendering and local tests (site 127, Cloudflare 74, Office 2395) are separate from
+the now-verified fixture workflow; neither proves complete legacy CDN closure.
