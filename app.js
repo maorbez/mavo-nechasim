@@ -96,6 +96,7 @@ function initMap(props) {
 
   setupMapAreas(props);
   renderMapCatalog(props);
+  if(window.mavoMainRegions?.locations?.length)fitSelectedMapRegions();
 
   // Fix rendering after container paint
   setTimeout(() => map.invalidateSize(), 300);
@@ -731,7 +732,15 @@ function setupHeroSearch(props) {
  city.addEventListener('change',update);update();
 }
 
-let mainRegionDrawer=null,mainRegionDrawerPromise=null;
+let mainRegionDrawer=null,mainRegionDrawerPromise=null,mainRegionOpenValue='[]';
+function fitSelectedMapRegions(){
+ if(!map)return;const visible=[...markers,...areaMarkers].filter(marker=>map.hasLayer(marker));
+ if(visible.length)map.fitBounds(visible.map(marker=>marker.getLatLng()),{padding:[45,45],maxZoom:15});
+}
+function finishMainRegionSelection(value){
+ const current=JSON.stringify(value.locations||[]);if(current===mainRegionOpenValue)return;
+ mainRegionOpenValue=current;fitSelectedMapRegions();
+}
 function updateMainRegionSummaries(){
  const labels=window.MavoRegionSearch?.describe(window.mavoMainRegions,window.mavoMainRegionCatalog)||[];
  const label=labels.length?labels.slice(0,2).join(' · ')+(labels.length>2?' ועוד '+(labels.length-2):''):'כל הערים והשכונות';
@@ -742,13 +751,13 @@ async function ensureMainRegionDrawer(){
  if(!mainRegionDrawerPromise)mainRegionDrawerPromise=(async()=>{
   const drawer=await MavoRegionDrawer.create({onChange(value){
    window.mavoMainRegions=value;catalogFilters.city='';catalogFilters.hood='';updateMainRegionSummaries();applyCatalogFilters();if(map)applyMapFilters();
-  }});
+  },onClose:finishMainRegionSelection});
   mainRegionDrawer=drawer;window.mavoMainRegionCatalog=drawer.catalog;
   updateMainRegionSummaries();return drawer;
  })().catch(error=>{mainRegionDrawerPromise=null;for(const id of ['heroRegionSummary','catalogRegionSummary','mapRegionSummary']){const el=document.getElementById(id);if(el)el.textContent='לא ניתן לטעון אזורים כרגע. לחצו כדי לנסות שוב.';}throw error;});
  return mainRegionDrawerPromise;
 }
-async function openMainRegions(){try{const drawer=await ensureMainRegionDrawer();drawer.open();}catch{showToast('לא ניתן לטעון את בחירת האזורים כרגע. נסו שוב.');}}
+async function openMainRegions(){try{const drawer=await ensureMainRegionDrawer();mainRegionOpenValue=JSON.stringify(drawer.getValue().locations);drawer.open();}catch{showToast('לא ניתן לטעון את בחירת האזורים כרגע. נסו שוב.');}}
 
 async function submitForm(e) {
   e.preventDefault();

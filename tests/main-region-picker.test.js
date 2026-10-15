@@ -67,3 +67,14 @@ test('search URL hydration restores the drawer contract and opens the chosen cit
  vm.runInContext(html.slice(html.indexOf('const WA ='),html.indexOf('// ---- Render ----')),context);vm.runInContext('function renderResults(){}',context);
  await vm.runInContext('ensureSearchRegionDrawer()',context);assert.deepEqual(model.serialize().locations,[pick.locations[1]]);assert.equal(model.activeCity,'6200');
 });
+test('closing changed geography frames visible map results once; unchanged selection and no results retain bounds',()=>{
+ const source=fs.readFileSync(require.resolve('../app'),'utf8'),start=source.indexOf('function fitSelectedMapRegions()');
+ assert.notEqual(start,-1,'explicit region selection needs map framing');
+ const precise={getLatLng:()=>[32.1,34.8]},hidden={getLatLng:()=>[33,35]},general={getLatLng:()=>[32,34.75]},calls=[];
+ const ctx=vm.createContext({mainRegionOpenValue:'[]',markers:[precise,hidden],areaMarkers:[general],map:{hasLayer:m=>m!==hidden,fitBounds:(points,opts)=>calls.push({points,opts})}});
+ vm.runInContext(source.slice(start,source.indexOf('function updateMainRegionSummaries',start)),ctx);
+ ctx.value={locations:[]};vm.runInContext('finishMainRegionSelection(value)',ctx);assert.equal(calls.length,0);
+ ctx.value=pick;vm.runInContext('finishMainRegionSelection(value)',ctx);assert.equal(calls.length,1);assert.deepEqual(Array.from(calls[0].points,p=>Array.from(p)),[[32.1,34.8],[32,34.75]]);assert.equal(calls[0].opts.maxZoom,15);
+ vm.runInContext('finishMainRegionSelection(value)',ctx);assert.equal(calls.length,1);
+ ctx.map.hasLayer=()=>false;ctx.value={locations:[]};vm.runInContext('finishMainRegionSelection(value)',ctx);assert.equal(calls.length,1);
+});
