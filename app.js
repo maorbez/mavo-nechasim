@@ -115,6 +115,12 @@ function fillMapAreas(select,props){
 }
 
 function setupMapAreas(props) {
+ if(window.MavoRegionDrawer&&document.getElementById('heroRegions')){
+  const root=document.querySelector('.map-controls');if(!root||document.getElementById('mapRegions'))return;
+  const group=document.createElement('div');group.className='map-region-control';
+  const button=document.createElement('button');button.type='button';button.id='mapRegions';button.className='region-picker-trigger';button.setAttribute('aria-haspopup','dialog');button.textContent='בחירת עיר ושכונות';button.onclick=()=>openMainRegions();
+  const summary=document.createElement('p');summary.className='region-picker-summary';summary.id='mapRegionSummary';group.append(button,summary);root.prepend(group);updateMainRegionSummaries();return;
+ }
  const root=document.querySelector('.map-controls')||document.getElementById('mainMap')?.parentElement;if(!root||document.getElementById('mapArea'))return;
  const label=document.createElement('label');label.htmlFor='mapArea';label.textContent='אזור במפה';
  const select=document.createElement('select');select.id='mapArea';select.style.cssText='min-height:44px;padding:8px 12px;margin:8px;border:1px solid #8C8475;background:#F8F3E9;color:#242424;border-radius:6px';select.add(new Option('כל האזורים',''));
@@ -182,25 +188,12 @@ function applyMapFilters() {
   let count = 0;
   const matches=p=>{
     const r=parseFloat(p.rooms),[city,hood]=(document.getElementById('mapArea')?.value||'').split('|');
-    return MavoCatalog.matchesType(p,activeType)&&MavoCatalog.inScope(p,{city,hood})&&requiredAmenities.every(field=>p[field]===true)&&
+    return (typeof window==='undefined'||!window.MavoRegionSearch||window.MavoRegionSearch.matches(p,window.mavoMainRegions,window.mavoMainRegionCatalog))&&MavoCatalog.matchesType(p,activeType)&&MavoCatalog.inScope(p,{city,hood})&&requiredAmenities.every(field=>p[field]===true)&&
       (roomsMin===null&&roomsMax===null||Number.isFinite(r)&&(roomsMin===null||r>=roomsMin)&&(roomsMax===null||r<=roomsMax));
   };
   markers.forEach(m => {
     const p = m._propData;
-    let typeMatch = MavoCatalog.matchesType(p, activeType);
-
-    let roomsMatch = true;
-    if (roomsMin !== null || roomsMax !== null) {
-      const r = parseFloat(p.rooms);
-      if (!Number.isFinite(r)) roomsMatch = false;
-      if (roomsMin !== null && r < roomsMin) roomsMatch = false;
-      if (roomsMax !== null && r > roomsMax) roomsMatch = false;
-    }
-    
-    const area=document.getElementById('mapArea')?.value||'';
-    const [city,hood]=area.split('|');
-    const areaMatch=MavoCatalog.inScope(p,{city,hood});
-    if (typeMatch && roomsMatch && areaMatch && requiredAmenities.every(field => p[field] === true)) {
+    if (matches(p)) {
       count++;
       if (!map.hasLayer(m)) map.addLayer(m);
     } else {
@@ -237,8 +230,8 @@ const catalogFilters = { type: 'all', city: '', hood: '' };
 function applyCatalogFilters() {
   let count = 0;
   document.querySelectorAll('.prop-card').forEach(card => {
-    const p = {type:card.dataset.type, location:card.dataset.location, hood:card.dataset.hood};
-    const match = MavoCatalog.matchesType(p,catalogFilters.type) && MavoCatalog.inScope(p,catalogFilters);
+    const p = card._propData || {type:card.dataset.type, location:card.dataset.location, hood:card.dataset.hood};
+    const match = MavoCatalog.matchesType(p,catalogFilters.type) && MavoCatalog.inScope(p,catalogFilters) && (!window.MavoRegionSearch || window.MavoRegionSearch.matches(p,window.mavoMainRegions,window.mavoMainRegionCatalog));
     card.classList.toggle('hidden', !match); if(match) count++;
   });
   const empty = document.getElementById('catalogEmpty');
@@ -248,6 +241,7 @@ function applyCatalogFilters() {
   if(window.dispatchEvent)window.dispatchEvent(new CustomEvent('mavo:catalog-filter',{detail:{...catalogFilters}}));
 }
 function buildNeighborhoodFilters(props) {
+  if(document.getElementById('catalogRegions'))return;
   const container=document.getElementById('dynamicHoods'); if(!container)return;
   container.innerHTML='';
   const seen=new Set();
@@ -725,15 +719,36 @@ function doSearch() {
   const value=id=>document.getElementById(id)?.value||'';
   const type=document.querySelector('.search-tabs .tab.active')?.dataset.type||'all';
   for(const [key,v] of Object.entries({city:value('heroCity'),hood:value('heroHood'),type,rooms:value('heroRooms'),priceMax:value('heroBudget')}))if(v&&v!=='all')params.set(key,v);
+  if(window.MavoRegionSearch)window.MavoRegionSearch.writeParams(params,window.mavoMainRegions);
   window.location.href='search.html?'+params.toString();
 }
 function setupHeroSearch(props) {
+ if(window.MavoRegionDrawer&&document.getElementById('heroRegions')){ensureMainRegionDrawer().catch(()=>{});return;}
  const city=document.getElementById('heroCity'),hood=document.getElementById('heroHood');if(!city||!hood)return;
  const locations=props.map(MavoCatalog.location);
  for(const c of [...new Set(locations.map(l=>l.city).filter(Boolean))])city.add(new Option(c,c));
  const update=()=>{hood.replaceChildren(new Option('כל השכונות',''));const hoods=locations.filter(l=>!city.value||l.city===city.value).map(l=>l.hood).filter(Boolean);for(const h of [...new Set(hoods)])hood.add(new Option(h,h));};
  city.addEventListener('change',update);update();
 }
+
+let mainRegionDrawer=null,mainRegionDrawerPromise=null;
+function updateMainRegionSummaries(){
+ const labels=window.MavoRegionSearch?.describe(window.mavoMainRegions,window.mavoMainRegionCatalog)||[];
+ const label=labels.length?labels.slice(0,2).join(' · ')+(labels.length>2?' ועוד '+(labels.length-2):''):'כל הערים והשכונות';
+ for(const id of ['heroRegionSummary','catalogRegionSummary','mapRegionSummary']){const el=document.getElementById(id);if(el){el.textContent=label;el.title=labels.join(' · ');}}
+}
+async function ensureMainRegionDrawer(){
+ if(mainRegionDrawer)return mainRegionDrawer;
+ if(!mainRegionDrawerPromise)mainRegionDrawerPromise=(async()=>{
+  const drawer=await MavoRegionDrawer.create({onChange(value){
+   window.mavoMainRegions=value;catalogFilters.city='';catalogFilters.hood='';updateMainRegionSummaries();applyCatalogFilters();if(map)applyMapFilters();
+  }});
+  mainRegionDrawer=drawer;window.mavoMainRegionCatalog=drawer.catalog;
+  updateMainRegionSummaries();return drawer;
+ })().catch(error=>{mainRegionDrawerPromise=null;for(const id of ['heroRegionSummary','catalogRegionSummary','mapRegionSummary']){const el=document.getElementById(id);if(el)el.textContent='לא ניתן לטעון אזורים כרגע. לחצו כדי לנסות שוב.';}throw error;});
+ return mainRegionDrawerPromise;
+}
+async function openMainRegions(){try{const drawer=await ensureMainRegionDrawer();drawer.open();}catch{showToast('לא ניתן לטעון את בחירת האזורים כרגע. נסו שוב.');}}
 
 async function submitForm(e) {
   e.preventDefault();
@@ -982,6 +997,7 @@ function renderPropertiesGrid(props) {
 
     const card = document.createElement('div');
     card.className = 'prop-card';
+    card._propData = p;
     card.dataset.type     = typeKey + (isLuxury ? ' luxury' : '');
     card.dataset.location = p.location || '';
     card.dataset.hood     = p.hood || '';

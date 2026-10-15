@@ -343,6 +343,7 @@
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon-v37.png">
 <script src="/language-bridge.js?v=3"></script>
 <link rel="stylesheet" href="public-photo.css?v=5">
+<link rel="stylesheet" href="region-drawer.css?v=20261015">
 </head>
 <body>
 
@@ -388,16 +389,10 @@
       </div>
     </div>
 
-    <!-- City -->
     <div class="filter-group">
-      <span class="filter-label">עיר</span>
-      <div class="city-pills" id="cityPills"></div>
-    </div>
-
-    <!-- Neighborhood -->
-    <div class="filter-group" id="hoodGroup">
-      <span class="filter-label">שכונה</span>
-      <div class="hood-list" id="hoodList"></div>
+      <span class="filter-label">עיר ושכונות</span>
+      <button type="button" id="searchRegions" class="region-picker-trigger" aria-haspopup="dialog" aria-describedby="searchRegionSummary" onclick="openSearchRegions()">בחירה במפה או ברשימה</button>
+      <p id="searchRegionSummary" class="region-picker-summary">כל הערים והשכונות</p>
     </div>
 
     <!-- Price -->
@@ -474,6 +469,9 @@
 <script src="public-catalog-config.js?v=1"></script>
 <script src="public-media.js?v=3"></script>
 <script src="db.js?v=38"></script>
+<script src="looking-regions.js?v=20261015"></script>
+<script src="region-drawer.js?v=20261015"></script>
+<script src="region-search.js?v=20261015"></script>
 <script>
 // ============================================
 // SEARCH PAGE — Mavo Nechasim
@@ -483,8 +481,8 @@ const WA = '972548026123';
 
 let allProps = [];
 let activeType = 'all';
-let activeCities = new Set();
-let activeHoods  = new Set();
+let searchRegions=new URLSearchParams(window.location.search).has('regions')||new URLSearchParams(window.location.search).has('city')||new URLSearchParams(window.location.search).has('hood')?{invalid:true,locations:[]}:{locations:[]};
+let searchRegionCatalog=null,searchRegionDrawer=null,searchRegionPromise=null,searchHydrating=true;
 let activeRooms  = 'all';
 
 // ---- Load data ----
@@ -494,79 +492,30 @@ async function loadData() {
 }
 function updateSearchCatalog(result){allProps=result.properties;buildFilters();applyFilters();}
 
-// ---- Build city + hood pills from data ----
-function buildFilters() {
-  const selectedHoods=new Set(activeHoods);
-  const cityMap = Object.create(null);
-  allProps.forEach(p => {
-    const {city,hood}=MavoCatalog.location(p);
-    if (!city) return;
-    if (!cityMap[city]) cityMap[city] = new Set();
-    if (hood) cityMap[city].add(hood);
-  });
-
-  // Cities
-  const cp = document.getElementById('cityPills');
-  cp.innerHTML = '';
-  Object.keys(cityMap).forEach(city => {
-    const btn = document.createElement('button');
-    btn.className = 'city-pill';
-    if(activeCities.has(city))btn.classList.toggle('active');
-    btn.textContent = city;
-    btn.onclick = () => toggleCity(btn, city, cityMap);
-    cp.appendChild(btn);
-  });
-
-  // Hoods (initially all)
-  const scoped=activeCities.size?Object.fromEntries([...activeCities].map(c=>[c,cityMap[c]||new Set()])):cityMap;
-  renderHoods(scoped,selectedHoods);activeHoods=selectedHoods;
-  window._cityMap = cityMap;
+// One canonical selection is shared by the map, list and result filters.
+function buildFilters(){
+ const labels=MavoRegionSearch.describe(searchRegions,searchRegionCatalog);
+ const summary=document.getElementById('searchRegionSummary');
+ summary.textContent=labels.length?labels.slice(0,3).join(' · ')+(labels.length>3?' ועוד '+(labels.length-3):''):'כל הערים והשכונות';summary.title=labels.join(' · ');
 }
-
-function toggleCity(btn, city, cityMap) {
-  btn.classList.toggle('active');
-  if (btn.classList.contains('active')) activeCities.add(city);
-  else activeCities.delete(city);
-  activeHoods.clear();
-  const filtered = activeCities.size > 0
-    ? Object.fromEntries([...activeCities].map(c => [c, cityMap[c]||new Set()]))
-    : cityMap;
-  renderHoods(filtered, null);
-  applyFilters();
+async function ensureSearchRegionDrawer(){
+ if(searchRegionDrawer)return searchRegionDrawer;
+ if(!searchRegionPromise)searchRegionPromise=(async()=>{
+  const drawer=await MavoRegionDrawer.create({onChange(value){
+   if(searchHydrating)return;searchRegions=value;buildFilters();applyFilters();
+   const url=new URL(window.location.href);MavoRegionSearch.writeParams(url.searchParams,value);history.replaceState(null,'',url.pathname+url.search+url.hash);
+  }});
+  searchRegionCatalog=drawer.catalog;
+  searchRegions=MavoRegionSearch.readParams(new URLSearchParams(window.location.search),searchRegionCatalog);
+  if(!searchRegions.invalid&&!searchRegions.legacy){
+   drawer.setValue({...searchRegions,catalog_version:drawer.catalog.version});
+   if(searchRegions.locations.length)drawer.selection.setCity(searchRegions.locations[0].city_id);
+  }
+  searchRegionDrawer=drawer;searchHydrating=false;buildFilters();applyFilters();return drawer;
+ })().catch(error=>{searchRegionPromise=null;document.getElementById('searchRegionSummary').textContent='לא ניתן לטעון אזורים כרגע. לחצו כדי לנסות שוב.';throw error;});
+ return searchRegionPromise;
 }
-
-function renderHoods(cityMap, preSelected) {
-  const hl = document.getElementById('hoodList');
-  hl.innerHTML = '';
-  activeHoods.clear();
-  Object.entries(cityMap).forEach(([city, hoods]) => {
-    if (Object.keys(cityMap).length > 1) {
-      const lbl = document.createElement('div');
-      lbl.style.cssText = 'font-size:.7rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;padding:6px 6px 2px;margin-top:4px;';
-      lbl.textContent = city;
-      hl.appendChild(lbl);
-    }
-    hoods.forEach(hood => {
-      const key=city+'|'+hood; const id = 'hood_'+encodeURIComponent(key);
-      const label = document.createElement('label');
-      label.className = 'hood-cb';
-      label.htmlFor = id;
-      const cb = document.createElement('input');
-      cb.type = 'checkbox'; cb.id = id; cb.value = key;
-      cb.checked=!!preSelected?.has(key);if(cb.checked){activeHoods.add(key);label.className+=' checked';}
-      cb.addEventListener('change', () => toggleHood(cb, key));
-      label.appendChild(cb);
-      label.appendChild(document.createTextNode(hood));
-      hl.appendChild(label);
-    });
-  });
-}
-
-function toggleHood(cb, hood) {
-  if (cb.checked) { activeHoods.add(hood); cb.closest('label').classList.add('checked'); }
-  else            { activeHoods.delete(hood); cb.closest('label').classList.remove('checked'); }
-  applyFilters();
-}
+async function openSearchRegions(){try{const drawer=await ensureSearchRegionDrawer();drawer.open();}catch{document.getElementById('searchRegionSummary').textContent='לא ניתן לטעון אזורים כרגע. לחצו כדי לנסות שוב.';}}
 
 function setType(btn) {
   document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
@@ -590,10 +539,9 @@ function toggleFilters() {
 }
 
 function resetAll() {
-  activeType = 'all'; activeCities.clear(); activeHoods.clear(); activeRooms = 'all';
+  activeType = 'all'; activeRooms = 'all';searchRegions={locations:[]};searchRegionDrawer?.clear();
   document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.type-btn[data-type="all"]').classList.add('active');
-  document.querySelectorAll('.city-pill').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.room-pill').forEach(b => b.classList.remove('active'));
   document.querySelector('.room-pill[data-rooms="all"]').classList.add('active');
   document.getElementById('priceMin').value = '';
@@ -617,8 +565,7 @@ function applyFilters() {
     const {city,hood}=MavoCatalog.location(p);
 
     if (!MavoCatalog.matchesType(p, activeType)) return false;
-    if (activeCities.size > 0 && !activeCities.has(city)) return false;
-    if (activeHoods.size > 0 && !activeHoods.has(city+'|'+hood)) return false;
+    if (!MavoRegionSearch.matches(p,searchRegions,searchRegionCatalog)) return false;
     if (pNum < priceMin || pNum > priceMax) return false;
     if (document.getElementById('amElevator')?.checked && !p.hasElevator) return false;
     if (document.getElementById('amShelter')?.checked && !p.hasShelter) return false;
@@ -725,10 +672,6 @@ function openProp(id) {
 
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', async () => {
-  await loadData();
-  buildFilters();
-  applyFilters();
-
   // Prefill from URL params (e.g. ?city=תל אביב&type=sale)
   const p = new URLSearchParams(window.location.search);
   if (p.get('q')) { window.__q = p.get('q'); document.getElementById('queryInput').value=window.__q; }
@@ -738,25 +681,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btn = [...document.querySelectorAll('.type-btn')].find(b=>b.dataset.type===p.get('type'));
     if (btn) setType(btn);
   }
-  if (p.get('city')) {
-    const pill = [...document.querySelectorAll('.city-pill')].find(b => b.textContent === p.get('city'));
-    if (pill) pill.click();
-    else activeCities.add(MavoCatalog.cityName(p.get('city')));
-  }
-  if (p.get('hood')) {
-    const hood=MavoCatalog.hoodName(p.get('hood'));
-    const city=MavoCatalog.cityName(p.get('city'));
-    // Retain even an empty requested area: never silently broaden to all listings.
-    activeHoods.clear();
-    if(city)activeHoods.add(city+'|'+hood);
-    else for(const c of Object.keys(window._cityMap))activeHoods.add(c+'|'+hood);
-    if(!activeHoods.size)activeHoods.add('|'+hood);
-    document.querySelectorAll('.hood-cb input').forEach(cb=>{cb.checked=activeHoods.has(cb.value);});
-  }
   if (p.get('rooms')) {
     const btn = [...document.querySelectorAll('.room-pill')].find(b=>b.dataset.rooms===p.get('rooms'));
     if (btn) setRooms(btn);
   }
+  await Promise.all([loadData(),ensureSearchRegionDrawer().catch(()=>{})]);
   applyFilters();
 });
 </script>

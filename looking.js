@@ -31,7 +31,7 @@
   if (!root || !root.document) return;
   const doc=root.document, $=id=>doc.getElementById(id), form=$('search-form');
   const panels=[...form.querySelectorAll('.step-panel')];
-  let step=0, busy=false, fallbackKey=null, regionSelection=null;
+  let step=0, busy=false, fallbackKey=null, regionSelection=null, regionDrawer=null;
   const selected=name=>form.querySelector(`input[name="${name}"]:checked`)?.value || '';
   function showError(message) { $('form-error').textContent=message; $('form-error').hidden=false; $('form-error').scrollIntoView({block:'center',behavior:'auto'}); }
   function clearError() { $('form-error').hidden=true; }
@@ -107,116 +107,35 @@
   $('budget').addEventListener('blur',()=>{try{const n=parseBudget($('budget').value);if(n!==null)$('budget').value=n.toLocaleString('en-US');}catch{}updateBudget();});
   $('another-search').onclick=()=>{
     const contact=['name','phone'].map(id=>$(id).value);form.reset();['name','phone'].forEach((id,i)=>$(id).value=contact[i]);
-    regionSelection.clear();regionSelection.setCity(regionSelection.cities[0].id);$('region-city').value=regionSelection.activeCity;$('region-query').value='';renderRegionList();refreshRegions();if(searchMap)drawCityMap();updateBudget();fallbackKey=null;
+    regionDrawer.clear();updateBudget();fallbackKey=null;
     try{root.sessionStorage.removeItem('mavo-intake-retry');}catch{}
     $('success').hidden=true;form.hidden=false;doc.querySelector('.steps').hidden=false;go(0);
   };
-  let searchMap=null, mapLayers=[], mapGroup=null, mapLoading=false, mapLibraryPromise=null;
-  const areaName=area=>area.display_name||area.name;
-  function toggleRegion(id){regionSelection.toggleArea(id);clearError();refreshRegions();}
-  function renderRegionList(){
-    if(!regionSelection)return;
-    const city=regionSelection.city(regionSelection.activeCity), list=$('region-list');list.replaceChildren();
-    const items=regionSelection.listAreas($('region-query').value);
-    $('whole-city').textContent='כל '+city.name;$('whole-city').setAttribute('aria-pressed',String(regionSelection.isWholeCity()));
-    $('region-count').textContent=items.length+' שכונות ואזורים ב'+city.name;
-    $('no-regions').hidden=items.length>0;list.hidden=!items.length;
-    items.forEach(area=>{const b=doc.createElement('button'),text=doc.createElement('span');b.type='button';b.dataset.region=area.id;b.className='region-option';text.textContent=areaName(area);if(area.selection_note){const note=doc.createElement('small');note.textContent=area.selection_note;text.append(note);}b.append(text);b.setAttribute('aria-pressed',String(regionSelection.isSelected(area.id)));b.onclick=()=>toggleRegion(area.id);list.append(b);});
-  }
   function refreshRegions(){
     if(!regionSelection)return;
-    doc.querySelectorAll('[data-region]').forEach(b=>b.setAttribute('aria-pressed',String(regionSelection.isSelected(b.dataset.region))));
-    $('whole-city').setAttribute('aria-pressed',String(regionSelection.isWholeCity()));
-    const selection=regionSelection.serialize(),list=$('selected-regions');list.replaceChildren();
-    function chip(text,onRemove){const li=doc.createElement('li'),b=doc.createElement('button');b.type='button';b.textContent=text+' ×';b.setAttribute('aria-label','הסרת '+text);b.onclick=()=>{onRemove();clearError();refreshRegions();$('selection-count').focus({preventScroll:true});};li.append(b);list.append(li);}
-    selection.locations.forEach(location=>{
+    const value=regionDrawer.getValue(), list=$('selected-regions');list.replaceChildren();
+    function chip(text,onRemove){const li=doc.createElement('li'),b=doc.createElement('button');b.type='button';b.textContent=text+' ×';b.setAttribute('aria-label','הסרת '+text);b.onclick=()=>{onRemove();regionDrawer.setValue(regionSelection.serialize());$('selection-count').focus({preventScroll:true});};li.append(b);list.append(li);}
+    value.locations.forEach(location=>{
       const city=regionSelection.city(location.city_id);
       if(location.whole_city)chip('כל '+city.name,()=>regionSelection.removeCity(city.id));
-      else location.area_ids.forEach(id=>{const a=regionSelection.area(id);chip(areaName(a)+' · '+city.name,()=>regionSelection.removeArea(id));});
+      else location.area_ids.forEach(id=>{const a=regionSelection.area(id);chip((a.display_name||a.name)+' · '+city.name,()=>regionSelection.removeArea(id));});
     });
-    const count=selection.locations.reduce((n,l)=>n+(l.whole_city?1:l.area_ids.length),0);
+    const count=value.locations.reduce((n,l)=>n+(l.whole_city?1:l.area_ids.length),0);
     $('selection-count').textContent=count?count+' בחירות בחיפוש שלכם':'ללא הגבלת אזור';$('clear-regions').hidden=!count;
-    mapLayers.forEach(({area,polygon,label})=>{if(polygon)polygon.setStyle(areaStyle(area));const b=label.getElement()?.querySelector('button');if(b)b.setAttribute('aria-pressed',String(regionSelection.isSelected(area.id)));});
-    placeMapLabels();
   }
-  $('region-city').onchange=()=>{regionSelection.setCity($('region-city').value);$('region-query').value='';renderRegionList();refreshRegions();if(searchMap)drawCityMap();};
-  $('region-query').addEventListener('input',renderRegionList);
-  $('region-query').addEventListener('keydown',e=>{if(e.key==='Enter')e.preventDefault();});
-  $('whole-city').onclick=()=>{regionSelection.toggleWholeCity();clearError();refreshRegions();};
-  $('clear-regions').onclick=()=>{regionSelection.clear();clearError();refreshRegions();$('selection-count').focus({preventScroll:true});};
+  $('open-map').onclick=()=>regionDrawer?.open();
+  $('clear-regions').onclick=()=>{regionDrawer.clear();$('selection-count').focus({preventScroll:true});};
   async function loadRegions(){
     $('region-picker').setAttribute('aria-busy','true');$('region-loading').hidden=false;$('region-loading').textContent='טוענים שכונות ואזורים…';$('retry-regions').hidden=true;$('open-map').disabled=true;
-    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
     try{
-      const response=await root.fetch('assets/regions/neighborhood-catalog-2026-10-08.json?v=2',{credentials:'omit',signal:controller.signal});
-      if(!response.ok)throw new Error('catalog_unavailable');
-      regionSelection=root.MavoRegions.createSelection(await response.json());
-      $('region-city').replaceChildren();regionSelection.cities.forEach(c=>{const option=doc.createElement('option');option.value=c.id;option.textContent=c.name;$('region-city').append(option);});
-      $('region-controls').hidden=false;$('region-loading').hidden=true;$('open-map').disabled=false;renderRegionList();refreshRegions();
-    }catch{$('region-loading').textContent='רשימת האזורים לא נטענה. הבחירות לא נשלחו. אפשר לנסות שוב.';$('retry-regions').hidden=false;}
-    finally{clearTimeout(timeout);$('region-picker').setAttribute('aria-busy','false');}
+      regionDrawer=await root.MavoRegionDrawer.create({onChange(){clearError();refreshRegions();}});
+      regionSelection=regionDrawer.selection;
+      $('region-loading').hidden=true;$('open-map').disabled=false;refreshRegions();
+    }catch{$('region-loading').textContent='רשימת האזורים לא נטענה. אפשר לנסות שוב.';$('retry-regions').hidden=false;}
+    finally{$('region-picker').setAttribute('aria-busy','false');}
   }
   $('retry-regions').onclick=loadRegions;
-  function loadScript(src){return new Promise((resolve,reject)=>{const s=doc.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>{s.remove();reject(new Error('map_unavailable'));};doc.head.append(s);});}
-  function loadStyle(href){if([...doc.querySelectorAll('link[rel="stylesheet"]')].some(l=>l.getAttribute('href')===href))return;const l=doc.createElement('link');l.rel='stylesheet';l.href=href;doc.head.append(l);}
-  function loadMapLibraries(){
-    if(!mapLibraryPromise)mapLibraryPromise=(async()=>{
-      loadStyle('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');loadStyle('assets/maps/maplibre-gl.css');
-      if(!root.L)await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
-      if(!root.maplibregl)await loadScript('assets/maps/maplibre-gl.js');
-      if(!root.L.maplibreGL)await loadScript('assets/maps/leaflet-maplibre-gl.js');
-      if(!root.addMavoBasemap)await loadScript('map-base.js');
-    })().catch(error=>{mapLibraryPromise=null;throw error;});
-    return mapLibraryPromise;
-  }
-  function areaStyle(area){const chosen=regionSelection.isSelected(area.id);return {color:chosen?'#28574D':'#83755C',weight:chosen?2:1,opacity:chosen?1:.7,fillColor:chosen?'#28574D':'#C8A052',fillOpacity:chosen?.35:.06};}
-  function placeMapLabels(){
-    if(!searchMap||$('map-panel').hidden)return;
-    const size=searchMap.getSize(),placed=[];
-    [...mapLayers].sort((a,b)=>Number(regionSelection.isSelected(b.area.id))-Number(regionSelection.isSelected(a.area.id))).forEach(({area,label})=>{
-      const element=label.getElement();if(!element)return;const button=element.querySelector('button'),p=searchMap.latLngToContainerPoint(label.getLatLng());
-      const w=button.offsetWidth,h=button.offsetHeight,box={left:p.x-w/2,right:p.x+w/2,top:p.y-h/2,bottom:p.y+h/2};
-      const fits=box.left>0&&box.right<size.x&&box.top>0&&box.bottom<size.y&&!placed.some(b=>box.left<b.right+3&&box.right>b.left-3&&box.top<b.bottom+3&&box.bottom>b.top-3);
-      element.style.visibility=fits?'visible':'hidden';if(fits)placed.push(box);
-    });
-  }
-  function drawCityMap(){
-    if(!searchMap||!regionSelection)return;
-    if(mapGroup)mapGroup.remove();mapLayers=[];mapGroup=root.L.featureGroup().addTo(searchMap);
-    const city=regionSelection.city(regionSelection.activeCity),items=regionSelection.listAreas();let approximate=false;
-    items.forEach(area=>{
-      let polygon=null;
-      if(area.geometry){polygon=root.L.geoJSON({type:'Feature',properties:{},geometry:area.geometry},{style:()=>areaStyle(area)}).addTo(mapGroup);polygon.on('click',()=>toggleRegion(area.id));
-        const hint=doc.createElement('span');hint.dir='rtl';hint.textContent=areaName(area);polygon.bindTooltip(hint,{sticky:true,direction:'top',className:'region-tooltip'});
-      }else approximate=true;
-      if(!Array.isArray(area.labelPoint))return;
-      const b=doc.createElement('button');b.type='button';b.className='region-map-name'+(polygon?'':' approximate');b.dataset.region=area.id;b.dir='rtl';b.textContent=areaName(area);b.setAttribute('aria-pressed',String(regionSelection.isSelected(area.id)));b.setAttribute('aria-label',areaName(area)+(polygon?'':' — אזור כללי'));
-      b.onclick=e=>{e.stopPropagation();toggleRegion(area.id);};root.L.DomEvent.disableClickPropagation(b);
-      const label=root.L.marker([area.labelPoint[1],area.labelPoint[0]],{keyboard:false,icon:root.L.divIcon({html:b,className:'region-label-marker',iconSize:[0,0],iconAnchor:[0,0]})}).addTo(mapGroup);
-      mapLayers.push({area,polygon,label});
-    });
-    const pointsOnly=items.every(area=>!area.geometry);
-    const bounds=mapGroup.getBounds();if(bounds.isValid())searchMap.fitBounds(bounds,{padding:pointsOnly?[60,35]:[14,14],animate:false});
-    $('map-source').replaceChildren();const source=city.source_url||items.find(a=>a.source_url)?.source_url;
-    if(source){const a=doc.createElement('a');a.href=source;a.target='_blank';a.rel='noopener noreferrer';a.textContent=(approximate?'מקור האזורים: עיריית ':'מקור הגבולות: עיריית ')+city.name;$('map-source').append(a);}
-    $('map-instructions').textContent=(pointsOnly?'לחצו על שם אזור כדי לבחור או להסיר אותו. הסמנים מציינים אזורים כלליים, ללא גבולות מדויקים.':'לחצו בתוך אזור או על שמו כדי לבחור או להסיר אותו. השטח הנבחר נצבע בירוק.')+' בטלפון מזיזים את המפה בשתי אצבעות.';
-    $('map-status').textContent=pointsOnly?'הסמנים מציינים אזורים כלליים לפי מקורות העירייה, ללא גבולות רשמיים זמינים.':approximate?'חלק מהסמנים מציינים אזור כללי, ללא גבול רשמי זמין.':'גבולות שכונות ואזורים מתוך מפת העירייה. אפשר לבחור כמה אזורים.';
-    refreshRegions();root.requestAnimationFrame(placeMapLabels);
-  }
-  $('open-map').onclick=async()=>{
-    const panel=$('map-panel');panel.hidden=!panel.hidden;$('open-map').setAttribute('aria-expanded',String(!panel.hidden));$('open-map').textContent=panel.hidden?'בחירה במפה ↗':'סגירת המפה';
-    if(panel.hidden||!regionSelection)return;if(searchMap){searchMap.invalidateSize();placeMapLabels();return;}if(mapLoading)return;mapLoading=true;$('map-status').textContent='טוענים מפה…';
-    try{
-      await loadMapLibraries();
-      if(panel.hidden)return;
-      searchMap=root.L.map('search-map',{scrollWheelZoom:false}).setView([32.062,34.768],12);root.addMavoBasemap(searchMap);
-      searchMap.on('zoomend moveend resize',placeMapLabels);drawCityMap();searchMap.invalidateSize();
-      const gl=searchMap._mavoBasemap?.getMaplibreMap();if(gl)gl.on('error',()=>{$('map-status').textContent='חלק מרחובות הרקע לא נטענו. בחירת האזורים במפה וברשימה עדיין זמינה.';});
-    }catch{$('map-status').textContent='המפה אינה זמינה כרגע. אפשר לבחור את כל האזורים ברשימה, או לסגור ולפתוח את המפה לניסיון נוסף.';if(searchMap){searchMap.remove();searchMap=null;}}
-    finally{mapLoading=false;}
-  };
   loadRegions();
-  if(doc.fonts)doc.fonts.ready.then(placeMapLabels);
   $('connection-status').hidden=INTAKE_READY;
   $('submit-button').disabled=!INTAKE_READY;
   updateBudget();

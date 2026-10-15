@@ -150,6 +150,22 @@
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon-v37.png">
 <script src="/language-bridge.js?v=3"></script>
 <link rel="stylesheet" href="public-photo.css?v=5">
+<link rel="stylesheet" href="region-drawer.css?v=20261015">
+<style>
+.search-fields .field-group-region{flex:2;min-width:220px;grid-column:span 2}
+.field-group-region .region-picker-summary{margin:0}
+.map-region-control{max-width:100%;min-width:200px}
+.filter-group-cities .region-picker-summary{margin:0}
+@media(min-width:769px){
+  .hero .search-fields{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto;align-items:start}
+  .hero .search-fields .field-group{min-width:0;gap:6px}
+  .hero .search-fields .field-group-region{grid-column:auto}
+  .hero .search-fields .field-group>label{line-height:20px}
+  .hero .search-fields .field-group>:is(input,select,button){height:50px;min-height:50px}
+  .hero .search-fields>.search-btn{margin-top:26px;height:50px}
+}
+@media(max-width:480px){.search-fields .field-group-region{min-width:0}}
+</style>
 </head>
 <body>
 
@@ -227,8 +243,7 @@
     <form class="search-box glass" onsubmit="event.preventDefault();doSearch()">
       <div class="search-tabs"><button type="button" data-type="all" class="tab active" onclick="setTab(this,'all')">כל הנכסים</button><button type="button" data-type="sale" class="tab" onclick="setTab(this,'sale')">למכירה</button><button type="button" data-type="rent" class="tab" onclick="setTab(this,'rent')">להשכרה</button><button type="button" data-type="commercial" class="tab" onclick="setTab(this,'commercial')">מסחרי</button></div>
       <div class="search-fields">
-        <div class="field-group"><label for="heroCity">עיר</label><select id="heroCity"><option value="">כל הערים</option></select></div>
-        <div class="field-group"><label for="heroHood">שכונה</label><select id="heroHood"><option value="">כל השכונות</option></select></div>
+        <div class="field-group field-group-region"><label for="heroRegions">עיר ושכונות</label><button type="button" id="heroRegions" class="region-picker-trigger" aria-haspopup="dialog" aria-describedby="heroRegionSummary" onclick="openMainRegions()">בחירה במפה או ברשימה</button><p id="heroRegionSummary" class="region-picker-summary">כל הערים והשכונות</p></div>
         <div class="field-group"><label for="heroBudget">תקציב עד</label><input id="heroBudget" type="number" min="0" inputmode="numeric" placeholder="ללא הגבלה"></div>
         <div class="field-group"><label for="heroRooms">חדרים</label><select id="heroRooms"><option value="all">הכל</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option><option>3.5</option><option>4</option><option>4.5</option><option value="5">5 ומעלה</option></select></div>
         <button type="submit" class="search-btn">חיפוש נכסים ←</button>
@@ -453,9 +468,8 @@
       </div>
       <div class="filter-divider"></div>
       <div class="filter-group-cities">
-        <button class="filter-btn city-btn active" onclick="filterByCity(this,'')">כל הערים</button>
-        <button class="filter-btn city-btn" onclick="filterByCity(this,'תל אביב')">🌆 תל אביב</button>
-        <button class="filter-btn city-btn" onclick="filterByCity(this,'בת ים')">🌊 בת ים</button>
+        <button type="button" id="catalogRegions" class="region-picker-trigger" aria-haspopup="dialog" aria-describedby="catalogRegionSummary" onclick="openMainRegions()">בחירת עיר ושכונות</button>
+        <p id="catalogRegionSummary" class="region-picker-summary">כל הערים והשכונות</p>
       </div>
       <a href="search.html" class="filter-btn" style="text-decoration:none; margin-right:auto; background:var(--gold,#F5B731); color:#1a1a1a; border-color:var(--gold,#F5B731); display:inline-flex; align-items:center; gap:5px;">
         ⚙ סינונים נוספים
@@ -829,7 +843,10 @@
 <script src="public-catalog-config.js?v=1"></script>
 <script src="public-media.js?v=3"></script>
 <script src="db.js?v=38"></script>
-<script src="app.js?v=40"></script>
+<script src="looking-regions.js?v=20261015"></script>
+<script src="region-drawer.js?v=20261015"></script>
+<script src="region-search.js?v=20261015"></script>
+<script src="app.js?v=20261015"></script>
 <script type="text/javascript">
 function googleTranslateElementInit() {
   // If Hebrew is the saved/default language, clear googtrans cookie RIGHT before GT reads it
