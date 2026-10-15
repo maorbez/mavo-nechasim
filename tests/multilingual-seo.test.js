@@ -38,10 +38,10 @@ test('explicit catalog language preserves query IDs, initializes translation and
     const nodes = [];
     const document = {
       cookie: '',
-      addEventListener: (name, callback) => listeners.push(callback),
+      addEventListener: (name, callback) => { if (name === 'DOMContentLoaded') listeners.push(callback); },
       querySelectorAll: () => [],
       querySelector: () => null,
-      createElement: () => ({ setAttribute() {}, addEventListener() {}, querySelector:()=>({appendChild(){}}), style: {} }),
+      createElement: () => ({ setAttribute() {}, addEventListener() {}, appendChild() {}, classList:{toggle(){}}, style: {} }),
       body: { appendChild: node => nodes.push(node) },
     };
     const location = { search: `?prop=40&lang=${choice}` };
@@ -81,10 +81,9 @@ test('a ready translator switches language without reloading or losing page stat
   const original = 'https://mavorealestate.com/search.html?type=sale#results';
   const location = {href:original,search:'?type=sale'};
   const combo = {value:'',dispatchEvent(){this.changed=true;}};
-  const menu = {open:true};
   const buttons = ['en','ar'].map(lang=>({lang,setAttribute(k,v){this[k]=v;}}));
   let currentUrl;
-  const document = {addEventListener(){}, querySelector:s=>s==='.goog-te-combo'?combo:menu,querySelectorAll:()=>buttons,documentElement:{classList:{toggle(){}}}};
+  const document = {addEventListener(){}, querySelector:s=>s==='.goog-te-combo'?combo:null,querySelectorAll:()=>buttons,documentElement:{classList:{toggle(){}}}};
   vm.runInNewContext(fs.readFileSync(path.join(root,'language-bridge.js'),'utf8'),{URL,URLSearchParams,location,document,window,Event:class{},history:{replaceState(a,b,url){currentUrl=url;}},sessionStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)}});
   window.mavoSetLanguage('ar');
   assert.equal(location.href,original,'must not trigger page navigation');
@@ -94,5 +93,4 @@ test('a ready translator switches language without reloading or losing page stat
   assert.equal(combo.changed,true);
   assert.equal(document.documentElement.dir,'rtl');
   assert.equal(buttons[1]['aria-pressed'],'true');
-  assert.equal(menu.open,false);
 });

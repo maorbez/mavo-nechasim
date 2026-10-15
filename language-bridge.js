@@ -2,6 +2,7 @@
 (function () {
   'use strict';
   var supported = ['he', 'en', 'fr', 'de', 'es', 'ar'];
+  var closeLanguageMenu = function () {};
   var choice = new URLSearchParams(location.search).get('lang');
   if (choice && supported.includes(choice)) {
     sessionStorage.setItem('globes_lang', choice === 'he' ? 'iw' : choice);
@@ -27,10 +28,10 @@
       document.documentElement.lang = lang;
       document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
       document.documentElement.classList.toggle('site-ltr', lang !== 'ar');
-      document.querySelectorAll('.mavo-language-menu button').forEach(function (button) {
+      document.querySelectorAll('.mavo-language-menu button[lang]').forEach(function (button) {
         button.setAttribute('aria-pressed', button.lang === lang ? 'true' : 'false');
       });
-      document.querySelector('.mavo-language-menu').open = false;
+      closeLanguageMenu(true);
     } else {
       location.href = target.href;
     }
@@ -45,10 +46,48 @@
     window.changeWebsiteLanguage = window.mavoSetLanguage;
     var panel = document.querySelector('.lang-panel-wrapper');
     if (panel) panel.remove();
-    var menu = document.createElement('details');
+    var menu = document.createElement('div');
     menu.className = 'mavo-language-menu';
     menu.setAttribute('translate', 'no');
-    menu.innerHTML = '<summary aria-label="שפה / Language">🌐 שפה / Language</summary><div role="group" aria-label="Choose language"></div>';
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'mavo-language-toggle';
+    toggle.setAttribute('aria-label', 'שפה / Language');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-controls', 'mavo-language-options');
+    toggle.title = 'שפה / Language';
+    toggle.innerHTML = '<span aria-hidden="true">🌐</span><span>שפה</span><span class="mavo-language-chevron" aria-hidden="true">‹</span>';
+    var options = document.createElement('div');
+    options.id = 'mavo-language-options';
+    options.className = 'mavo-language-options';
+    options.setAttribute('role', 'group');
+    options.setAttribute('aria-label', 'בחירת שפה / Choose language');
+    options.setAttribute('aria-hidden', 'true');
+    options.inert = true;
+    var expanded = false;
+    function setExpanded(value, restoreFocus) {
+      expanded = value;
+      menu.classList.toggle('is-open', value);
+      toggle.setAttribute('aria-expanded', String(value));
+      options.setAttribute('aria-hidden', String(!value));
+      options.inert = !value;
+      if (restoreFocus) toggle.focus({preventScroll:true});
+    }
+    closeLanguageMenu = function (restoreFocus) { setExpanded(false, restoreFocus); };
+    toggle.addEventListener('click', function () { setExpanded(!expanded, false); });
+    document.addEventListener('pointerdown', function (event) {
+      if (expanded && !menu.contains(event.target)) closeLanguageMenu(false);
+    });
+    document.addEventListener('focusin', function (event) {
+      if (expanded && !menu.contains(event.target)) closeLanguageMenu(false);
+    });
+    menu.addEventListener('keydown', function (event) {
+      if (expanded && event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        closeLanguageMenu(true);
+      }
+    });
     var labels = {he:'עברית', en:'English', fr:'Français', de:'Deutsch', es:'Español', ar:'العربية'};
     supported.forEach(function (lang) {
       var button = document.createElement('button');
@@ -56,12 +95,30 @@
       button.lang = lang;
       button.textContent = labels[lang];
       button.setAttribute('aria-pressed', (language || 'iw') === (lang === 'he' ? 'iw' : lang) ? 'true' : 'false');
-      button.addEventListener('click', function () { window.mavoSetLanguage(lang); });
-      menu.querySelector('div').appendChild(button);
+      button.addEventListener('click', function () {
+        closeLanguageMenu(true);
+        window.mavoSetLanguage(lang);
+      });
+      options.appendChild(button);
     });
+    menu.appendChild(toggle);
+    menu.appendChild(options);
     document.body.appendChild(menu);
     var css = document.createElement('style');
-    css.textContent = '.mavo-language-menu{position:fixed;right:12px;top:100px;z-index:10000;font:15px Arial,sans-serif;color:#153f32;background:#fff;border:1px solid #b99b60;border-radius:12px;box-shadow:0 3px 16px #0002;direction:rtl}.mavo-language-menu summary{padding:12px;cursor:pointer;min-height:20px}.mavo-language-menu>div{display:grid;padding:6px;gap:4px}.mavo-language-menu button{min-height:44px;padding:8px 20px;background:#fff;color:#153f32;border:1px solid transparent;border-radius:7px;cursor:pointer;font:inherit}.mavo-language-menu button[aria-pressed=true]{background:#153f32;color:#fff}.mavo-language-menu button:focus-visible,.mavo-language-menu summary:focus-visible{outline:3px solid #b99b60;outline-offset:2px}';
+    css.textContent = `
+      .mavo-language-menu{position:fixed;right:12px;top:100px;z-index:10000;font:14px Arial,sans-serif;color:#28574d;direction:rtl}
+      .mavo-language-menu button{font:inherit;cursor:pointer;box-sizing:border-box}
+      .mavo-language-toggle{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:10px;border:1px solid #cbbb9f;border-radius:12px;background:#f8f3e9;color:#28574d;box-shadow:0 3px 16px #0002}
+      .mavo-language-chevron{font-size:22px;line-height:1;transition:transform .24s ease}
+      .mavo-language-menu.is-open .mavo-language-chevron{transform:rotate(180deg)}
+      .mavo-language-options{position:absolute;right:calc(100% + 8px);top:0;width:180px;max-width:calc(100vw - 128px);max-height:calc(100dvh - 120px);overflow-y:auto;overscroll-behavior:contain;display:grid;padding:6px;gap:4px;box-sizing:border-box;border:1px solid #cbbb9f;border-radius:14px;background:#f8f3e9;box-shadow:0 8px 28px #142b2526;opacity:0;visibility:hidden;pointer-events:none;transform:translateX(18px);transition:transform .24s ease,opacity .24s ease,visibility 0s linear .24s}
+      .mavo-language-menu.is-open .mavo-language-options{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(0);transition-delay:0s}
+      .mavo-language-options button{min-height:44px;width:100%;padding:8px 12px;background:transparent;color:#28574d;border:1px solid transparent;border-radius:9px;text-align:center}
+      .mavo-language-options button:hover{background:#ece7dc}
+      .mavo-language-options button[aria-pressed=true]{background:#28574d;color:#f8f3e9}
+      .mavo-language-menu button:focus-visible{outline:3px solid #c8a052;outline-offset:2px}
+      @media(prefers-reduced-motion:reduce){.mavo-language-options,.mavo-language-chevron{transition:none}}
+    `;
     document.body.appendChild(css);
     document.querySelectorAll('.logo-main, .tl-main').forEach(function (node) {
       node.setAttribute('translate', 'no');
