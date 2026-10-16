@@ -56,7 +56,9 @@
     toggle.setAttribute('aria-expanded', 'false');
     toggle.setAttribute('aria-controls', 'mavo-language-options');
     toggle.title = 'שפה / Language';
-    toggle.innerHTML = '<span aria-hidden="true">🌐</span><span>שפה</span><span class="mavo-language-chevron" aria-hidden="true">‹</span>';
+    toggle.innerHTML = '<svg class="mavo-language-chevron" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    var track = document.createElement('div');
+    track.className = 'mavo-language-track';
     var options = document.createElement('div');
     options.id = 'mavo-language-options';
     options.className = 'mavo-language-options';
@@ -69,9 +71,9 @@
       expanded = value;
       menu.classList.toggle('is-open', value);
       toggle.setAttribute('aria-expanded', String(value));
+      if (restoreFocus || (!value && options.contains(document.activeElement))) toggle.focus({preventScroll:true});
       options.setAttribute('aria-hidden', String(!value));
       options.inert = !value;
-      if (restoreFocus) toggle.focus({preventScroll:true});
     }
     closeLanguageMenu = function (restoreFocus) { setExpanded(false, restoreFocus); };
     toggle.addEventListener('click', function () { setExpanded(!expanded, false); });
@@ -81,8 +83,11 @@
     document.addEventListener('focusin', function (event) {
       if (expanded && !menu.contains(event.target)) closeLanguageMenu(false);
     });
-    menu.addEventListener('keydown', function (event) {
-      if (expanded && event.key === 'Escape') {
+    document.addEventListener('scroll', function (event) {
+      if (expanded && !menu.contains(event.target)) closeLanguageMenu(false);
+    }, {capture:true, passive:true});
+    document.addEventListener('keydown', function (event) {
+      if (expanded && event.key === 'Escape' && !event.defaultPrevented) {
         event.preventDefault();
         event.stopPropagation();
         closeLanguageMenu(true);
@@ -101,23 +106,28 @@
       });
       options.appendChild(button);
     });
-    menu.appendChild(toggle);
-    menu.appendChild(options);
+    track.appendChild(toggle);
+    track.appendChild(options);
+    menu.appendChild(track);
     document.body.appendChild(menu);
     var css = document.createElement('style');
     css.textContent = `
-      .mavo-language-menu{position:fixed;right:12px;top:100px;z-index:10000;font:14px Arial,sans-serif;color:#28574d;direction:rtl}
-      .mavo-language-menu button{font:inherit;cursor:pointer;box-sizing:border-box}
-      .mavo-language-toggle{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:10px;border:1px solid #cbbb9f;border-radius:12px;background:#f8f3e9;color:#28574d;box-shadow:0 3px 16px #0002}
-      .mavo-language-chevron{font-size:22px;line-height:1;transition:transform .24s ease}
+      .mavo-language-menu{position:fixed;right:0;top:100px;z-index:10000;width:224px;max-width:100vw;overflow:hidden;pointer-events:none;font:14px Arial,sans-serif;color:#28574d;direction:ltr}
+      .mavo-language-track{display:flex;align-items:flex-start;width:100%;transform:translateX(calc(100% - 44px));transition:transform .28s cubic-bezier(.2,.7,.2,1)}
+      .mavo-language-menu.is-open .mavo-language-track{transform:translateX(0)}
+      .mavo-language-menu button{font:inherit;cursor:pointer;box-sizing:border-box;margin:0}
+      .mavo-language-toggle{position:relative;flex:0 0 44px;width:44px;height:64px;display:flex;align-items:center;justify-content:flex-end;padding:0 8px 0 0;border:0;border-radius:32px 0 0 32px;background:transparent;color:#28574d;box-shadow:none;pointer-events:auto}
+      .mavo-language-toggle:before{content:'';position:absolute;inset:0 0 0 auto;width:32px;border:1px solid #cbbb9f;border-right:0;border-radius:32px 0 0 32px;background:#f8f3e9;box-sizing:border-box}
+      .mavo-language-chevron{position:relative;flex:none;transition:transform .28s ease}
       .mavo-language-menu.is-open .mavo-language-chevron{transform:rotate(180deg)}
-      .mavo-language-options{position:absolute;right:calc(100% + 8px);top:0;width:180px;max-width:calc(100vw - 128px);max-height:calc(100dvh - 120px);overflow-y:auto;overscroll-behavior:contain;display:grid;padding:6px;gap:4px;box-sizing:border-box;border:1px solid #cbbb9f;border-radius:14px;background:#f8f3e9;box-shadow:0 8px 28px #142b2526;opacity:0;visibility:hidden;pointer-events:none;transform:translateX(18px);transition:transform .24s ease,opacity .24s ease,visibility 0s linear .24s}
-      .mavo-language-menu.is-open .mavo-language-options{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(0);transition-delay:0s}
+      .mavo-language-options{flex:1;min-width:0;max-height:calc(100vh - 116px);max-height:calc(100dvh - 116px);overflow-y:auto;overscroll-behavior:contain;display:grid;padding:6px;gap:4px;box-sizing:border-box;border:1px solid #cbbb9f;border-right:0;border-radius:0 0 0 14px;background:#f8f3e9;direction:rtl;visibility:hidden;pointer-events:none;transition:visibility 0s linear .28s}
+      .mavo-language-menu.is-open .mavo-language-options{visibility:visible;pointer-events:auto;transition-delay:0s}
       .mavo-language-options button{min-height:44px;width:100%;padding:8px 12px;background:transparent;color:#28574d;border:1px solid transparent;border-radius:9px;text-align:center}
       .mavo-language-options button:hover{background:#ece7dc}
       .mavo-language-options button[aria-pressed=true]{background:#28574d;color:#f8f3e9}
-      .mavo-language-menu button:focus-visible{outline:3px solid #c8a052;outline-offset:2px}
-      @media(prefers-reduced-motion:reduce){.mavo-language-options,.mavo-language-chevron{transition:none}}
+      .mavo-language-menu button:focus-visible{outline:3px solid #c8a052;outline-offset:-3px}
+      @media(max-height:400px){.mavo-language-menu{top:64px}.mavo-language-options{max-height:calc(100vh - 80px);max-height:calc(100dvh - 80px)}}
+      @media(prefers-reduced-motion:reduce){.mavo-language-track,.mavo-language-options,.mavo-language-chevron{transition:none}}
     `;
     document.body.appendChild(css);
     document.querySelectorAll('.logo-main, .tl-main').forEach(function (node) {
