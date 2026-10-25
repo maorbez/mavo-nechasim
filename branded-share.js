@@ -3,6 +3,13 @@ const ENDPOINT='https://forms.mavorealestate.com/public/branded-shares/';
 function tokenFromHash(hash){return /^#[A-Za-z0-9_-]{32}$/.test(hash)?hash.slice(1):''}
 function safeImages(values){if(!Array.isArray(values))return [];return values.filter(value=>{if(typeof value!=='string'||value.length>2000||/[\x00-\x20\\]/.test(value)||value.includes('%')||/\/\.\.?\//.test(value))return false;try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='forms.mavorealestate.com'&&!u.username&&!u.password&&!u.hash&&!u.search&&(!u.port||u.port==='443')&&/^\/public\/branded-shares\/[A-Za-z0-9_-]{32}\/media\/[a-f0-9]{64}$/.test(u.pathname)}catch{return false}}).slice(0,51)}
 function leaseMs(data,elapsed){const duration=Date.parse(data.expires_at)-Date.parse(data.verified_at);return Number.isFinite(duration)?Math.max(0,Math.min(60000,duration)-Math.max(0,elapsed)):0}
+function mediaNotice(row){
+ if(row.media_status==='unavailable')return 'תמונות הנכס אינן זמינות בחיבור הנוכחי למקור.';
+ if(row.media_status!=='partial')return '';
+ const count=row.unavailable_image_count;
+ if(Number.isInteger(count)&&count>0&&count<=51)return count===1?'תמונה נוספת אחת אינה זמינה בחיבור הנוכחי למקור.':count+' תמונות נוספות אינן זמינות בחיבור הנוכחי למקור.';
+ return 'חלק מהתמונות אינן זמינות בחיבור הנוכחי למקור.';
+}
 const AMENITIES={parking:'חניה',elevator:'מעלית',balcony:'מרפסת',safe_room:'ממ״ד',shelter:'מקלט',air_conditioning:'מיזוג',storage:'מחסן',accessible:'נגישות',furnished:'ריהוט',renovation_project:'תמ״א 38'};
 function propertyFacts(row){
  const facts=[];
@@ -23,18 +30,20 @@ function propertySummary(row){
  const features=Object.entries(AMENITIES).filter(([key])=>row[key]===true).map(([,label])=>label);if(features.length)sentences.push('כולל '+features.join(', '));
  return sentences.length?sentences.join('. ')+'.':'פרטים נוספים יימסרו על ידי המשרד.';
 }
-if(typeof module!=='undefined'&&module.exports)module.exports={tokenFromHash,safeImages,leaseMs,propertyFacts,propertySummary};
+if(typeof module!=='undefined'&&module.exports)module.exports={tokenFromHash,safeImages,leaseMs,propertyFacts,propertySummary,mediaNotice};
 if(typeof document==='undefined')return;
 const $=s=>document.querySelector(s);let generation=0,controller=null,timer=null,expiryTimer=null,galleryPhotos=[],galleryIndex=0,detailController=null,detailSequence=0,currentDetailRow=null;
 function node(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n}
 function clear(){generation++;currentDetailRow=null;detailSequence++;if(detailController)detailController.abort();detailController=null;if($('#property-details').open)$('#property-details').close();$('#detail-body').replaceChildren();if(controller)controller.abort();controller=null;clearTimeout(timer);clearTimeout(expiryTimer);$('#properties').replaceChildren();$('#properties').hidden=false;$('#collection-meta').hidden=true;galleryPhotos=[];$('#gallery-image').replaceChildren();if($('#gallery').open)$('#gallery').close()}
 function status(title,copy,retry=false){$('#status-panel').hidden=false;$('#status-title').textContent=title;$('#status-copy').textContent=copy;$('#retry').hidden=!retry}
 function photo(url,alt){const img=node('img');img.crossOrigin='anonymous';img.referrerPolicy='no-referrer';img.alt=alt;img.loading='lazy';img.addEventListener('error',()=>{img.replaceWith(node('span','התמונה אינה זמינה כרגע'))},{once:true});MavoPhoto.setSource(img,url);return img}
-function showPhoto(){const host=$('#gallery-image');host.replaceChildren();if(galleryPhotos.length){host.append(photo(galleryPhotos[galleryIndex],'תמונה '+(galleryIndex+1)+' של הדירה'));$('#image-position').textContent=(galleryIndex+1)+' / '+galleryPhotos.length}}
+function showPhoto(){const host=$('#gallery-image');host.replaceChildren();if(!galleryPhotos.length){$('#image-position').textContent='';if($('#gallery').open)$('#gallery').close();return}host.append(photo(galleryPhotos[galleryIndex],'תמונה '+(galleryIndex+1)+' של הדירה'));$('#image-position').textContent=(galleryIndex+1)+' / '+galleryPhotos.length}
 function openGallery(images,title){galleryPhotos=images;galleryIndex=0;$('#gallery-title').textContent=title;showPhoto();$('#gallery').showModal()}
+function appendMediaNotice(host,row){const message=mediaNotice(row);if(!message)return;const notice=node('p',message,'media-notice');notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');host.append(notice)}
 function renderDetail(row,loading){
  const host=$('#detail-body'),title=[row.neighborhood,row.city].filter(Boolean).join(', ')||'פרטי הנכס',images=safeImages(row.images);host.replaceChildren();$('#detail-title').textContent=title;
  if(images.length){const cover=node('button',undefined,'detail-cover');cover.type='button';cover.setAttribute('aria-label','פתיחת כל התמונות');cover.append(photo(images[0],'תמונת הנכס'));cover.append(node('span',images.length+' תמונות · לפתיחת הגלריה','detail-photo-label'));cover.onclick=()=>openGallery(images,title);host.append(cover)}
+ appendMediaNotice(host,row);
  if(typeof row.price==='number'){host.append(node('p','₪'+row.price.toLocaleString('he-IL')+(row.deal_type==='rent'?' לחודש':''),'price detail-price'))}
  host.append(node('p','מיקום כללי · הכתובת המדויקת נמסרת דרך המשרד','location-note'));
  const summary=node('section',undefined,'detail-description');summary.append(node('h3','על הנכס'),node('p',propertySummary(row)),node('small','תמצית לפי נתוני המקור. תיאור חופשי ופרטים נוספים יימסרו דרך המשרד.'));host.append(summary);
@@ -61,8 +70,9 @@ function render(data){
  if(!Array.isArray(data.listings)||data.listings.length>100)throw Error('invalid');const host=$('#properties');
  for(const row of data.listings){
   const card=node('article',undefined,'property-card'),cover=node('div',undefined,'cover'),images=safeImages(row.images),title=[row.neighborhood,row.city].filter(v=>typeof v==='string'&&v).join(', ')||'פרטי מיקום לא נמסרו';
-  if(images.length){cover.append(photo(images[0],'תמונת הדירה באזור '+title));const button=node('button',images.length+' תמונות','photo-button');button.type='button';button.setAttribute('aria-label','פתיחת תמונות — '+title);button.onclick=()=>openGallery(images,title);cover.append(button)}else cover.append(node('span','לא נמסרו תמונות'));
+  if(images.length){cover.append(photo(images[0],'תמונת הדירה באזור '+title));const button=node('button',images.length+' תמונות','photo-button');button.type='button';button.setAttribute('aria-label','פתיחת תמונות — '+title);button.onclick=()=>openGallery(images,title);cover.append(button)}else cover.append(node('span',mediaNotice(row)?'תמונות אינן זמינות':'לא נמסרו תמונות'));
   const body=node('div',undefined,'property-body');body.append(node('h3',title),node('p','מיקום כללי · פרטים מדויקים מול המשרד','location-note'));
+  appendMediaNotice(body,row);
   if(typeof row.price==='number'&&Number.isFinite(row.price)){const price=node('p','₪'+row.price.toLocaleString('he-IL'),'price');if(row.deal_type==='rent')price.append(node('small',' / חודש'));body.append(price)}
   const facts=node('div',undefined,'facts');for(const [label,value]of propertyFacts(row).filter(([label])=>['סוג נכס','חדרים','שטח בנוי'].includes(label)))facts.append(node('span',value+(label==='חדרים'?' חדרים':'')));if(facts.children.length)body.append(facts);
   body.append(node('p',propertySummary(row),'property-summary'));
