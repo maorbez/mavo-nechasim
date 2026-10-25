@@ -143,7 +143,7 @@ input[type=checkbox],input[type=radio]{accent-color:#8C6B2F}
 .mavo-map-dot.map-residential,.map-kind-legend .map-residential{background:#19A76F}
 .mavo-map-dot.map-commercial,.map-kind-legend .map-commercial{background:#337E59}
 .mavo-map-dot.map-mixed{background:linear-gradient(90deg,#19A76F 50%,#337E59 50%)}
-.map-kind-legend{display:flex;gap:20px;align-items:center;padding:8px 16px 12px;font-size:13px;color:#242424}
+.map-kind-legend{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:8px 16px 12px;font-size:13px;color:#242424}
 .map-kind-legend span{display:inline-flex;gap:7px;align-items:center}.map-kind-legend i{display:inline-block;width:12px;height:12px;border-radius:50%}
 /* Popups now carry the details hidden from compact markers. */
 .leaflet-popup-content-wrapper{display:block;background:#F8F3E9;color:#242424;border-radius:12px}
@@ -263,3 +263,20 @@ body:not([data-city]) .hero-scroll-hint{opacity:.55}
 .search-request-cta a{padding:14px 22px;border-radius:12px;flex-shrink:0;text-decoration:none;font-weight:700;min-height:48px;text-align:center}
 .search-request-cta.no-results{border:2px solid #C8A052;background:#C8A05210;margin-top:18px}
 @media(max-width:900px){.search-request-cta{flex-direction:column;align-items:stretch;gap:20px;padding:25px 22px}.search-request-cta h2{font-size:22px}}
+
+/* Approximate locations stay compact; details appear only on hover or selection. */
+.mavo-map-dot.map-approximate{border-style:dashed;border-color:#F8F3E9;outline:1px solid #8C6B2F;outline-offset:1px}
+.mavo-map-area-target:focus-visible{outline:2px solid #8C6B2F;border-radius:22px}
+.mavo-area-popup-shell .leaflet-popup-content{width:280px!important;max-width:calc(100vw - 90px);min-width:0;margin:16px}
+.mavo-area-note{font:400 12px/1.5 Heebo,sans-serif;color:#625C50;text-align:right;white-space:normal;margin:0!important;padding:10px 12px}
+.mavo-area-popup>.mavo-area-note{padding:0 0 12px;border-bottom:1px solid #DED5C5}
+.mavo-area-list{max-height:290px;max-height:min(290px,45svh);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.mavo-area-property{display:flex;gap:12px;align-items:center;min-height:80px;padding:12px 0;text-decoration:none;border-bottom:1px solid #DED5C5;color:#242424!important}
+.mavo-area-property:last-child{border-bottom:0}
+.mavo-area-property:focus-visible{outline:2px solid #8C6B2F;outline-offset:-2px;border-radius:8px}
+.mavo-area-photo{position:relative;display:grid;place-items:center;flex:0 0 76px;width:76px;height:72px;overflow:hidden;border-radius:8px;background:#E8DDC7;color:#625C50;font-size:13px}
+.mavo-area-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#242424}
+.mavo-area-property-body{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:12px;line-height:1.5}
+.mavo-area-property-body strong{font-size:15px;color:#242424}
+.mavo-area-property-body>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mavo-area-property-body small{color:#337E59;font-size:11px}

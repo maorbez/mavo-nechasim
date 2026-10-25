@@ -67,10 +67,10 @@ test('main consumer removes withdrawn detail/media and uses current rows without
  ctx.result=good([]);vm.runInContext('updatePublicCatalog(result)',ctx);assert.deepEqual(shown.at(-1),[]);
 });
 function mapFixture(){
- const nodes=[];function node(tag='div'){const n={tagName:tag.toUpperCase(),style:{},dataset:{},children:[],textContent:'',classList:{add(){},remove(){}},appendChild(c){this.children.push(c);c.parentElement=this;return c;},append(...xs){xs.forEach(c=>this.appendChild(c));},replaceChildren(...xs){this.children=[];this.append(...xs);},after(c){nodes.push(c);},addEventListener(){}};nodes.push(n);return n;}
+ const nodes=[];function node(tag='div'){const n={tagName:tag.toUpperCase(),style:{},dataset:{},children:[],textContent:'',attributes:{},setAttribute(k,v){this.attributes[k]=v;},getAttribute(k){return this.attributes[k];},contains(c){return this.children.includes(c);},classList:{add(){},remove(){}},appendChild(c){this.children.push(c);c.parentElement=this;return c;},append(...xs){xs.forEach(c=>this.appendChild(c));},replaceChildren(...xs){this.children=[];this.append(...xs);},after(c){nodes.push(c);},addEventListener(){}};nodes.push(n);n.ownerDocument=document;return n;}
  const document={createElement:node,getElementById:id=>nodes.find(n=>n.id===id)||null};const map={layers:new Set(),addLayer(m){this.layers.add(m);return this;},removeLayer(m){this.layers.delete(m);return this;},hasLayer(m){return this.layers.has(m);},setView(){return this;},fitBounds(){},invalidateSize(){},latLngToContainerPoint:()=>({y:500})};
- const marker=(coords,opts)=>({coords,opts,addTo(map){map.addLayer(this);return this;},on(){return this;},bindPopup(popup){this.popup=popup;return this;},bindTooltip(text){this.tooltip=text;return this;},getLatLng(){return this.coords;}});
- const L={marker,circleMarker:marker,divIcon:x=>x,map:()=>map};const handlers={};const window={document,L,addEventListener:(n,f)=>handlers[n]=f};
+ const marker=(coords,opts)=>({coords,opts,addTo(map){map.addLayer(this);return this;},on(){return this;},bindPopup(popup){this.popup=popup;return this;},bindTooltip(text,options){this.tooltip=text;this.tooltipOptions=options;return this;},getLatLng(){return this.coords;}});
+ const L={marker,circleMarker:marker,divIcon:x=>x,map:()=>map};const handlers={};const window={document,L,addEventListener:(n,f)=>handlers[n]=f};document.defaultView=window;window.MavoPhoto={setSource(image,url){image.src=url;}};window.MavoMedia=require('../public-media');
  const ctx=vm.createContext({window,document,L,console,setTimeout:()=>{},addMavoBasemap(){},createMavoMapPreview(){},MavoCatalog:undefined});vm.runInContext(fs.readFileSync(require.resolve('../catalog'),'utf8'),ctx);ctx.MavoCatalog=window.MavoCatalog;
  return {ctx,map,node,nodes,document,window,handlers};
 }
@@ -82,8 +82,8 @@ test('actual main map renders33 combined IDs/counts, applies filters to area row
  vm.runInContext(source.slice(source.indexOf('function renderMapCatalog'),source.indexOf('function setupMapAreas')),f.ctx);
  vm.runInContext(source.slice(source.indexOf('function applyMapFilters'),source.indexOf('function updateMapCount')),f.ctx);
  vm.runInContext('renderMapCatalog(properties)',f.ctx);assert.equal(count.textContent,33);assert.equal(f.map.layers.size,24);assert.match(f.document.getElementById('mapPlacementCount').textContent,/22 במיקום מדויק · 11 באזור כללי · 0/);
- const areaLabels=[...f.map.layers].filter(m=>m.tooltip&&typeof m.tooltip==='object').map(m=>m.tooltip);
- assert.match(areaLabels.map(n=>n.textContent).join(' '),/אזור כללי בעיר/);assert(areaLabels.every(n=>n.style.width==='150px'&&n.style.maxWidth==='150px'&&n.style.whiteSpace==='normal'));
+ const areas=[...f.map.layers].filter(m=>m.opts?.icon?.className?.includes('mavo-map-area-target'));
+ assert.equal(areas.length,2);assert(areas.every(m=>m.tooltipOptions?.permanent!==true),'area details must not permanently obscure property pins');
  f.ctx.activeType='sale';vm.runInContext('applyMapFilters()',f.ctx);assert.equal(count.textContent,0);assert.equal(f.map.layers.size,0);
  f.ctx.activeType='all';f.ctx.properties=[];vm.runInContext('renderMapCatalog(properties)',f.ctx);assert.equal(count.textContent,0);assert.equal(f.map.layers.size,0);
 });
@@ -104,4 +104,28 @@ test('actual hood map shares refreshed state, preserves transaction filter and v
  f.handlers['mavo:catalog-filter']({detail:{type:'sale'}});assert.match(count.textContent,/1 נכסים/);
  shared.current=good([property(4,{location:'תל אביב, פלורנטין',type:'rent'})]);notify();assert.match(count.textContent,/אין כרגע/);assert.equal(f.map.layers.size,0);
  f.handlers['mavo:catalog-filter']({detail:{type:'all'}});assert.match(count.textContent,/1 נכסים/);shared.current=good([]);notify();assert.equal(f.map.layers.size,0);
+});
+
+// Regression: permanent region labels used to cover prices and leave no visual property choice.
+test('approximate pins show a price or count without permanent boxes and open every current property',()=>{
+ const f=mapFixture(),opened=[];
+ const rows=[property(71,{title:'דירת בדיקה א',priceLabel:'₪ 7,500 / חודש',photos:['https://tnkiwgewdancvmkhzlwz.supabase.co/storage/v1/object/public/property-photos/test.webp']}),property(72,{title:'דירת בדיקה ב',priceLabel:'₪ 8,000 / חודש'})];
+ const group={kind:'neighborhood',label:'תל אביב · פלורנטין',coordinates:[32.055,34.77],rows};
+ const [marker]=f.window.MavoCatalog.renderGeneralAreas(f.map,[group],p=>opened.push(p.id));
+ assert.notEqual(marker.tooltipOptions?.permanent,true,'area captions must be hover-only');
+ assert.match(marker.opts.icon.className,/mavo-map-area-target/);
+ assert.equal(marker.opts.icon.html.textContent,'≈ 2 נכסים');
+ assert.match(marker.opts.title,/משוער/);assert.match(marker.opts.title,/ללא כתובת מדויקת/);
+ assert.deepEqual(marker.coords,[32.055,34.77]);
+ const popup=typeof marker.popup==='function'?marker.popup():marker.popup;
+ const list=popup.children.find(n=>n.className==='mavo-area-list');
+ assert.equal(list.children.length,2);
+ assert.deepEqual(list.children.map(n=>n.href),['index.html?prop=71','index.html?prop=72']);
+ assert.equal(f.nodes.filter(n=>n.tagName==='IMG').length,1);
+ assert.equal(f.nodes.filter(n=>n.tagName==='VIDEO'||n.tagName==='IFRAME').length,0);
+ list.children[1].onclick({preventDefault(){}});assert.deepEqual(opened,[72]);
+ const [single]=f.window.MavoCatalog.renderGeneralAreas(f.map,[{...group,rows:[rows[0]]}]);
+ assert.equal(single.opts.icon.html.textContent,'≈ ₪ 7,500');
+ assert.equal(typeof single.tooltip,'function');
+ const preview=single.tooltip();assert.match(preview.children[0].textContent,/משוער/);
 });

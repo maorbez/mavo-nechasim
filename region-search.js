@@ -1,9 +1,9 @@
 /* Public search geography: stable municipal IDs, never private addresses. */
-(function(root,factory){const api=factory();if(root)root.MavoRegionSearch=api;if(typeof module==='object'&&module.exports)module.exports=api;})(typeof window==='undefined'?null:window,function(){
+(function(root,factory){const api=factory(root);if(root)root.MavoRegionSearch=api;if(typeof module==='object'&&module.exports)module.exports=api;})(typeof window==='undefined'?null:window,function(root){
  'use strict';
  const normalize=value=>String(value||'').normalize('NFKD').replace(/[\u0591-\u05C7׳״'".]/g,'').replace(/[\s\-־–—]+/g,' ').trim().toLowerCase();
  const names=entry=>[entry.name,entry.display_name,...(entry.aliases||[])].filter(Boolean).map(normalize);
- function locate(p){const parts=String(p.location||'').split(',');return {city:normalize(p.city||parts[0]),hood:normalize(p.hood||parts[1])};}
+ function locate(p){const api=root?.MavoCatalog||(typeof require==='function'?require('./catalog.js'):null);const loc=api?api.location(p):{city:p.city||String(p.location||'').split(',')[0],hood:p.hood||String(p.location||'').split(',')[1]};return {city:normalize(loc.city),hood:normalize(loc.hood)};}
  function validate(locations,catalog){
   if(!Array.isArray(locations)||locations.length>catalog.cities.length)throw Error('invalid_regions');
   const seen=new Set();return locations.map(l=>{

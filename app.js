@@ -96,7 +96,8 @@ function initMap(props) {
 
   setupMapAreas(props);
   renderMapCatalog(props);
-  if(window.mavoMainRegions?.locations?.length)fitSelectedMapRegions();
+  // Start close enough to see the actual inventory; subsequent refreshes preserve the view.
+  fitSelectedMapRegions();
 
   // Fix rendering after container paint
   setTimeout(() => map.invalidateSize(), 300);
@@ -141,7 +142,7 @@ function addMarker(p) {
 
   const { pin, dot } = typeColor(p.type);
   const label = p.priceLabel || ('₪ ' + p.price);
-  const shortLabel = label.split('/')[0].trim(); // remove " / לחודש" for pin
+  const shortLabel = MavoCatalog.mapPriceLabel(p);
   const icon = L.divIcon({
     className: 'mavo-map-target',
     html: '<span class="mavo-map-dot '+(String(p.type).startsWith('commercial')?'map-commercial':'map-residential')+'">'+esc(shortLabel)+'</span>',
