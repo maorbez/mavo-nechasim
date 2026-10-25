@@ -68,9 +68,9 @@ test('main consumer removes withdrawn detail/media and uses current rows without
 });
 function mapFixture(){
  const nodes=[];function node(tag='div'){const n={tagName:tag.toUpperCase(),style:{},dataset:{},children:[],textContent:'',attributes:{},setAttribute(k,v){this.attributes[k]=v;},getAttribute(k){return this.attributes[k];},contains(c){return this.children.includes(c);},classList:{add(){},remove(){}},appendChild(c){this.children.push(c);c.parentElement=this;return c;},append(...xs){xs.forEach(c=>this.appendChild(c));},replaceChildren(...xs){this.children=[];this.append(...xs);},after(c){nodes.push(c);},addEventListener(){}};nodes.push(n);n.ownerDocument=document;return n;}
- const document={createElement:node,getElementById:id=>nodes.find(n=>n.id===id)||null};const map={layers:new Set(),addLayer(m){this.layers.add(m);return this;},removeLayer(m){this.layers.delete(m);return this;},hasLayer(m){return this.layers.has(m);},setView(){return this;},fitBounds(){},invalidateSize(){},latLngToContainerPoint:()=>({y:500})};
- const marker=(coords,opts)=>({coords,opts,addTo(map){map.addLayer(this);return this;},on(){return this;},bindPopup(popup){this.popup=popup;return this;},bindTooltip(text,options){this.tooltip=text;this.tooltipOptions=options;return this;},getLatLng(){return this.coords;}});
- const L={marker,circleMarker:marker,divIcon:x=>x,map:()=>map};const handlers={};const window={document,L,addEventListener:(n,f)=>handlers[n]=f};document.defaultView=window;window.MavoPhoto={setSource(image,url){image.src=url;}};window.MavoMedia=require('../public-media');
+ const document={createElement:node,getElementById:id=>nodes.find(n=>n.id===id)||null};const map={handlers:{},on(event,fn){this.handlers[event]=fn;return this;},layers:new Set(),addLayer(m){this.layers.add(m);return this;},removeLayer(m){this.layers.delete(m);return this;},hasLayer(m){return this.layers.has(m);},setView(){return this;},fitBounds(){},invalidateSize(){},latLngToContainerPoint:([lat,lng])=>({x:lng*10000,y:lat*60000})};
+ const marker=(coords,opts)=>({coords,opts,addTo(map){map.addLayer(this);return this;},handlers:{},on(event,fn){this.handlers[event]=fn;return this;},bindPopup(popup){this.popup=popup;return this;},bindTooltip(text,options){this.tooltip=text;this.tooltipOptions=options;return this;},getLatLng(){return this.coords;}});
+ const L={marker,circleMarker:marker,divIcon:x=>x,map:()=>map,control:{zoom:()=>({addTo(){}})}};const handlers={};const window={document,L,addEventListener:(n,f)=>handlers[n]=f};document.defaultView=window;window.MavoPhoto={setSource(image,url){image.src=url;}};window.MavoMedia=require('../public-media');
  const ctx=vm.createContext({window,document,L,console,setTimeout:()=>{},addMavoBasemap(){},createMavoMapPreview(){},MavoCatalog:undefined});vm.runInContext(fs.readFileSync(require.resolve('../catalog'),'utf8'),ctx);ctx.MavoCatalog=window.MavoCatalog;
  return {ctx,map,node,nodes,document,window,handlers};
 }
@@ -78,7 +78,6 @@ test('actual main map renders33 combined IDs/counts, applies filters to area row
  const f=mapFixture(),source=fs.readFileSync(require.resolve('../app'),'utf8');const holder=f.node(),count=f.node();count.id='mapCount';holder.appendChild(count);
  const rows=Array.from({length:33},(_,i)=>property(i+1,{rooms:3,...(i<22?{publicLocationMode:'exact',lat:32+i/1000,lng:34.8}:i<27?{}:{location:'תל אביב, לא מוכרת'})}));
  Object.assign(f.ctx,{properties:rows,map:f.map,markers:[],areaMarkers:[],mapRegions:regions,activeType:'all',openPropertyModal(){},esc:s=>s,typeColor:()=>({})});
- vm.runInContext(source.slice(source.indexOf('function addMarker'),source.indexOf('let activeType')),f.ctx);
  vm.runInContext(source.slice(source.indexOf('function renderMapCatalog'),source.indexOf('function setupMapAreas')),f.ctx);
  vm.runInContext(source.slice(source.indexOf('function applyMapFilters'),source.indexOf('function updateMapCount')),f.ctx);
  vm.runInContext('renderMapCatalog(properties)',f.ctx);assert.equal(count.textContent,33);assert.equal(f.map.layers.size,24);assert.match(f.document.getElementById('mapPlacementCount').textContent,/22 במיקום מדויק · 11 באזור כללי · 0/);
@@ -114,7 +113,7 @@ test('approximate pins show a price or count without permanent boxes and open ev
  const [marker]=f.window.MavoCatalog.renderGeneralAreas(f.map,[group],p=>opened.push(p.id));
  assert.notEqual(marker.tooltipOptions?.permanent,true,'area captions must be hover-only');
  assert.match(marker.opts.icon.className,/mavo-map-area-target/);
- assert.equal(marker.opts.icon.html.textContent,'≈ 2 נכסים');
+ assert.equal(marker.opts.icon.html.textContent,'≈ 2');assert.deepEqual(Array.from(marker.opts.icon.iconSize),[52,52]);
  assert.match(marker.opts.title,/משוער/);assert.match(marker.opts.title,/ללא כתובת מדויקת/);
  assert.deepEqual(marker.coords,[32.055,34.77]);
  const popup=typeof marker.popup==='function'?marker.popup():marker.popup;
@@ -125,7 +124,42 @@ test('approximate pins show a price or count without permanent boxes and open ev
  assert.equal(f.nodes.filter(n=>n.tagName==='VIDEO'||n.tagName==='IFRAME').length,0);
  list.children[1].onclick({preventDefault(){}});assert.deepEqual(opened,[72]);
  const [single]=f.window.MavoCatalog.renderGeneralAreas(f.map,[{...group,rows:[rows[0]]}]);
- assert.equal(single.opts.icon.html.textContent,'≈ ₪ 7,500');
+ assert.equal(single.opts.icon.html.textContent,'≈ ₪ 7,500');assert.deepEqual(Array.from(single.opts.icon.iconSize),[110,44]);
  assert.equal(typeof single.tooltip,'function');
  const preview=single.tooltip();assert.match(preview.children[0].textContent,/משוער/);
+});
+
+test('main map clusters overlapping exact and approximate controls and separates them on zoom without reframing',()=>{
+ const f=mapFixture(),source=fs.readFileSync(require.resolve('../app'),'utf8'),opened=[];
+ const holder=f.node(),count=f.node();count.id='mapCount';holder.appendChild(count);
+ let fits=0;
+ const rows=[property(1,{publicLocationMode:'exact',lat:32.02,lng:34.8,title:'בדיקה א'}),property(2,{publicLocationMode:'exact',lat:32.06,lng:34.79,title:'בדיקה ב'}),property(3,{title:'בדיקה ג'})];
+ Object.assign(f.ctx,{properties:rows,map:f.map,markers:[],areaMarkers:[],mapRegions:regions,activeType:'all',openPropertyModal:p=>opened.push(p.id),esc:s=>s,typeColor:()=>({}),setupMapAreas(){},fitSelectedMapRegions(){fits++;}});
+ vm.runInContext(source.slice(source.indexOf('function initMap'),source.indexOf('function fillMapAreas')),f.ctx);
+ vm.runInContext(source.slice(source.indexOf('function applyMapFilters'),source.indexOf('function updateMapCount')),f.ctx);
+ f.map.latLngToContainerPoint=()=>({x:50,y:50});
+ vm.runInContext('initMap(properties)',f.ctx);
+ assert.equal(f.map.layers.size,1,'overlapping exact/general hitboxes need one selectable group');
+ assert.equal(count.textContent,3);
+ const marker=[...f.map.layers][0],popup=marker.popup(),list=popup.children.find(n=>n.className==='mavo-area-list');
+ assert.deepEqual(Array.from(list.children,a=>a.href),['index.html?prop=1','index.html?prop=2','index.html?prop=3']);
+ list.children[2].onclick({preventDefault(){}});assert.deepEqual(opened,[3]);
+ f.map.latLngToContainerPoint=([lat,lng])=>({x:lng*1e5,y:lat*1e5});
+ f.map.handlers.zoomend();assert.equal(f.map.layers.size,3);assert.equal(count.textContent,3);assert.equal(fits,1,'zoom clustering must not refit the user view');
+ f.ctx.properties=[rows[2]];vm.runInContext('renderMapCatalog(properties)',f.ctx);assert.equal(f.map.layers.size,1);assert.equal(count.textContent,1);
+ const current=[...f.map.layers][0];assert.deepEqual(Array.from(current._mavoRows,p=>p.id),[3]);assert.equal(fits,1);
+});
+
+test('neighborhood map clusters all public locations and zoom rebuild preserves filters and chosen bounds',async()=>{
+ const f=mapFixture();f.node().id='hoodMap';f.node().id='hoodMapCount';let fits=0;
+ f.map.fitBounds=()=>{fits++;};f.map.latLngToContainerPoint=()=>({x:50,y:50});
+ const rows=[property(1,{publicLocationMode:'exact',lat:32.02,lng:34.8}),property(2,{publicLocationMode:'exact',lat:32.06,lng:34.79,type:'sale'}),property(3)];
+ let notify;const shared={current:good(rows),subscribe(fn){notify=fn;fn();}};
+ f.window.getMavoCatalogSession=()=>shared;f.ctx.MavoCatalog.loadMapRegions=async()=>regions;
+ vm.runInContext(fs.readFileSync(require.resolve('../hood-map'),'utf8'),f.ctx);await f.window.initHoodMap({center:[32,34.8]});
+ assert.equal(f.map.layers.size,1,'neighborhood maps must not retain overlapping exact/area controls');assert.equal(fits,1);
+ f.handlers['mavo:catalog-filter']({detail:{type:'sale'}});assert.deepEqual(Array.from(f.map.layers).flatMap(m=>Array.from(m._mavoRows,p=>p.id)),[2]);
+ f.map.latLngToContainerPoint=([lat,lng])=>({x:lng*1e5,y:lat*1e5});f.map.handlers.zoomend();assert.equal(f.map.layers.size,1);assert.equal(fits,1);
+ f.handlers['mavo:catalog-filter']({detail:{type:'all'}});assert.equal(f.map.layers.size,3);assert.equal(fits,1);
+ shared.current=good([]);notify();assert.equal(f.map.layers.size,0);
 });

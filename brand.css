@@ -280,3 +280,6 @@ body:not([data-city]) .hero-scroll-hint{opacity:.55}
 .mavo-area-property-body strong{font-size:15px;color:#242424}
 .mavo-area-property-body>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mavo-area-property-body small{color:#337E59;font-size:11px}
+
+/* Count badges have a smaller hit target than prices, matching map clustering. */
+.mavo-map-dot.map-cluster{width:48px;min-width:48px;max-width:48px;height:48px;padding:0;border-radius:50%;font-size:14px}

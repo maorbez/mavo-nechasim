@@ -11,3 +11,9 @@ Verification before release: Map release Node suite 163 pass (the separate local
 Backup: owner-local mavo-map-status-20261025/website-baseline.tar at baseline 643baa5320baf686ff7639f969ceb9724144807a, exact restore of all 180 tracked files checked. Roll back only the changed static files; no Office/database restore or legacy public-data access change is involved.
 
 The separately requested rented/sold notice requires a new narrow Office status read and is not claimed implemented by this release. Existing removal continues to withdraw photos and active rows.
+
+## Collision follow-up
+
+Live verification of the initial release26f92b5 exposed a remaining price-hitbox overlap: choosing an approximate Florentin group could open a nearby precise property. Both main and neighborhood maps now cluster overlapping controls at the current zoom, with52px count targets and unchanged110x44 price targets. Group anchors are existing approved public positions. Repeated nearest-overlap merging recalculates the smaller count targets rather than collapsing an entire chain; all underlying positions remain available for initial framing. Zoom rebuilds markers without resetting the camera.
+
+Final local suite:174 passed, including four tests for the separately unactivated terminal-status feature (170 map/current-site tests). Independent map review:35 passed, no unresolved blocker. Native390x844 initial load displayed four distributed groups and two individual prices;19-property popup stayed within the viewport and its third link opened property25 correctly. No horizontal page overflow. Desktop zoom restored individual price labels. Final public readback is captured in the owner-local release evidence after deployment.

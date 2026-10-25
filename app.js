@@ -96,6 +96,7 @@ function initMap(props) {
 
   setupMapAreas(props);
   renderMapCatalog(props);
+  map.on('zoomend',applyMapFilters);
   // Start close enough to see the actual inventory; subsequent refreshes preserve the view.
   fitSelectedMapRegions();
 
@@ -104,9 +105,8 @@ function initMap(props) {
 }
 
 function renderMapCatalog(props) {
-  markers.forEach(m=>map.removeLayer(m));markers=[];
   const area=document.getElementById('mapArea');if(area)fillMapAreas(area,props);
-  props.forEach(p=>addMarker(p));applyMapFilters();
+  applyMapFilters();
 }
 
 function fillMapAreas(select,props){
@@ -127,38 +127,7 @@ function setupMapAreas(props) {
  const label=document.createElement('label');label.htmlFor='mapArea';label.textContent='אזור במפה';
  const select=document.createElement('select');select.id='mapArea';select.style.cssText='min-height:44px;padding:8px 12px;margin:8px;border:1px solid #8C8475;background:#F8F3E9;color:#242424;border-radius:6px';select.add(new Option('כל האזורים',''));
  fillMapAreas(select,props);
- select.onchange=()=>{applyMapFilters();const visible=[...markers,...areaMarkers].filter(m=>map.hasLayer(m));if(visible.length)map.fitBounds(visible.map(m=>m.getLatLng()),{padding:[45,45],maxZoom:15});};label.appendChild(select);root.prepend(label);
-}
-
-function typeColor(type) {
-  if (type === 'sale' || type === 'rent') return { pin:'#242424', dot:'#C8A052' };
-  if (type.startsWith('commercial')) return { pin:'#242424', dot:'#C8A052' };
-  return { pin:'#242424', dot:'#C8A052' };
-}
-
-function addMarker(p) {
-  // Skip markers with no valid coordinates
-  if (!MavoCatalog.hasCoordinates(p)) return;
-
-  const { pin, dot } = typeColor(p.type);
-  const label = p.priceLabel || ('₪ ' + p.price);
-  const shortLabel = MavoCatalog.mapPriceLabel(p);
-  const icon = L.divIcon({
-    className: 'mavo-map-target',
-    html: '<span class="mavo-map-dot '+(String(p.type).startsWith('commercial')?'map-commercial':'map-residential')+'">'+esc(shortLabel)+'</span>',
-    iconSize: [110, 44], iconAnchor: [55, 22]
-  });
-  const m = L.marker([p.lat, p.lng], { icon, zIndexOffset: 0, riseOnHover: true })
-    .addTo(map)
-    .on('click', () => {
-      const peers=markers.filter(x=>map.hasLayer(x)&&Number(x._propData.lat)===Number(p.lat)&&Number(x._propData.lng)===Number(p.lng));
-      if(peers.length>1){const list=document.createElement('div');peers.forEach(x=>{const button=document.createElement('button');button.className='btn-outline-primary';button.style.display='block';button.textContent=x._propData.title+' · '+(x._propData.priceLabel||x._propData.price);button.onclick=()=>openPropertyModal(x._propData);list.appendChild(button);});m.bindPopup(list).openPopup();}
-      else openPropertyModal(p);
-    });
-  m.bindTooltip(() => createMavoMapPreview(p), {direction:'top',offset:[0,-18],className:'mavo-map-preview-tooltip',opacity:1});
-  m.on('tooltipopen',()=>{const tip=m.getTooltip();const lower=map.latLngToContainerPoint(m.getLatLng()).y<290;tip.options.direction=lower?'bottom':'top';tip.options.offset=[0,lower?12:-18];tip.update();});
-  m._propData = p;
-  markers.push(m);
+ select.onchange=()=>{applyMapFilters();fitSelectedMapRegions();};label.appendChild(select);root.prepend(label);
 }
 
 let activeType = 'all';
@@ -187,24 +156,17 @@ function applyMapFilters() {
 
   const requiredAmenities = [['mapParking','hasParking'],['mapElevator','hasElevator'],['mapShelter','hasShelter']]
     .filter(([id]) => document.getElementById(id)?.checked).map(([,field]) => field);
-  let count = 0;
   const matches=p=>{
     const r=parseFloat(p.rooms),[city,hood]=(document.getElementById('mapArea')?.value||'').split('|');
     return (typeof window==='undefined'||!window.MavoRegionSearch||window.MavoRegionSearch.matches(p,window.mavoMainRegions,window.mavoMainRegionCatalog))&&MavoCatalog.matchesType(p,activeType)&&MavoCatalog.inScope(p,{city,hood})&&requiredAmenities.every(field=>p[field]===true)&&
       (roomsMin===null&&roomsMax===null||Number.isFinite(r)&&(roomsMin===null||r>=roomsMin)&&(roomsMax===null||r<=roomsMax));
   };
-  markers.forEach(m => {
-    const p = m._propData;
-    if (matches(p)) {
-      count++;
-      if (!map.hasLayer(m)) map.addLayer(m);
-    } else {
-      if (map.hasLayer(m)) map.removeLayer(m);
-    }
-  });
-  const cEl = document.getElementById('mapCount');
-  const groups=MavoCatalog.mapGroups(properties.filter(matches),mapRegions);
-  areaMarkers.forEach(m=>map.removeLayer(m));areaMarkers=MavoCatalog.renderGeneralAreas(map,groups.area,openPropertyModal);
+  const filtered=properties.filter(matches),groups=MavoCatalog.mapGroups(filtered,mapRegions);
+  [...markers,...areaMarkers].forEach(m=>map.removeLayer(m));
+  const clusters=MavoCatalog.clusterMapGroups([...groups.precise,...groups.area],position=>map.latLngToContainerPoint(position));
+  const layers=MavoCatalog.renderMapGroups(map,clusters,openPropertyModal);
+  markers=layers.filter(m=>!m._mavoGeneral);areaMarkers=layers.filter(m=>m._mavoGeneral);
+  const count=groups.precise.reduce((n,g)=>n+g.rows.length,0),cEl=document.getElementById('mapCount');
   const areaCount=groups.area.reduce((n,g)=>n+g.rows.length,0);
   if(cEl){
     cEl.textContent=count+areaCount+groups.unlocated.length;
@@ -736,7 +698,7 @@ function setupHeroSearch(props) {
 let mainRegionDrawer=null,mainRegionDrawerPromise=null,mainRegionOpenValue='[]';
 function fitSelectedMapRegions(){
  if(!map)return;const visible=[...markers,...areaMarkers].filter(marker=>map.hasLayer(marker));
- if(visible.length)map.fitBounds(visible.map(marker=>marker.getLatLng()),{padding:[45,45],maxZoom:15});
+ if(visible.length)map.fitBounds(visible.flatMap(marker=>marker._mavoPositions||[marker.getLatLng()]),{padding:[45,45],maxZoom:15});
 }
 function finishMainRegionSelection(value){
  const current=JSON.stringify(value.locations||[]);if(current===mainRegionOpenValue)return;
