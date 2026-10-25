@@ -81,7 +81,11 @@
    const mixed=!commercial&&g.rows.some(p=>String(p.type).startsWith('commercial'));
    const bubble=root.document.createElement('span');
    bubble.className='mavo-map-dot '+(general?'map-approximate ':'')+(g.rows.length>1?'map-cluster ':'')+(mixed?'map-mixed':commercial?'map-commercial':'map-residential');
-   bubble.textContent=(general?'≈ ':'')+(g.rows.length>1?g.rows.length:mapPriceLabel(g.rows[0]));
+   if(g.rows.length>1){
+    const count=root.document.createElement('span');count.className='map-cluster-count';count.textContent=(general?'≈ ':'')+g.rows.length+' ';
+    const label=root.document.createElement('span');label.className='map-cluster-label';label.textContent='נכסים';
+    bubble.append(count,label);
+   }else bubble.textContent=(general?'≈ ':'')+mapPriceLabel(g.rows[0]);
    const size=mapMarkerSize(g);
    const marker=root.L.marker(g.coordinates,{title:areaLabel,keyboard:true,riseOnHover:true,
     icon:root.L.divIcon({className:'mavo-map-target'+(general?' mavo-map-area-target':''),html:bubble,iconSize:size,iconAnchor:[size[0]/2,size[1]/2]})}).addTo(map);

@@ -21,3 +21,7 @@ Final local suite:174 passed, including four tests for the separately unactivate
 ## Refresh stability follow-up
 
 Identical successful catalog refreshes preserve Leaflet marker/popup/image instances on main and neighborhood maps. Price/media/filter/zoom/withdrawal changes still redraw; hidden/offline/expired snapshots still clear public content. Two identity-based regressions failed before the change and passed afterward. Final suite176 pass (172 current-site tests plus four unactivated status tests). Native live ace8a70 delivery verified37 properties, no390px overflow, group selection, real branded apartment thumbnails, and14 exact deployed file matches. The refresh follow-up is verified separately after its static release.
+
+## Explicit group labels
+
+Count markers now show the number above the word `נכסים`, so a group cannot be mistaken for a price. The48px circle and52px collision target are unchanged. Approximate-location marks, single-property prices, links and popup behavior are preserved. The existing renderer assertion now checks the full visible label. All186 current local tests passed; desktop and390px local browser views confirmed both lines fit. Backup e9b0e7a restored exactly across186 tracked files. Live release evidence is recorded separately in owner-local artifacts/mavo-map-label-20261025.

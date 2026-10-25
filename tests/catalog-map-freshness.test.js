@@ -113,7 +113,7 @@ test('approximate pins show a price or count without permanent boxes and open ev
  const [marker]=f.window.MavoCatalog.renderGeneralAreas(f.map,[group],p=>opened.push(p.id));
  assert.notEqual(marker.tooltipOptions?.permanent,true,'area captions must be hover-only');
  assert.match(marker.opts.icon.className,/mavo-map-area-target/);
- assert.equal(marker.opts.icon.html.textContent,'≈ 2');assert.deepEqual(Array.from(marker.opts.icon.iconSize),[52,52]);
+ assert.equal(marker.opts.icon.html.children.map(n=>n.textContent).join(''),'≈ 2 נכסים');assert.deepEqual(Array.from(marker.opts.icon.iconSize),[52,52]);
  assert.match(marker.opts.title,/משוער/);assert.match(marker.opts.title,/ללא כתובת מדויקת/);
  assert.deepEqual(marker.coords,[32.055,34.77]);
  const popup=typeof marker.popup==='function'?marker.popup():marker.popup;
