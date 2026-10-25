@@ -82,22 +82,24 @@
     /* name + phone row */
     var gName = el('div', { className: 'form-group' }, [
       el('label', {}, ['שם מלא *']),
-      el('input', { type: 'text', placeholder: 'ישראל ישראלי', required: true })
+      el('input', { type: 'text', name: 'name', placeholder: 'ישראל ישראלי', required: true })
     ]);
     var gPhone = el('div', { className: 'form-group' }, [
       el('label', {}, ['טלפון *']),
-      el('input', { type: 'tel', placeholder: '050-0000000', required: true })
+      el('input', { type: 'tel', name: 'phone', placeholder: '050-0000000', required: true,
+        'aria-label': 'טלפון (חובה)', 'aria-required': 'true', inputmode: 'tel',
+        autocomplete: 'tel', dir: 'ltr', maxlength: '32' })
     ]);
     var row1 = el('div', { className: 'form-row' }, [gName, gPhone]);
 
     /* email */
     var gEmail = el('div', { className: 'form-group' }, [
       el('label', {}, ['אימייל']),
-      el('input', { type: 'email', placeholder: 'example@email.com' })
+      el('input', { type: 'email', name: 'email', placeholder: 'example@email.com' })
     ]);
 
     /* subject select */
-    var select = el('select', {});
+    var select = el('select', { name: 'subject' });
     subjects.forEach(function (s) {
       select.appendChild(el('option', {}, [s]));
     });
@@ -109,7 +111,7 @@
     /* message */
     var gMsg = el('div', { className: 'form-group' }, [
       el('label', {}, ['הודעה']),
-      el('textarea', { rows: 4, placeholder: pholder })
+      el('textarea', { name: 'message', rows: 4, placeholder: pholder })
     ]);
 
     /* consent */
@@ -130,7 +132,10 @@
     var note = el('p', { className: 'form-note' }, ['* חוזרים תוך שעה בשעות פעילות']);
 
     /* form */
-    var form = el('form', { className: 'contact-form', onsubmit: 'submitForm(event)' },
+    var form = el('form', { className: 'contact-form', onsubmit: function (event) {
+      event.preventDefault();
+      return window.submitForm(event);
+    } },
       [row1, gEmail, gSubject, gMsg, gConsent, submitBtn, note]);
 
     /* append */

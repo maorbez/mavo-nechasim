@@ -603,9 +603,40 @@ function closeModalBtn() {
   document.body.style.overflow = '';
 }
 
+function contactPhoneError(value) {
+  const text = String(value ?? '').trim();
+  if (!text) return 'חובה להזין מספר טלפון כדי שנוכל לחזור אליכם.';
+  const number = text.replace(/[\s()\-]/g, '');
+  const local = /^(?:0[23489]\d{7}|0[57]\d{8})$/;
+  const israeli = /^(?:\+?972)(?:[23489]\d{7}|[57]\d{8})$/;
+  const valid = /^(?:\+?972)/.test(number) ? israeli.test(number)
+    : number.startsWith('+') ? /^\+[1-9]\d{7,14}$/.test(number) : local.test(number);
+  return valid ? '' : 'יש להזין מספר טלפון תקין, לדוגמה 050-123-4567.';
+}
+
+function validateContactPhone(form) {
+  const phone = form.querySelector('[name="phone"]');
+  if (!phone) return false;
+  const error = contactPhoneError(phone.value);
+  phone.setCustomValidity(error);
+  if (error) { phone.focus(); phone.reportValidity(); return false; }
+  return true;
+}
+
+function setupContactPhoneValidation(doc) {
+  // Neighborhood contact forms are inserted after app.js loads.
+  doc.addEventListener('input', e => {
+    if (e.target.matches?.('input[name="phone"]')) e.target.setCustomValidity('');
+  });
+  doc.addEventListener('invalid', e => {
+    if (e.target.matches?.('input[name="phone"]')) e.target.setCustomValidity(contactPhoneError(e.target.value));
+  }, true);
+}
+
 async function submitModalForm(e) {
   e.preventDefault();
   const form = e.target;
+  if (!validateContactPhone(form)) return;
   if (form.querySelector('[name="_honey"]')?.value) {   // honeypot: bots fill it → drop silently
     closeModalBtn(); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); return;
   }
@@ -635,6 +666,8 @@ async function submitModalForm(e) {
   } catch { showToast('שגיאה בשליחה — נסה שוב.'); }
   finally { btn.disabled = false; btn.textContent = origText; }
 }
+
+setupContactPhoneValidation(document);
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalBtn(); });
 
@@ -730,6 +763,7 @@ async function openMainRegions(){try{const drawer=await ensureMainRegionDrawer()
 async function submitForm(e) {
   e.preventDefault();
   const form = e.target;
+  if (!validateContactPhone(form)) return;
   if (form.querySelector('[name="_honey"]')?.value) {   // honeypot: bots fill it → drop silently
     showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); return;
   }
@@ -741,7 +775,7 @@ async function submitForm(e) {
     const payload = {
       _subject: 'פנייה חדשה מאתר מבוא נכסים',
       name:    form.querySelector('[name="name"]').value,
-      phone:   form.querySelector('[name="phone"]').value,
+      phone:   form.querySelector('[name="phone"]').value.trim(),
       email:   form.querySelector('[name="email"]').value || 'לא צוין',
       subject: form.querySelector('[name="subject"]').value,
       message: form.querySelector('[name="message"]').value || 'לא צוין',

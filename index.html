@@ -397,7 +397,7 @@
               <input type="text" name="name" placeholder="שם מלא *" required />
             </div>
             <div class="mform-group">
-              <input type="tel" name="phone" placeholder="טלפון *" required />
+              <input type="tel" aria-label="טלפון (חובה)" aria-required="true" maxlength="32" dir="ltr" autocomplete="tel" inputmode="tel" name="phone" placeholder="טלפון *" required />
             </div>
             <div class="mform-group">
               <input type="email" name="email" placeholder="אימייל" />
@@ -612,7 +612,7 @@
             </div>
             <div class="form-group">
               <label>טלפון *</label>
-              <input type="tel" name="phone" placeholder="050-0000000" required />
+              <input type="tel" aria-label="טלפון (חובה)" aria-required="true" maxlength="32" dir="ltr" autocomplete="tel" inputmode="tel" name="phone" placeholder="050-0000000" required />
             </div>
           </div>
           <div class="form-group">
@@ -840,7 +840,7 @@
 <script src="looking-regions.js?v=20261015"></script>
 <script src="region-drawer.js?v=20261015"></script>
 <script src="region-search.js?v=20261025-map3"></script>
-<script src="app.js?v=20261025-map3"></script>
+<script src="app.js?v=20261025-phone"></script>
 <script type="text/javascript">
 function googleTranslateElementInit() {
   // If Hebrew is the saved/default language, clear googtrans cookie RIGHT before GT reads it

@@ -52,7 +52,7 @@
     }
     if(current===1) {
       if(!$('name').value.trim()) {showError('מה השם שלכם?');$('name').focus();return false;}
-      if(!phoneValid($('phone').value)) {showError('יש להזין מספר נייד ישראלי תקין.');$('phone').focus();return false;}
+      if(!phoneValid($('phone').value)) {showError($('phone').value.trim()?'יש להזין מספר נייד ישראלי תקין.':'חובה להזין מספר טלפון כדי שנוכל לחזור אליכם.');$('phone').focus();return false;}
       if(!$('privacy-accepted').checked){showError('יש לאשר את מדיניות הפרטיות לצורך טיפול בבקשה.');$('privacy-accepted').focus();return false;}
     }
     return true;
