@@ -162,8 +162,12 @@ function applyMapFilters() {
       (roomsMin===null&&roomsMax===null||Number.isFinite(r)&&(roomsMin===null||r>=roomsMin)&&(roomsMax===null||r<=roomsMax));
   };
   const filtered=properties.filter(matches),groups=MavoCatalog.mapGroups(filtered,mapRegions);
-  [...markers,...areaMarkers].forEach(m=>map.removeLayer(m));
   const clusters=MavoCatalog.clusterMapGroups([...groups.precise,...groups.area],position=>map.latLngToContainerPoint(position));
+  const renderKey=MavoCatalog.mapRenderKey(map,clusters,groups.unlocated);
+  // Successful identical refreshes must not destroy an open property picker.
+  // An empty snapshot, changed media/details/filter or zoom still redraws below.
+  if(map._mavoCatalogRenderKey===renderKey)return;
+  [...markers,...areaMarkers].forEach(m=>map.removeLayer(m));
   const layers=MavoCatalog.renderMapGroups(map,clusters,openPropertyModal);
   markers=layers.filter(m=>!m._mavoGeneral);areaMarkers=layers.filter(m=>m._mavoGeneral);
   const count=groups.precise.reduce((n,g)=>n+g.rows.length,0),cEl=document.getElementById('mapCount');
@@ -176,6 +180,7 @@ function applyMapFilters() {
     let unknown=document.getElementById('mapUnlocated');if(!unknown){unknown=document.createElement('div');unknown.id='mapUnlocated';cEl.parentElement.appendChild(unknown);}
     MavoCatalog.renderUnlocated(unknown,groups.unlocated,openPropertyModal);
   }
+  map._mavoCatalogRenderKey=renderKey;
 }
 
 function updateMapCount(props) {

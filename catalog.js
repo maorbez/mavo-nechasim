@@ -39,6 +39,9 @@
   return {precise:[...groups.values()].filter(g=>g.kind==='precise'),area:[...groups.values()].filter(g=>g.kind!=='precise'),unlocated};
  }
  function mapMarkerSize(group){return group.rows.length>1?[52,52]:[110,44];}
+ function mapRenderKey(map,groups,unlocated){
+  return JSON.stringify([map.getZoom?.(),groups.map(g=>[g.kind,g.label,g.coordinates,g.general,g.positions,g.rows]),unlocated]);
+ }
  function clusterMapGroups(groups,project){
   // Recompute actual control collisions after each merge: a count badge is much
   // smaller than a price. Transitive price-box unions would swallow whole cities.
@@ -116,5 +119,5 @@
   if(!host)return;host.replaceChildren();host.hidden=rows.length===0;
   if(rows.length){const note=root.document.createElement('p');note.textContent=rows.length+' נכסים ללא מיקום מוכר במפה';host.appendChild(note);rows.forEach(p=>{const a=root.document.createElement('a');a.href='index.html?prop='+encodeURIComponent(p.id);a.textContent=p.title||'נכס';a.style.display='block';if(onOpen)a.onclick=e=>{e.preventDefault();onOpen(p);};host.appendChild(a);});}
  }
- return {normalize,cityName,hoodName,location,inScope,matchesType,hasCoordinates,locationLabel,navigationUrl,matchesQuery,mapPriceLabel,mapPosition,mapGroups,clusterMapGroups,loadMapRegions,renderMapGroups,renderGeneralAreas,renderUnlocated};
+ return {normalize,cityName,hoodName,location,inScope,matchesType,hasCoordinates,locationLabel,navigationUrl,matchesQuery,mapPriceLabel,mapPosition,mapGroups,clusterMapGroups,mapRenderKey,loadMapRegions,renderMapGroups,renderGeneralAreas,renderUnlocated};
 });

@@ -68,7 +68,7 @@ test('main consumer removes withdrawn detail/media and uses current rows without
 });
 function mapFixture(){
  const nodes=[];function node(tag='div'){const n={tagName:tag.toUpperCase(),style:{},dataset:{},children:[],textContent:'',attributes:{},setAttribute(k,v){this.attributes[k]=v;},getAttribute(k){return this.attributes[k];},contains(c){return this.children.includes(c);},classList:{add(){},remove(){}},appendChild(c){this.children.push(c);c.parentElement=this;return c;},append(...xs){xs.forEach(c=>this.appendChild(c));},replaceChildren(...xs){this.children=[];this.append(...xs);},after(c){nodes.push(c);},addEventListener(){}};nodes.push(n);n.ownerDocument=document;return n;}
- const document={createElement:node,getElementById:id=>nodes.find(n=>n.id===id)||null};const map={handlers:{},on(event,fn){this.handlers[event]=fn;return this;},layers:new Set(),addLayer(m){this.layers.add(m);return this;},removeLayer(m){this.layers.delete(m);return this;},hasLayer(m){return this.layers.has(m);},setView(){return this;},fitBounds(){},invalidateSize(){},latLngToContainerPoint:([lat,lng])=>({x:lng*10000,y:lat*60000})};
+ const document={createElement:node,getElementById:id=>nodes.find(n=>n.id===id)||null};const map={handlers:{},on(event,fn){this.handlers[event]=fn;return this;},layers:new Set(),removed:[],getZoom:()=>14,addLayer(m){this.layers.add(m);return this;},removeLayer(m){this.removed.push(m);this.layers.delete(m);return this;},hasLayer(m){return this.layers.has(m);},setView(){return this;},fitBounds(){},invalidateSize(){},latLngToContainerPoint:([lat,lng])=>({x:lng*10000,y:lat*60000})};
  const marker=(coords,opts)=>({coords,opts,addTo(map){map.addLayer(this);return this;},handlers:{},on(event,fn){this.handlers[event]=fn;return this;},bindPopup(popup){this.popup=popup;return this;},bindTooltip(text,options){this.tooltip=text;this.tooltipOptions=options;return this;},getLatLng(){return this.coords;}});
  const L={marker,circleMarker:marker,divIcon:x=>x,map:()=>map,control:{zoom:()=>({addTo(){}})}};const handlers={};const window={document,L,addEventListener:(n,f)=>handlers[n]=f};document.defaultView=window;window.MavoPhoto={setSource(image,url){image.src=url;}};window.MavoMedia=require('../public-media');
  const ctx=vm.createContext({window,document,L,console,setTimeout:()=>{},addMavoBasemap(){},createMavoMapPreview(){},MavoCatalog:undefined});vm.runInContext(fs.readFileSync(require.resolve('../catalog'),'utf8'),ctx);ctx.MavoCatalog=window.MavoCatalog;
@@ -162,4 +162,31 @@ test('neighborhood map clusters all public locations and zoom rebuild preserves 
  f.map.latLngToContainerPoint=([lat,lng])=>({x:lng*1e5,y:lat*1e5});f.map.handlers.zoomend();assert.equal(f.map.layers.size,1);assert.equal(fits,1);
  f.handlers['mavo:catalog-filter']({detail:{type:'all'}});assert.equal(f.map.layers.size,3);assert.equal(fits,1);
  shared.current=good([]);notify();assert.equal(f.map.layers.size,0);
+});
+
+test('identical successful main catalog refresh preserves the open group layer while changes and expiry clear it',()=>{
+ const f=mapFixture(),source=fs.readFileSync(require.resolve('../app'),'utf8');f.map.latLngToContainerPoint=()=>({x:50,y:50});
+ const rows=[property(1,{title:'בדיקה א',priceLabel:'₪ 7,500',photos:[]}),property(2,{title:'בדיקה ב'})];
+ Object.assign(f.ctx,{properties:rows,map:f.map,markers:[],areaMarkers:[],mapRegions:regions,activeType:'all',openPropertyModal(){}});
+ vm.runInContext(source.slice(source.indexOf('function renderMapCatalog'),source.indexOf('function setupMapAreas')),f.ctx);
+ vm.runInContext(source.slice(source.indexOf('function applyMapFilters'),source.indexOf('function updateMapCount')),f.ctx);
+ vm.runInContext('renderMapCatalog(properties)',f.ctx);const original=[...f.map.layers][0];
+ const popup=original.popup();assert.equal(popup.children.find(n=>n.className==='mavo-area-list').children.length,2);
+ f.ctx.properties=structuredClone(rows);vm.runInContext('renderMapCatalog(properties)',f.ctx);
+ assert.equal([...f.map.layers][0],original,'identical snapshot must preserve the exact Leaflet layer and its open popup');assert.equal(f.map.removed.length,0);
+ f.ctx.properties[0].priceLabel='₪ 8,000';vm.runInContext('renderMapCatalog(properties)',f.ctx);let current=[...f.map.layers][0];assert.notEqual(current,original);
+ f.ctx.properties[0].photos=['https://example.invalid/changed-public-image.webp'];vm.runInContext('renderMapCatalog(properties)',f.ctx);assert.notEqual([...f.map.layers][0],current);
+ current=[...f.map.layers][0];f.map.getZoom=()=>15;vm.runInContext('applyMapFilters()',f.ctx);assert.notEqual([...f.map.layers][0],current);
+ f.ctx.properties=[];vm.runInContext('renderMapCatalog(properties)',f.ctx);assert.equal(f.map.layers.size,0,'empty/expired display must still clear previous media');
+});
+
+test('identical neighborhood refresh preserves its popup, but withdrawal and filters replace visible groups',async()=>{
+ const f=mapFixture();f.node().id='hoodMap';f.node().id='hoodMapCount';f.map.latLngToContainerPoint=()=>({x:50,y:50});
+ const rows=[property(1),property(2,{type:'sale'})];let notify;const shared={current:good(rows),subscribe(fn){notify=fn;fn();}};
+ f.window.getMavoCatalogSession=()=>shared;f.ctx.MavoCatalog.loadMapRegions=async()=>regions;
+ vm.runInContext(fs.readFileSync(require.resolve('../hood-map'),'utf8'),f.ctx);await f.window.initHoodMap({center:[32,34.8]});
+ const original=[...f.map.layers][0];original.popup();shared.current=good(structuredClone(rows));notify();
+ assert.equal([...f.map.layers][0],original);assert.equal(f.map.removed.length,0);
+ f.handlers['mavo:catalog-filter']({detail:{type:'sale'}});const selected=[...f.map.layers][0];assert.notEqual(selected,original);assert.deepEqual(Array.from(selected._mavoRows,p=>p.id),[2]);
+ shared.current=good([rows[0]]);notify();assert.equal(f.map.layers.size,0);
 });
