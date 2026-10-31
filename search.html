@@ -337,11 +337,11 @@
       .type-toggle { grid-template-columns: 1fr 1fr 1fr; }
     }
   </style>
-<link rel="stylesheet" href="brand.css?v=20261025-map3">
+<link rel="stylesheet" href="brand.css?v=20261031-audit">
 <link rel="icon" type="image/svg+xml" href="assets/brand/favicon-v37.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-v37.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon-v37.png">
-<script src="/language-bridge.js?v=20261016-edge"></script>
+<script src="/language-bridge.js?v=20261031-audit"></script>
 <link rel="stylesheet" href="public-photo.css?v=5">
 <link rel="stylesheet" href="region-drawer.css?v=20261015">
 </head>
@@ -468,7 +468,7 @@
 <script src="public-photo.js?v=6"></script>
 <script src="public-catalog-config.js?v=1"></script>
 <script src="public-media.js?v=3"></script>
-<script src="db.js?v=38"></script>
+<script src="db.js?v=20261031-audit"></script>
 <script src="looking-regions.js?v=20261015"></script>
 <script src="region-drawer.js?v=20261015"></script>
 <script src="region-search.js?v=20261025-map3"></script>
@@ -479,7 +479,7 @@
 
 const WA = '972548026123';
 
-let allProps = [];
+let allProps = [], searchLoading = true;
 let activeType = 'all';
 let searchRegions=new URLSearchParams(window.location.search).has('regions')||new URLSearchParams(window.location.search).has('city')||new URLSearchParams(window.location.search).has('hood')?{invalid:true,locations:[]}:{locations:[]};
 let searchRegionCatalog=null,searchRegionDrawer=null,searchRegionPromise=null,searchHydrating=true;
@@ -490,7 +490,7 @@ async function loadData() {
   const session=window.getMavoCatalogSession();session.subscribe(updateSearchCatalog);
   await session.refresh();
 }
-function updateSearchCatalog(result){allProps=result.properties;buildFilters();applyFilters();}
+function updateSearchCatalog(result){allProps=result.properties;searchLoading=!!result.loading;buildFilters();applyFilters();}
 
 // One canonical selection is shared by the map, list and result filters.
 function buildFilters(){
@@ -600,10 +600,15 @@ function hasDisplayValue(value){ return value !== null && value !== undefined &&
 function renderResults(props) {
   const grid = document.getElementById('resultsGrid');
   const count = props.length;
-  document.getElementById("searchRequestCta").classList.toggle("no-results", count === 0);
-  document.getElementById('resultCount').textContent = count;
-  document.getElementById('countLabel').textContent = count;
+  const loading = count === 0 && searchLoading;
+  document.getElementById("searchRequestCta").classList.toggle("no-results", count === 0 && !loading);
+  document.getElementById('resultCount').textContent = loading ? '…' : count;
+  document.getElementById('countLabel').textContent = loading ? '…' : count;
 
+  if (loading) {
+    grid.innerHTML = '<div class="empty-state" role="status"><h3>טוענים נכסים…</h3></div>';
+    return;
+  }
   if (count === 0) {
     grid.innerHTML = `
       <div class="empty-state">

@@ -43,7 +43,7 @@ test('legitimate nullable public metadata preserves exact source nulls and estab
   const result=await db.loadMavoProperties({renderStatus:false,fetchImpl:async()=>response([source])});
   assert.equal(result.source,'cloudflare');assert.equal(result.degraded,false);
   const property=result.properties[0];
-  assert.equal(property.priceLabel,'₪ 5,000');assert.equal(property.emoji,'🏠');
+  assert.equal(property.priceLabel,'₪ 5,000 / חודש');assert.equal(property.emoji,'🏠');
   assert.equal(property.bg,'linear-gradient(135deg,#1a3a5c,#2d6a9f)');
   assert.equal(property.hasElevator,false);assert.equal(property.hasShelter,false);assert.equal(property.hasParking,false);
   assert.deepEqual(db.validatePublicProjection(source),source);

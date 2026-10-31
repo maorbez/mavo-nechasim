@@ -126,6 +126,7 @@
       .mavo-language-options button:hover{background:#ece7dc}
       .mavo-language-options button[aria-pressed=true]{background:#28574d;color:#f8f3e9}
       .mavo-language-menu button:focus-visible{outline:3px solid #c8a052;outline-offset:-3px}
+      @media(max-width:600px){.mavo-language-toggle{flex-basis:30px;width:30px;height:48px;padding-right:2px}.mavo-language-toggle:before{width:17px}.mavo-language-chevron{width:14px;height:14px}.mavo-language-track{transform:translateX(calc(100% - 30px))}}
       @media(max-height:400px){.mavo-language-menu{top:64px}.mavo-language-options{max-height:calc(100vh - 80px);max-height:calc(100dvh - 80px)}}
       @media(prefers-reduced-motion:reduce){.mavo-language-track,.mavo-language-options,.mavo-language-chevron{transition:none}}
     `;

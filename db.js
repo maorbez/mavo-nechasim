@@ -36,7 +36,15 @@
     });
   }
 
-  function formatPropertyPrice(price, label) {
+  // Older Office titles end with a raw price segment ("· ₪7200"); the card shows the price already.
+  function cleanTitle(title) {
+    if (typeof title !== 'string') return title;
+    const parts = title.split(' · ');
+    const kept = parts.filter(part => !/^₪\s?[\d,]+$/.test(part.trim()));
+    return kept.length && kept.length < parts.length ? kept.join(' · ') : title;
+  }
+
+  function formatPropertyPrice(price, label, type) {
     const text = String(label || price || '').trim();
     if (!text) return 'מחיר בתיאום';
     // Keep qualifiers such as monthly rent; normalize only monetary numbers.
@@ -46,7 +54,9 @@
         const [integer, fraction] = value.replace(/,/g, '').split('.');
         return integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (fraction ? '.' + fraction : '');
       }).replace(/\s+/g, ' ');
-    return '₪ ' + amount;
+    // Office labels arrive with and without the monthly qualifier; show rent one way.
+    const monthly = /rent$/.test(String(type || '')) && !/[א-ת/]/.test(amount);
+    return '₪ ' + amount + (monthly ? ' / חודש' : '');
   }
 
   // The public projection has no balcony-area column. Read only an explicit
@@ -65,9 +75,9 @@
       // Public id is the immutable property_number allocated by Office CRM.
       id: canonicalPropertyId(row.id),
       type: row.type,
-      title: row.title,
+      title: cleanTitle(row.title),
       price: row.price,
-      priceLabel: formatPropertyPrice(row.price, row.price_label),
+      priceLabel: formatPropertyPrice(row.price, row.price_label, row.type),
       location: row.location,
       rooms: row.rooms,
       baths: row.baths,
@@ -85,7 +95,7 @@
       hasShelter: row.has_shelter === true,
       hasParking: row.has_parking === true,
       thumbs: ['🏠', '🛋️', '🚿', '🌅'],
-      agent: { name: 'מבוא נכסים', title: 'צרו קשר', color: '#1565C0', init: 'ג', phone: '054-802-6123' },
+      agent: { name: 'מבוא נכסים', title: 'צרו קשר', color: '#28574D', init: 'מ', phone: '054-802-6123' },
       active: row.active !== false
     };
   }
@@ -218,7 +228,8 @@
   function renderPropertyDataStatus(result) {
     if (!root || !root.document || !root.document.body) return;
     const existing = root.document.getElementById(STATUS_ID);
-    if (!result.degraded) {
+    // A first load or a background-tab pause is not an outage; show no warning.
+    if (!result.degraded || result.loading) {
       if (existing) existing.remove();
       return;
     }
@@ -257,11 +268,13 @@
     const opts=options||{},load=opts.load||loadMavoProperties,now=opts.now||Date.now;
     const later=opts.setTimeout||setTimeout,cancel=opts.clearTimeout||clearTimeout;
     const listeners=new Set(),empty=()=>({properties:[],source:'unavailable',degraded:true,error:null});
-    let current=empty(),generation=0,pending=null,renewal,expiry;
+    // Still nothing verified to show, but no failure has happened yet.
+    const waiting=()=>({properties:[],source:'loading',degraded:true,loading:true,error:null});
+    let current=waiting(),generation=0,pending=null,renewal,expiry;
     const publish=value=>{current=value;listeners.forEach(fn=>fn(current));};
-    function pause(){generation++;pending=null;cancel(renewal);cancel(expiry);publish(empty());}
+    function pause(soft){generation++;pending=null;cancel(renewal);cancel(expiry);publish(soft?waiting():empty());}
     function refresh(){
-      if(opts.canLoad&& !opts.canLoad()){pause();return Promise.resolve(current);}
+      if(opts.canLoad&& !opts.canLoad()){pause(!(opts.offline&&opts.offline()));return Promise.resolve(current);}
       if(pending)return pending;
       cancel(renewal);const own=++generation,started=now();
       const finish=value=>{
@@ -281,12 +294,13 @@
   let catalogSession;
   function getMavoCatalogSession(){
     if(!catalogSession){
-      catalogSession=createCatalogSession({load:()=>loadMavoProperties({renderStatus:false}),canLoad:()=>!root.document.hidden&&root.navigator.onLine!==false});
+      const offline=()=>root.navigator.onLine===false;
+      catalogSession=createCatalogSession({load:()=>loadMavoProperties({renderStatus:false}),canLoad:()=>!root.document.hidden&&!offline(),offline});
       catalogSession.subscribe(renderPropertyDataStatus);
-      const resume=()=>{if(!root.document.hidden&&root.navigator.onLine!==false)catalogSession.refresh();else catalogSession.pause();};
+      const resume=()=>{if(!root.document.hidden&&!offline())catalogSession.refresh();else catalogSession.pause(!offline());};
       root.document.addEventListener('visibilitychange',resume);
       root.addEventListener('offline',()=>catalogSession.pause());root.addEventListener('online',resume);
-      root.addEventListener('pagehide',()=>catalogSession.pause());root.addEventListener('pageshow',resume);
+      root.addEventListener('pagehide',()=>catalogSession.pause(true));root.addEventListener('pageshow',resume);
       resume();
     }
     return catalogSession;

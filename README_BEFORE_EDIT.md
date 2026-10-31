@@ -1,6 +1,13 @@
 # Read before editing
 
-## Current checkpoint — 2026-10-13 local / 2026-10-12 UTC
+## Current checkpoint — 2026-10-31
+
+Live catalog: Cloudflare worker `mavo-catalog-pilot-20261011` (`/api/properties`, 24 active rows on 2026-10-31); Pages reads it through `public-catalog-config.js`. Legacy Supabase is recovery-only.
+Office Railway `64772f69` = source `bde7ef9` (branch `claude/public-status-merge-20261031`): future-only rented/sold status at `/public/property-status/<number>`, copy without photos, and the bot's Cloudflare inventory fix. Any later Office deploy must contain `bde7ef9`.
+Pages adds the old-link status dialog (`property-status.js`, `26ead9c`) and the 2026-10-31 audit fixes: a quiet loading state instead of a false outage banner, consistent monthly rent labels, cleaned legacy titles, brand-colour agent avatars, a no-photo notice, and a narrower mobile language tab.
+The section below is the earlier checkpoint and is kept for history.
+
+## Earlier checkpoint — 2026-10-13 local / 2026-10-12 UTC
 
 Pages serves `7e2aa467bd028664735d9556850cbf5b5e61f7af`, built at 22:26:16Z;
 22:26:19Z anonymous HTTP readback matched all 14 checked release files and 33

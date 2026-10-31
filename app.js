@@ -18,6 +18,9 @@ function esc(s) {
     .replace(/'/g, '&#39;');
 }
 
+function bathsLabel(value) {
+  return Number(value) === 1 ? 'אמבטיה 1' : value + ' אמבטיות';
+}
 function hasDisplayValue(value) {
   return value !== null && value !== undefined && String(value).trim() !== '';
 }
@@ -36,7 +39,7 @@ const CITY_HOODS = {
 function waLink(p) {
   const features = [];
   if (hasDisplayValue(p.rooms)) features.push(`🛏 ${p.rooms} חדרים`);
-  if (hasDisplayValue(p.baths)) features.push(`🚿 ${p.baths} אמבטיות`);
+  if (hasDisplayValue(p.baths)) features.push(`🚿 ${bathsLabel(p.baths)}`);
   if (hasDisplayValue(p.balconySqm)) features.push(`☀️ ${p.balconySqm} מ״ר מרפסות`);
   if (hasDisplayValue(p.sqm)) features.push(`📐 ${p.sqm} מ"ר`);
   if (hasDisplayValue(p.extra)) features.push(`✅ ${p.extra}`);
@@ -56,8 +59,11 @@ function waLink(p) {
 // ---- Load properties through the shared read-only inventory client ----
 let properties = []; // single source of truth, filled on init
 let currentPropertyId = null, publicDetailSignature = '';
+// The first catalog load is not an empty catalog; keep the empty notice hidden.
+let catalogLoading = true;
 function updatePublicCatalog(result) {
   properties = result.properties;
+  catalogLoading = !!result.loading;
   if(currentPropertyId!==null){
     const fresh=properties.find(p=>p.id===currentPropertyId);
     if(!fresh||JSON.stringify(fresh)!==publicDetailSignature){closeLightbox();closeModalBtn();}
@@ -204,8 +210,8 @@ function applyCatalogFilters() {
     card.classList.toggle('hidden', !match); if(match) count++;
   });
   const empty = document.getElementById('catalogEmpty');
-  if(empty) empty.hidden = count > 0;
-  document.getElementById("searchRequestCta")?.classList.toggle("no-results", count === 0);
+  if(empty) empty.hidden = count > 0 || catalogLoading;
+  document.getElementById("searchRequestCta")?.classList.toggle("no-results", count === 0 && !catalogLoading);
   syncPagination();
   if(window.dispatchEvent)window.dispatchEvent(new CustomEvent('mavo:catalog-filter',{detail:{...catalogFilters}}));
 }
@@ -321,7 +327,7 @@ function openPropertyModal(p) {
 
   const modalFeatures = [];
   if (hasDisplayValue(p.rooms)) modalFeatures.push(`<span>🛏 ${esc(p.rooms)} חדרים</span>`);
-  if (hasDisplayValue(p.baths)) modalFeatures.push(`<span>🚿 ${esc(p.baths)} אמבטיות</span>`);
+  if (hasDisplayValue(p.baths)) modalFeatures.push(`<span>🚿 ${esc(bathsLabel(p.baths))}</span>`);
   if (hasDisplayValue(p.sqm)) modalFeatures.push(`<span>📐 ${esc(p.sqm)} מ"ר</span>`);
   if (hasDisplayValue(p.balconySqm)) modalFeatures.push(`<span title="שטח המרפסות במטרים רבועים, בנפרד משטח הדירה">☀️ ${esc(p.balconySqm)} מ״ר מרפסות</span>`);
   if (hasDisplayValue(p.extra)) modalFeatures.push(`<span>✅ ${esc(p.extra)}</span>`);
@@ -336,9 +342,9 @@ function openPropertyModal(p) {
   const avatar = document.createElement('div');
   avatar.className = 'modal-agent-avatar';
   // only allow safe CSS color values (hex / rgb / named)
-  const safeColor = /^(#[0-9a-fA-F]{3,8}|rgb\([\d, ]+\)|[a-zA-Z]+)$/.test(ag.color || '') ? ag.color : '#1565C0';
+  const safeColor = /^(#[0-9a-fA-F]{3,8}|rgb\([\d, ]+\)|[a-zA-Z]+)$/.test(ag.color || '') ? ag.color : '#28574D';
   avatar.style.background = safeColor;
-  avatar.textContent = ag.init || 'ג';
+  avatar.textContent = ag.init || 'מ';
   agEl.appendChild(avatar);
   const agInfo = document.createElement('div');
   const agName = document.createElement('div');
@@ -1029,7 +1035,7 @@ function renderPropertiesGrid(props) {
     // prop-img
     const propImg = document.createElement('div');
     propImg.className = 'prop-img';
-    propImg.style.background = p.bg || 'linear-gradient(135deg,#1565C0,#1976D2)';
+    propImg.style.background = p.bg || 'linear-gradient(135deg,#193D35,#28574D)';
 
     // real photo if available (first non-video image; videos play inside the modal)
     const cardMedia = MavoMedia.resolve(p);
@@ -1079,6 +1085,13 @@ function renderPropertiesGrid(props) {
     // hide emoji if a real photo exists (video-only listings still show the emoji)
     if (!cardImg) iconBig.textContent = p.emoji || '🏠';
     propImg.appendChild(iconBig);
+    // A listing may be published before its photos; say so instead of an empty frame.
+    if (!cardImg && !hasVideo) {
+      const pending = document.createElement('div');
+      pending.className = 'prop-photos-pending';
+      pending.textContent = 'תמונות בקרוב · אפשר לתאם צפייה';
+      propImg.appendChild(pending);
+    }
 
     const dot = document.createElement('div');
     dot.className = 'available-dot'; dot.title = 'זמין';
@@ -1115,7 +1128,7 @@ function renderPropertiesGrid(props) {
     const addSpan = txt => { const s = document.createElement('span'); s.textContent = txt; feats.appendChild(s); };
     if (!isComm && p.rooms) {
       addSpan('🛏 ' + p.rooms + ' חדרים');
-      if (hasDisplayValue(p.baths)) addSpan('🚿 ' + p.baths + ' אמבטיות');
+      if (hasDisplayValue(p.baths)) addSpan('🚿 ' + bathsLabel(p.baths));
       if (hasDisplayValue(p.sqm)) addSpan('📐 ' + p.sqm + ' מ"ר');
       if (p.extra) addSpan('🏠 ' + p.extra);
     } else {
@@ -1133,8 +1146,8 @@ function renderPropertiesGrid(props) {
     agMini.className = 'agent-mini';
     const agAv = document.createElement('div');
     agAv.className = 'agent-avatar';
-    agAv.style.background = (p.agent && p.agent.color) || '#1565C0';
-    agAv.textContent = (p.agent && p.agent.init) || 'ג';
+    agAv.style.background = (p.agent && p.agent.color) || '#28574D';
+    agAv.textContent = (p.agent && p.agent.init) || 'מ';
     const agName = document.createElement('span');
     agName.textContent = (p.agent && p.agent.name) || 'מבוא נכסים';
     agMini.appendChild(agAv); agMini.appendChild(agName);
