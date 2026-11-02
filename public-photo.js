@@ -7,6 +7,10 @@
   const protectedElements = new WeakSet();
   let artworkPromise;
   let fallbacksPromise;
+  // Branded photos already drawn on this page, so reopening a property or a gallery photo is instant.
+  const rendered = new Map();
+  const RENDERED_LIMIT = 48;
+  const MAX_SIDE = 1600;
 
   function geometry(width, height) {
     return {
@@ -58,11 +62,21 @@
     }
   }
 
-  async function render(url) {
+  function render(url) {
+    let pending = rendered.get(url);
+    if (pending) rendered.delete(url);
+    else pending = draw(url).catch(error => { rendered.delete(url); throw error; });
+    rendered.set(url, pending);
+    while (rendered.size > RENDERED_LIMIT) rendered.delete(rendered.keys().next().value);
+    return pending;
+  }
+
+  async function draw(url) {
     const [source, badge] = await Promise.all([publicSource(url), artwork()]);
     const canvas = doc.createElement('canvas');
-    canvas.width = source.naturalWidth;
-    canvas.height = source.naturalHeight;
+    const scale = Math.min(1, MAX_SIDE / Math.max(source.naturalWidth || 1, source.naturalHeight || 1));
+    canvas.width = Math.round(source.naturalWidth * scale);
+    canvas.height = Math.round(source.naturalHeight * scale);
     const context = canvas.getContext('2d');
     if (!context || !source.naturalWidth || !source.naturalHeight) throw new Error('Public photo unavailable');
     context.drawImage(source, 0, 0, canvas.width, canvas.height);
@@ -70,7 +84,7 @@
     context.drawImage(badge, margin, margin, side, side);
     try {
       return await new Promise((resolve, reject) => {
-        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Public photo unavailable')), 'image/png');
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Public photo unavailable')), 'image/jpeg', 0.9);
       });
     } finally {
       canvas.width = canvas.height = 1;
@@ -146,6 +160,8 @@
     setSource: (image, url) => assign(image, url, 'src'),
     setBackground: (element, url) => assign(element, url, 'background'),
     setPoster: (video, url) => assign(video, url, 'poster'),
+    // Warm the cache for a photo the visitor is likely to open next.
+    prefetch: url => { if (enabled && url) render(url).catch(() => {}); },
     dispose,
     geometry
   };

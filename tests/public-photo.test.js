@@ -133,3 +133,14 @@ test('a denied gated asset never requests a local legacy fallback',async()=>{
  const crypto=require('node:crypto');const f=fixture('/',{crypto:crypto.webcrypto,TextEncoder,fetch:async()=>{requests++;throw Error('must not revive');}}),img=f.element();
  f.api.setSource(img,canonical);f.pending[0].onerror();await f.flush();assert.equal(requests,0);assert.equal(img.dataset.mavoPhoto,'unavailable');assert.equal(img.dataset.mavoSourceUrl,canonical);
 });
+
+test('a photo shown twice is drawn once, and prefetch warms the same branded bytes', async () => {
+  const f = fixture(), first = f.element(), second = f.element(), later = f.element();
+  f.api.setSource(first, 'room.jpg'); f.resolve('room.jpg'); f.resolve('/assets/brand/photo-badge-v5.png'); await f.flush();
+  f.api.setSource(second, 'room.jpg'); await f.flush();
+  assert.equal(second.dataset.mavoPhoto, 'ready');
+  f.api.prefetch('next.jpg'); f.resolve('next.jpg'); await f.flush();
+  f.api.setSource(later, 'next.jpg'); await f.flush();
+  assert.equal(later.dataset.mavoPhoto, 'ready');
+  assert.deepEqual(f.pending.map(p => p.url).filter(u => !u.includes('badge')), ['room.jpg', 'next.jpg']);
+});

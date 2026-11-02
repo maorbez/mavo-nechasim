@@ -50,7 +50,7 @@ function shareRenderFixture(){
  const nodes={};const context=vm.createContext({...exported,
   $:selector=>nodes[selector]??=(new Element('div')),
   node:(tag,text,cls)=>Object.assign(new Element(tag),{textContent:text??'',className:cls??''}),
-  photo:(url,alt)=>Object.assign(new Element('img'),{src:url,alt}),
+  photo:(url,alt)=>Object.assign(new Element('img'),{src:url,alt}),prefetch(){},
   location:{href:'https://mavorealestate.com/share.html#'+'a'.repeat(32)},
   openGallery(){},openDetail(){},status(){},encodeURIComponent,
  });
