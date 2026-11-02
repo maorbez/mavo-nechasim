@@ -661,6 +661,31 @@ function setupContactPhoneValidation(doc) {
   }, true);
 }
 
+// Website inquiries are saved straight into Office (lead + follow-up). The email
+// stays as Maor's notification and as the fallback if Office cannot be reached.
+const OFFICE_CONTACT_ENDPOINT = 'https://forms.mavorealestate.com/public/contact-requests';
+async function deliverInquiry(form, emailPayload, inquiry) {
+  const val = sel => (form.querySelector(sel)?.value || '').trim();
+  const office = fetch(OFFICE_CONTACT_ENDPOINT, {
+    method: 'POST', credentials: 'omit', referrerPolicy: 'no-referrer',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      schema_version: 1, idempotency_key: crypto.randomUUID(), source: 'mavo_public_contact', website: '',
+      contact: { name: val('[name="name"]'), phone: val('[name="phone"]'), email: val('[name="email"]') },
+      inquiry: { subject: inquiry.subject.slice(0, 60), message: val('[name="message"]').slice(0, 2000),
+                 property_number: inquiry.propertyNumber, property_title: inquiry.title.slice(0, 200) },
+      consent: { privacy_version: '2026-10-02', privacy_accepted: true, contact: true },
+    }),
+  }).then(res => res.ok, () => false);
+  const email = fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(emailPayload),
+  }).then(res => res.ok, () => false);
+  const [saved, emailed] = await Promise.all([office, email]);
+  return saved || emailed;
+}
+
 async function submitModalForm(e) {
   e.preventDefault();
   const form = e.target;
@@ -684,12 +709,12 @@ async function submitModalForm(e) {
       message: val('[name="message"]') || 'לא צוין',
       marketing_consent: form.querySelector('[name="marketingConsent"]')?.checked ? 'כן' : 'לא',
     };
-    const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(payload),
+    const number = Number(currentPropertyId);
+    const ok = await deliverInquiry(form, payload, {
+      subject: payload.interest, title: payload.property,
+      propertyNumber: Number.isSafeInteger(number) && number > 0 ? number : null,
     });
-    if (res.ok) { closeModalBtn(); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
+    if (ok) { closeModalBtn(); showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
     else { showToast('שגיאה בשליחה — נסה שוב.'); }
   } catch { showToast('שגיאה בשליחה — נסה שוב.'); }
   finally { btn.disabled = false; btn.textContent = origText; }
@@ -809,12 +834,8 @@ async function submitForm(e) {
       message: form.querySelector('[name="message"]').value || 'לא צוין',
       marketing_consent: form.querySelector('[name="marketingConsent"]').checked ? 'כן' : 'לא',
     };
-    const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) { showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
+    const ok = await deliverInquiry(form, payload, { subject: payload.subject, title: '', propertyNumber: null });
+    if (ok) { showToast('הפנייה נשלחה! ניצור קשר בקרוב.'); form.reset(); }
     else { showToast('שגיאה בשליחה — נסה שוב.'); }
   } catch { showToast('שגיאה בשליחה — נסה שוב.'); }
   finally { btn.disabled = false; btn.textContent = origText; }
