@@ -144,3 +144,32 @@ test('a photo shown twice is drawn once, and prefetch warms the same branded byt
   assert.equal(later.dataset.mavoPhoto, 'ready');
   assert.deepEqual(f.pending.map(p => p.url).filter(u => !u.includes('badge')), ['room.jpg', 'next.jpg']);
 });
+
+test('a swiped photo follows the finger, slides out, and the next photo slides in', () => {
+  const timers = [];
+  const f = fixture('/', { getComputedStyle: () => ({ direction: 'rtl' }), setTimeout: fn => timers.push(fn) });
+  let photo = { style: {} };
+  const host = { ...f.element(), clientWidth: 300 }, steps = [];
+  const go = f.api.swipe(host, dir => { steps.push(dir); photo = { style: {} }; }, () => photo);
+  const touch = (x, y = 100) => ({ clientX: x, clientY: y });
+  const first = photo;
+  host.events.touchstart({ touches: [touch(100)] });
+  host.events.touchmove({ touches: [touch(160)] });
+  assert.equal(first.style.transform, 'translateX(60px)');
+  host.events.touchend({ changedTouches: [touch(180)] });
+  assert.deepEqual(steps, []);
+  assert.equal(first.style.transform, 'translateX(300px)');   // RTL forward leaves to the right
+  timers.pop()();   // the slide-out timer; the first one only re-enables taps
+  assert.deepEqual(steps, [1]);
+  assert.equal(photo.style.transform, '');
+  assert.equal(photo.style.opacity, '');
+  timers.length = 0;
+  // A vertical scroll and a short drag snap back without changing the photo.
+  host.events.touchstart({ touches: [touch(100)] });
+  host.events.touchend({ changedTouches: [touch(120, 300)] });
+  host.events.touchstart({ touches: [touch(100)] });
+  host.events.touchend({ changedTouches: [touch(125)] });
+  assert.deepEqual(steps, [1]);
+  go(-1); timers.shift()();
+  assert.deepEqual(steps, [1, -1]);
+});

@@ -5,4 +5,4 @@
 .media-notice{margin:12px 0;padding:11px 13px;border:1px solid #dfcfab;border-radius:12px;background:#fbf5e7;color:#705725;font-size:13px;line-height:1.7;overflow-wrap:anywhere}.cover>span{padding:16px;text-align:center}
 /* The brand stamp sits at the top of each photo; keep the top in view when a portrait photo is cropped. */
 .cover img,.detail-cover img{object-position:center top}
-#gallery-image{touch-action:pan-y pinch-zoom}
+#gallery-image,.detail-cover{touch-action:pan-y pinch-zoom}.detail-cover{overflow:hidden}

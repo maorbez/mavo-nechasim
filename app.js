@@ -564,26 +564,6 @@ function closeLightbox() {
   lb.classList.remove('open');
 }
 
-// One-finger horizontal swipe → step(+1 forward / -1 back). Pinch and vertical scroll pass through,
-// and the click that follows a swipe is swallowed so it does not open the lightbox.
-function onSwipe(el, step) {
-  let start = null, swiped = false;
-  el.addEventListener('touchstart', e => {
-    start = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
-  }, { passive: true });
-  el.addEventListener('touchmove', e => { if (e.touches.length > 1) start = null; }, { passive: true });
-  el.addEventListener('touchend', e => {
-    if (!start) return;
-    const dx = e.changedTouches[0].clientX - start.x, dy = e.changedTouches[0].clientY - start.y;
-    start = null;
-    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-    const rtl = getComputedStyle(el).direction === 'rtl';
-    swiped = true; setTimeout(() => { swiped = false; }, 400);
-    step((dx > 0) === rtl ? 1 : -1);
-  });
-  el.addEventListener('click', e => { if (swiped) { e.stopPropagation(); e.preventDefault(); } }, true);
-}
-
 // Wire the gallery main image → fullscreen lightbox, plus keyboard nav (attach once)
 (function wireLightbox() {
   // Suppress double-tap zoom on controls, without suppressing either click
@@ -602,16 +582,28 @@ function onSwipe(el, step) {
   if (gm) gm.addEventListener('click', function () {
     if (this.dataset.lightbox) openLightbox(this.dataset.lightbox);
   });
-  // Swipe between photos. Forward follows reading direction, like the arrow keys.
-  if (gm) onSwipe(gm, step => {
+  // Swipe between photos: the photo slides with the finger. Forward follows reading direction.
+  if (gm) MavoPhoto.swipe(gm, step => {
     const thumbs = [...document.querySelectorAll('#galleryThumbs .gallery-thumb')]
       .filter(t => !t.classList.contains('is-video') || t.dataset.mediaId);   // legacy video thumbs open a player
     if (thumbs.length < 2) return;
     const current = Math.max(0, thumbs.findIndex(t => t.classList.contains('active')));
-    thumbs[(current + step + thumbs.length) % thumbs.length].click();
-  });
+    const next = (current + step + thumbs.length) % thumbs.length;
+    thumbs[next].click();
+    MavoPhoto.prefetch(_galleryImages[(next + step + _galleryImages.length) % _galleryImages.length]);
+  }, () => gm.querySelector('img, video'));
   const lbBox = document.getElementById('lightbox');
-  if (lbBox) onSwipe(lbBox, step => lightboxNav(step));
+  let slide = step => lightboxNav(step);
+  if (lbBox) {
+    slide = MavoPhoto.swipe(lbBox, step => lightboxNav(step), () => document.getElementById('lightboxImg'));
+    // The arrows slide too; caught here before their inline handlers run.
+    lbBox.addEventListener('click', e => {
+      const nav = e.target.closest?.('.lb-nav');
+      if (!nav) return;
+      e.stopPropagation();
+      slide(nav.classList.contains('lb-prev') ? -1 : 1);
+    }, true);
+  }
   document.addEventListener('keydown', function (e) {
     const lb = document.getElementById('lightbox');
     if (!lb || !lb.classList.contains('open')) return;

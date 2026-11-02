@@ -12,7 +12,7 @@ function gallery(direction) {
     querySelectorAll(){return [];},remove(){if(this.parent)this.parent.children=this.parent.children.filter(child=>child!==this);}});
   const elements = { lightboxImg: element(), lbCounter: element(), lightbox: element() };
   const context = vm.createContext({
-    MavoPhoto: { setSource(image, url) { image.src = url; image.protectedSource = url; } },
+    MavoPhoto: { setSource(image, url) { image.src = url; image.protectedSource = url; }, swipe: (host, step) => step },
     document: { createElement:element,getElementById: id => elements[id] || null, querySelector: () => null, querySelectorAll: () => [],
       addEventListener: (name, fn) => { handlers[name] = fn; } },
     getComputedStyle: () => ({ direction })

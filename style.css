@@ -1767,6 +1767,8 @@ html.site-ltr .pf-brand .logo { flex-direction: row; }
   direction: ltr; /* Do not mirror arrow glyphs through Unicode bidi. */
 }
 .lb-nav, .lb-close, .gallery-thumb { touch-action: manipulation; user-select: none; }
+/* Photos slide with the finger; vertical scroll and pinch stay with the browser. */
+.gallery-main, .lightbox { touch-action: pan-y pinch-zoom; overflow: hidden; }
 .lb-close:hover, .lb-nav:hover { background: rgba(255,255,255,.28); }
 .lb-prev { left: 20px; }
 .lb-next { right: 20px; }

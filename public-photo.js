@@ -147,6 +147,61 @@
     } else start();
   }
 
+  // Sliding gallery: the shown photo follows the finger, slides out, and the next one slides in.
+  // step(+1 forward / -1 back) swaps the photo; current() returns the node now on screen.
+  // Pinch and vertical scrolling pass through, and the click after a swipe is swallowed.
+  // Returns go(dir) so arrow buttons slide the same way.
+  function swipe(host, step, current = () => host.firstElementChild) {
+    const still = root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    let start = null, node = null, dragging = false, swiped = false, busy = false;
+    const place = (el, x, ms, faded) => {
+      if (!el?.style) return;
+      el.style.transition = ms ? `transform ${ms}ms ease-out, opacity ${ms}ms ease-out` : 'none';
+      el.style.transform = x ? `translateX(${x}px)` : '';
+      el.style.opacity = faded ? '0' : '';
+    };
+    const rtl = () => root.getComputedStyle(host).direction === 'rtl';
+    // Forward moves toward the reading direction, so in RTL the photo leaves to the right.
+    function go(dir, from = current()) {
+      if (busy) return;
+      if (still || !from?.style) { step(dir); return; }
+      busy = true;
+      const out = ((dir > 0) === rtl() ? 1 : -1) * (host.clientWidth || 320);
+      place(from, out, 160, true);
+      root.setTimeout(() => {
+        place(from, 0, 0);
+        step(dir);
+        const next = current();
+        place(next, -out * .35, 0, true);
+        next?.getBoundingClientRect?.();
+        place(next, 0, 220);
+        busy = false;
+      }, 160);
+    }
+    host.addEventListener('touchstart', e => {
+      start = e.touches.length === 1 && !busy ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+      node = start && current(); dragging = false;
+    }, { passive: true });
+    host.addEventListener('touchmove', e => {
+      if (!start) return;
+      if (e.touches.length > 1) { place(node, 0, 150); start = null; return; }
+      const dx = e.touches[0].clientX - start.x, dy = e.touches[0].clientY - start.y;
+      if (!dragging && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.5) dragging = true;
+      if (dragging && !still) place(node, dx, 0);
+    }, { passive: true });
+    host.addEventListener('touchend', e => {
+      if (!start) return;
+      const dx = e.changedTouches[0].clientX - start.x, dy = e.changedTouches[0].clientY - start.y;
+      start = null;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) { place(node, 0, 180); return; }
+      swiped = true; root.setTimeout(() => { swiped = false; }, 400);
+      go((dx > 0) === rtl() ? 1 : -1, node);
+    });
+    host.addEventListener('touchcancel', () => { if (start) place(node, 0, 150); start = null; });
+    host.addEventListener('click', e => { if (swiped) { e.stopPropagation(); e.preventDefault(); } }, true);
+    return go;
+  }
+
   if (enabled && root.MutationObserver) {
     new root.MutationObserver(records => {
       for (const record of records) for (const node of record.removedNodes) {
@@ -162,6 +217,7 @@
     setPoster: (video, url) => assign(video, url, 'poster'),
     // Warm the cache for a photo the visitor is likely to open next.
     prefetch: url => { if (enabled && url) render(url).catch(() => {}); },
+    swipe,
     dispose,
     geometry
   };
