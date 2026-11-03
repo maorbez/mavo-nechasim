@@ -29,7 +29,7 @@ function setup(){
  }
  const root=new Element('section');
  const document={createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag),createTextNode:text=>{const n=new Element('#text');n.textContent=text;return n;},getElementById:()=>root,querySelectorAll:selector=>root.querySelectorAll(selector),addEventListener(name,fn){(listeners[name]??=[]).push(fn);}};
- const context={document,CONTACT_EMAIL:'isolated@example.invalid',showToast:message=>toasts.push(message),crypto:{randomUUID:()=>'00000000-0000-4000-8000-000000000000'},fetch:async(url,options)=>{if(url.includes('formsubmit'))requests.push({url,body:JSON.parse(options.body)});return {ok:true};}};
+ const context={document,CONTACT_EMAIL:'isolated@example.invalid',showToast:message=>toasts.push(message),crypto:{randomUUID:()=>'00000000-0000-4000-8000-000000000000'},fetch:async(url,options)=>{if(url.includes('formsubmit'))requests.push({url,body:JSON.parse(options.body)});return {ok:true,json:async()=>({success:'true'})};}};
  context.window=context;vm.createContext(context);
  vm.runInContext(app.slice(app.indexOf('function contactPhoneError('),app.indexOf('async function submitModalForm(')),context);
  const start=app.indexOf('async function submitForm('),end=app.indexOf('\n}\n',start)+3;

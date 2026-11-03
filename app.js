@@ -681,7 +681,8 @@ async function deliverInquiry(form, emailPayload, inquiry) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify(emailPayload),
-  }).then(res => res.ok, () => false);
+  // FormSubmit answers 200 with success "false" until the inbox activates the form.
+  }).then(res => res.ok && res.json().then(body => String(body?.success) === 'true', () => false), () => false);
   const [saved, emailed] = await Promise.all([office, email]);
   return saved || emailed;
 }

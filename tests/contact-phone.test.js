@@ -6,7 +6,7 @@ function setup(handlerName,phoneValue){
  field('name','בדיקה מקומית');const phone=field('phone',phoneValue);field('email');field('message');field('interest');field('subject');field('marketingConsent');field('_honey');
  const button={textContent:'שליחה',disabled:false};
  const form={querySelector(selector){if(selector==='button[type="submit"]')return button;return fields.get(selector.match(/name="([^"]+)"/)?.[1]);},reset(){this.resetCalled=true;}};
- const ctx={crypto:{randomUUID:()=>'00000000-0000-4000-8000-000000000000'},currentPropertyId:handlerName==='submitModalForm'?42:null,fetch:async(url,init)=>{(url.includes('formsubmit')?calls:office).push({url,payload:JSON.parse(init.body)});return {ok:true};},CONTACT_EMAIL:'isolated@example.invalid',document:{getElementById:()=>({textContent:'נכס בדיקה'})},showToast:m=>toasts.push(m),closeModalBtn(){}};
+ const ctx={crypto:{randomUUID:()=>'00000000-0000-4000-8000-000000000000'},currentPropertyId:handlerName==='submitModalForm'?42:null,fetch:async(url,init)=>{(url.includes('formsubmit')?calls:office).push({url,payload:JSON.parse(init.body)});return {ok:true,json:async()=>({success:'true'})};},CONTACT_EMAIL:'isolated@example.invalid',document:{getElementById:()=>({textContent:'נכס בדיקה'})},showToast:m=>toasts.push(m),closeModalBtn(){}};
  const helperStart=source.indexOf('function contactPhoneError('),helperEnd=source.indexOf('async function submitModalForm(');
  if(helperStart>=0)vm.runInNewContext(source.slice(helperStart,helperEnd),ctx);
  const start=source.indexOf('async function '+handlerName+'('),end=source.indexOf('\n}\n',start)+3;
@@ -31,10 +31,12 @@ for(const handler of ['submitForm','submitModalForm']){
   assert.equal(sent.payload.source,'mavo_public_contact');assert.equal(sent.payload.inquiry.property_number,handler==='submitModalForm'?42:null);
   assert.deepEqual(sent.payload.consent,{privacy_version:'2026-10-02',privacy_accepted:true,contact:true});
   for(const down of ['office','email']){
-   const g=setup(handler,'050-123-4567');g.ctx.fetch=async url=>{if((url.includes('formsubmit')?'email':'office')===down)throw new Error('down');return {ok:true};};
+   const g=setup(handler,'050-123-4567');g.ctx.fetch=async url=>{if((url.includes('formsubmit')?'email':'office')===down)throw new Error('down');return {ok:true,json:async()=>({success:'true'})};};
    await g.submit();assert.deepEqual(g.toasts,['הפנייה נשלחה! ניצור קשר בקרוב.']);
   }
   const h=setup(handler,'050-123-4567');h.ctx.fetch=async()=>({ok:false});await h.submit();assert.deepEqual(h.toasts,['שגיאה בשליחה — נסה שוב.']);
+  const inactive=setup(handler,'050-123-4567');inactive.ctx.fetch=async url=>url.includes('formsubmit')?{ok:true,json:async()=>({success:'false',message:'This form needs Activation'})}:{ok:false};
+  await inactive.submit();assert.deepEqual(inactive.toasts,['שגיאה בשליחה — נסה שוב.'],'an unactivated email form is not a delivered lead');
  });
  test(handler+' permits correcting an invalid phone without losing other fields',async()=>{
   const f=setup(handler,'abc');await f.submit();f.phone.value='050-123-4567';await f.submit();assert.equal(f.calls.length,1);assert.equal(f.calls[0].payload.name,'בדיקה מקומית');assert.equal(f.phone.message,'');
