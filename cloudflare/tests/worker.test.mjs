@@ -131,3 +131,41 @@ test('CORS never opens a private read or permits unknown origins',async()=>{
 test('identity schema and active constraints reject direct bad writes',()=>{
  const {sql}=setup();assert.throws(()=>sql.prepare('INSERT INTO catalog(id,office_property_id,revision,dispatch_id,payload_hash,active,payload) VALUES(?,?,?,?,?,?,?)').run(0,'x',1,'d','a'.repeat(64),1,JSON.stringify(row(0))));
 });
+async function retire(env,body,alter={}){
+ const raw=JSON.stringify(body),path='/internal/legacy-retirements/'+body.property.id;
+ const time=String(Math.floor(Date.now()/1000));
+ const signed=await signatureFor(env.PUBLISHER_HMAC,'PUT',path,time,raw);
+ return worker.fetch(new Request('https://synthetic.invalid'+path,{method:'PUT',headers:{'content-type':'application/json','x-mavo-time':time,'x-mavo-signature':signed,...alter},body:raw}),env);
+}
+const legacyRow=(sql,id=124)=>{const p=row(id);sql.prepare('INSERT INTO catalog(id,office_property_id,revision,dispatch_id,payload_hash,active,payload) VALUES (?,NULL,1,?,?,1,?)').run(id,'legacy-import','0'.repeat(64),JSON.stringify(p));return p;};
+const tombstone=p=>({...p,active:false,title:'',location:'',lat:null,lng:null,description:'',extra:'מיקום משוער',photos:[],media_manifest:null});
+const retirement=(p,revision=2,expected_revision=1)=>({schema_version:1,retirement_id:'synthetic-retirement-'+p.id,revision,expected_revision,property:tombstone(p)});
+async function fixHash(sql,id){const r=sql.prepare('SELECT payload FROM catalog WHERE id=?').get(id);const {createHash}=await import('node:crypto');
+ const canon=v=>JSON.stringify(v&&typeof v==='object'?Array.isArray(v)?v.map(x=>JSON.parse(canon(x))):Object.fromEntries(Object.keys(v).sort().map(k=>[k,JSON.parse(canon(v[k]))])):v);
+ sql.prepare('UPDATE catalog SET payload_hash=? WHERE id=?').run(createHash('sha256').update(canon(JSON.parse(r.payload))).digest('hex'),id);}
+test('owner-approved legacy retirement hides and empties a null-identity row and replays exactly',async()=>{
+ const {env,sql}=setup();const p=legacyRow(sql);await fixHash(sql,124);
+ assert.equal((await worker.fetch(new Request('https://synthetic.invalid/api/properties/124'),env)).status,200);
+ const first=await retire(env,retirement(p));assert.equal(first.status,200);assert.equal((await first.json()).replayed,false);
+ const saved=sql.prepare('SELECT * FROM catalog WHERE id=124').get();
+ assert.equal(saved.office_property_id,null);assert.equal(saved.active,0);assert.equal(saved.revision,2);assert.equal(saved.dispatch_id,'synthetic-retirement-124');
+ assert.equal((await worker.fetch(new Request('https://synthetic.invalid/api/properties/124'),env)).status,404);
+ assert.deepEqual(await (await worker.fetch(new Request('https://synthetic.invalid/api/properties'),env)).json(),[]);
+ const again=await retire(env,retirement(p));assert.equal(again.status,200);assert.equal((await again.json()).replayed,true);
+ assert.equal((await retire(env,retirement(p,3,1))).status,409);
+});
+test('legacy retirement never touches an Office-owned row, never relists, and requires a signed full tombstone',async()=>{
+ const {env,sql}=setup();await write(env,envelope());
+ assert.equal((await retire(env,retirement(row(),2,1))).status,409);
+ assert.equal(sql.prepare('SELECT active FROM catalog WHERE id=123').get().active,1);
+ const p=legacyRow(sql);await fixHash(sql,124);
+ for(const change of [{active:true},{photos:[p.photos[0]].filter(Boolean).length?p.photos:['https://media.mavorealestate.com/property-124/revision-1/01-'+'a'.repeat(64)+'.jpg']},{description:'still here'},{lat:32.1,lng:34.8,extra:''}]){
+  const body=retirement(p);body.property={...body.property,...change};
+  assert.equal((await retire(env,body)).status,400);
+ }
+ assert.equal((await retire(env,retirement(p),{'x-mavo-signature':'0'.repeat(64)})).status,403);
+ assert.equal((await retire(env,retirement(p),{Origin:'https://mavorealestate.com'})).status,403);
+ assert.equal((await retire(env,{...retirement(p),office_property_id:'adopt-me'})).status,400);
+ assert.equal(sql.prepare('SELECT active FROM catalog WHERE id=124').get().active,1);
+ assert.equal((await retire(env,retirement(row(999)))).status,409);
+});

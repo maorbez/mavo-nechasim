@@ -168,6 +168,33 @@ async function publish(request,env,path){
  if(!exact)throw Error('unknown_publication_outcome');
  await verifiedRow(read);return response(request,{saved:true,replayed:result.meta.changes!==1,provider:'cloudflare-d1',id:p.id,revision:body.revision,payload_hash:hash});
 }
+// Owner-approved retirement of a row no Office record owns (legacy null identity).
+// It can only hide and empty the row; the identity stays null and nothing is relisted.
+async function retireLegacy(request,env,path){
+ if(!env.PUBLISHER_HMAC||env.PUBLISHER_HMAC.length<32)return response(request,{error:'publisher_not_configured'},503);
+ let raw;try{raw=await boundedBody(request);}catch{return response(request,{error:'invalid_body'},413);}
+ if(!await authorized(request,env,path,raw))return response(request,{error:'forbidden'},403);
+ let body,p;try{
+  body=JSON.parse(raw);if(!keys(body,['schema_version','retirement_id','revision','expected_revision','property'])||body.schema_version!==1||!token(body.retirement_id)||!positive(body.revision)||!positive(body.expected_revision)||body.expected_revision>=body.revision)throw Error('invalid_envelope');
+  p=validateProjection(body.property);if(path!=='/internal/legacy-retirements/'+p.id)throw Error('identity_mismatch');
+  if(p.active!==false||p.photos.length||p.media_manifest!==null||p.description!==''||p.lat!==null||p.lng!==null)throw Error('not_a_tombstone');
+ }catch{return response(request,{error:'invalid_retirement'},400);}
+ if(!env.CATALOG)return response(request,{error:'catalog_unavailable'},503);
+ const payload=canonical(p),hash=await digest(payload);
+ const existing=await env.CATALOG.prepare('SELECT * FROM catalog WHERE id=?').bind(p.id).first();
+ if(!existing||existing.office_property_id!==null)return response(request,{error:'not_legacy'},409);
+ if(existing.revision===body.revision){
+  if(existing.dispatch_id===body.retirement_id&&existing.payload_hash===hash&&existing.active===0){await verifiedRow(existing);return response(request,{saved:true,replayed:true,id:p.id,revision:body.revision,payload_hash:hash});}
+  return response(request,{error:'revision_conflict'},409);
+ }
+ const result=await env.CATALOG.prepare(`UPDATE catalog SET revision=?,dispatch_id=?,payload_hash=?,active=0,payload=?,updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')
+ WHERE id=? AND office_property_id IS NULL AND revision=? AND ?>revision`).bind(body.revision,body.retirement_id,hash,payload,p.id,body.expected_revision,body.revision).run();
+ const read=await env.CATALOG.prepare('SELECT * FROM catalog WHERE id=?').bind(p.id).first();
+ const exact=read&&read.office_property_id===null&&read.revision===body.revision&&read.payload_hash===hash&&read.dispatch_id===body.retirement_id&&read.active===0;
+ if(result.meta.changes!==1&&!exact)return response(request,{error:'revision_conflict'},409);
+ if(!exact)throw Error('unknown_retirement_outcome');
+ await verifiedRow(read);return response(request,{saved:true,replayed:result.meta.changes!==1,id:p.id,revision:body.revision,payload_hash:hash});
+}
 export default {async fetch(request,env){
  const url=new URL(request.url),path=url.pathname;
  try{
@@ -175,6 +202,7 @@ export default {async fetch(request,env){
   if(path.startsWith('/internal/')){
    if(url.search)return response(request,{error:'not_found'},404);
    if(request.method==='GET'&&(path==='/internal/publications'||/^\/internal\/publications\/[1-9][0-9]*$/.test(path)))return await internalState(request,env,path);
+   if(request.method==='PUT'&&/^\/internal\/legacy-retirements\/[1-9][0-9]*$/.test(path))return await retireLegacy(request,env,path);
    if(request.method!=='PUT'||!/^\/internal\/publications\/[1-9][0-9]*$/.test(path))return response(request,{error:'not_found'},404);
    return await publish(request,env,path);
   }
