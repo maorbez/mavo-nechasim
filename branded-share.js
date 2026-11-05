@@ -83,7 +83,7 @@ function render(data){
   const button=node('button','לכל פרטי הנכס','detail-button');button.type='button';button.setAttribute('aria-label','כל פרטי הנכס — '+title);button.onclick=()=>openDetail(row);body.append(button);
   card.onclick=e=>{if(!e.target.closest('button,a'))openDetail(row)};card.append(cover,body);host.append(card);
  }
- $('#count').textContent=data.listings.length+' דירות באוסף';$('#checked').textContent='הזמינות נבדקה עכשיו';$('#collection-meta').hidden=false;$('#status-panel').hidden=data.listings.length>0;if(!data.listings.length)status('כרגע אין דירות זמינות באוסף','נשמח לבדוק עבורכם אפשרויות נוספות.');
+ $('#count').textContent=data.listings.length===1?'דירה אחת':data.listings.length+' דירות באוסף';$('#checked').textContent='הזמינות נבדקה עכשיו';$('#collection-meta').hidden=false;$('#status-panel').hidden=data.listings.length>0;if(!data.listings.length)status('כרגע אין דירות זמינות באוסף','נשמח לבדוק עבורכם אפשרויות נוספות.');
 }
 function expire(){clear();status('מאמתים שוב את האוסף','המידע הוסתר עד לבדיקה חוזרת.',true);load()}
 // Back from a property: show the verified list as it was while its lease lasts, instead of reloading every photo.

@@ -94,3 +94,9 @@ test('a refreshed empty gallery clears the stale counter and returns to the curr
  vm.runInContext(code.slice(code.indexOf('function showPhoto('),code.indexOf('function openGallery(')),context);
  context.showPhoto();assert.equal(nodes['#gallery-image'].cleared,true);assert.equal(nodes['#image-position'].textContent,'');assert.equal(nodes['#gallery'].open,false);
 });
+
+test('a one-apartment share says so instead of "1 דירות"',()=>{
+ const {context,nodes}=shareRenderFixture(),row={city:'תל אביב',price:7500,images:[]};
+ context.render({listings:[row]});assert.equal(nodes['#count'].textContent,'דירה אחת');
+ context.render({listings:[row,{...row,price:8000}]});assert.equal(nodes['#count'].textContent,'2 דירות באוסף');
+});
