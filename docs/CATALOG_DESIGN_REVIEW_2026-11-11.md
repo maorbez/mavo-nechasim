@@ -66,3 +66,25 @@ Additional proposals, not implemented:
 The visual review artifact is local. It contains screenshots of the candidate,
 not a new public catalog or copied image deployment. No live listing, infrastructure,
 account, customer message or provider publication was changed.
+
+## Follow-up: hero consistency
+
+Maor requested removal of the gold live indicator and consistent typography and
+colors throughout the hero search fields. Removed the complete decorative live
+badge, including its pulsing dot. The original hero gradient, header behavior,
+title, search function and cream/gold identity remain.
+
+The actual discrepancy was measured in the browser: the region trigger used
+16px green text and one border treatment; budget/rooms used 14.4px dark text,
+with a third gray for the budget placeholder. A `home-search` class now scopes one
+control rule to the home form: Heebo 16px/24px, weight 400, the original dark text
+and cream background, matching borders/padding, and 50px control height. The budget
+placeholder uses the same text color and full opacity. Labels, helper text, tabs
+and the search button use the same family with consistent role-specific sizes.
+
+Chromium and WebKit verified computed style equality for region/budget/rooms at
+1280/390/320px, no live badge or budget arrows, no horizontal overflow, original
+hero palette and transparent top navigation. Opening the region picker and
+submitting budget 7500 / rooms 2.5 still routes those exact values to search.
+The 210-test Node suite passed. Full hero and focused search-form screenshots
+were inspected. This follow-up is also local and has not been deployed.

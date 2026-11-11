@@ -144,7 +144,7 @@
 <script src="assets/maps/maplibre-gl.js"></script>
 <script src="assets/maps/leaflet-maplibre-gl.js"></script>
 <script src="map-base.js?v=33"></script>
-<link rel="stylesheet" href="brand.css?v=20261031-audit">
+<link rel="stylesheet" href="brand.css?v=20261111-hero-fields">
 <link rel="stylesheet" href="property-status.css?v=1">
 <link rel="icon" type="image/svg+xml" href="assets/brand/favicon-v37.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-v37.png">
@@ -232,17 +232,13 @@
     </div>
   </div>
   <div class="container hero-content">
-    <div class="hero-badge">
-      <span class="badge-dot"></span>
-      נכסים חדשים מתעדכנים תדיר
-    </div>
     <h1 class="hero-title">
       מצא את הבית<br/>
       <span class="gradient-text">שתמיד חלמת עליו</span>
     </h1>
     <p class="hero-subtitle">מבוא נכסים — דירות למכירה ולהשכרה בתל אביב ובבת ים. חפשו נכס שמתאים לכם ופנו אלינו לפרטים ולתיאום ביקור.</p>
 
-    <form class="search-box glass" onsubmit="event.preventDefault();doSearch()">
+    <form class="search-box glass home-search" onsubmit="event.preventDefault();doSearch()">
       <div class="search-tabs"><button type="button" data-type="all" class="tab active" onclick="setTab(this,'all')">כל הנכסים</button><button type="button" data-type="sale" class="tab" onclick="setTab(this,'sale')">למכירה</button><button type="button" data-type="rent" class="tab" onclick="setTab(this,'rent')">להשכרה</button><button type="button" data-type="commercial" class="tab" onclick="setTab(this,'commercial')">מסחרי</button></div>
       <div class="search-fields">
         <div class="field-group field-group-region"><label for="heroRegions">עיר ושכונות</label><button type="button" id="heroRegions" class="region-picker-trigger" aria-haspopup="dialog" aria-describedby="heroRegionSummary" onclick="openMainRegions()">בחירה במפה או ברשימה</button><p id="heroRegionSummary" class="region-picker-summary">כל הערים והשכונות</p></div>

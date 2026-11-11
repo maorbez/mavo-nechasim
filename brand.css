@@ -211,6 +211,15 @@ body:not([data-city]) .hero .search-btn{background:linear-gradient(135deg,#C8A05
 body:not([data-city]) .hero .search-btn:hover{box-shadow:0 6px 20px #C8A05280;transform:translateY(-1px)}
 body:not([data-city]) .hero-scroll-hint{opacity:.55}
 
+/* One control style for the home hero's region button, budget and rooms. */
+body:not([data-city]) .hero .home-search{font-family:Heebo,sans-serif}
+body:not([data-city]) .hero .home-search .field-group>label{font:600 13px/20px Heebo,sans-serif;letter-spacing:normal;color:var(--text-muted)}
+body:not([data-city]) .hero .home-search .field-group :is(input,select,.region-picker-trigger){font:400 16px/1.5 Heebo,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:normal;color:var(--text);background-color:var(--light);border:1.5px solid #DED5C5;border-radius:10px;box-sizing:border-box;height:50px;min-height:50px;padding:10px 14px;text-align:start}
+body:not([data-city]) .hero .home-search input::placeholder{font:inherit;color:var(--text);opacity:1}
+body:not([data-city]) .hero .home-search .region-picker-summary{font:400 12px/1.5 Heebo,sans-serif;color:var(--text-muted)}
+body:not([data-city]) .hero .home-search .tab{font:600 14px/1.5 Heebo,sans-serif}
+body:not([data-city]) .hero .home-search .search-btn{font:700 16px/1.5 Heebo,sans-serif}
+
 /* Vector streets keep their designed colors; only raster fallback uses tile filtering. */
 .leaflet-maplibre-gl{filter:none}
 .leaflet-container.mavo-map-touch-hint::after{content:attr(data-touch-hint);position:absolute;z-index:800;left:50%;top:20px;transform:translateX(-50%);padding:9px 15px;border-radius:20px;background:#F8F3E9ED;color:#242424;font:600 13px Heebo,sans-serif;white-space:nowrap;pointer-events:none;box-shadow:0 3px 14px #24242420}
