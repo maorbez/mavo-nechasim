@@ -5,7 +5,7 @@ const row=(id,extra={})=>({id,active:true,title:'נכס '+id,rooms:2,...extra});
 test('comparison uses current canonical rows and clears withdrawn inventory',()=>{
  const state=createState();state.update([row(97),row(98),row(91),row(90)]);
  assert.equal(state.toggleCompare(97),true);state.toggleCompare(98);state.toggleCompare(91);
- assert.equal(state.toggleCompare(90),false);assert.equal(state.toggleCompare(999),false);
+ assert.equal(state.toggleCompare(90),true);assert.equal(state.toggleCompare(999),false);
  state.update([row(97,{price:8000}),row(91)]);
  assert.deepEqual(state.selectedRows().map(p=>p.id),[97,91]);assert.equal(state.selectedRows()[0].price,8000);
  state.update([]);assert.deepEqual(state.selectedRows(),[]);assert.equal(state.toggleCompare(97),false);
@@ -27,4 +27,13 @@ test('unknown values remain unknown; balcony area is separate from apartment are
  assert.equal(fields.find(f=>f.key==='sqm').value(row(2)),'לא צוין');
  assert.equal(fields.find(f=>f.key==='balconySqm').value(row(1,{balconySqm:12})),'12 מ״ר');
  assert.deepEqual(comparisonFields([row(1,{rooms:null})]),[]);
+});
+
+test('comparison can include every current property without an arbitrary three-item cap',()=>{
+ const state=createState(),rows=Array.from({length:24},(_,i)=>row(i+1));state.update(rows);
+ for(const p of rows)assert.equal(state.toggleCompare(p.id),true);
+ assert.equal(state.selectedRows().length,24);state.toggleCompare(12);
+ assert.equal(state.selectedRows().length,23);assert.equal(state.isSelected(12),false);
+ state.update(rows.filter(p=>p.id<=4));assert.deepEqual(state.selectedRows().map(p=>p.id),[1,2,3,4]);
+ state.clear();assert.deepEqual(state.selectedRows(),[]);
 });
