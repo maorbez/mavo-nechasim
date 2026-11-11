@@ -1,7 +1,8 @@
-# Unpublished correction and design review
+# Approved correction and design review
 
-Status: local candidate, not deployed. Maor requested review and proposals before
-another deployment. The production head remains `b956a4d`.
+Status: approved and deployed on 2026-11-11. Maor reviewed the restoration and
+hero correction, then accepted the candidate. Runtime release: `0a3474f`.
+The additional section-order and filter-summary proposals remain unimplemented.
 
 ## User decision and scope
 
@@ -61,7 +62,8 @@ Additional proposals, not implemented:
   clearing and current protected-media branding.
 - Source UI checks use the dated anonymous public fixture and actual gated public
   image reads. They are distinct from production behavior. Physical devices were
-  not exercised. Production still has the prior colors and three-property cap.
+  not exercised. At review time, production still had the prior colors and
+  three-property cap; the approved deployment below supersedes that state.
 
 The visual review artifact is local. It contains screenshots of the candidate,
 not a new public catalog or copied image deployment. No live listing, infrastructure,
@@ -87,4 +89,34 @@ Chromium and WebKit verified computed style equality for region/budget/rooms at
 hero palette and transparent top navigation. Opening the region picker and
 submitting budget 7500 / rooms 2.5 still routes those exact values to search.
 The 210-test Node suite passed. Full hero and focused search-form screenshots
-were inspected. This follow-up is also local and has not been deployed.
+were inspected. This follow-up was reviewed locally before approval and is
+included in the deployment below.
+
+## Approved deployment
+
+Maor accepted the final hero correction with "סבבה", following his earlier
+request to deploy after review. Only the reviewed corrections were published;
+the proposed page-section reordering, shorter introduction and active-filter
+summary were not implemented.
+
+The production base `b956a4de4a7203035a22c3db5e7ed09282041106` was
+backed up in a complete git bundle, restored into an isolated checkout and verified
+by its exact HEAD plus 209 passing baseline tests. Bundle SHA-256:
+`1490ca179b763531f8f4a9868bdd4b7a9a060c46882d9fbf2e4acdac2d21ee12`.
+
+Approved runtime `0a3474f0c0b4aadfefdd3cdbcfe5ebb287b21558` passed
+210 tests before push to `origin/master`. GitHub Pages run
+<https://github.com/maorbez/mavo-nechasim/actions/runs/43051644970> completed
+successfully. Anonymous HTTP readback at `2026-11-11T15:47:15.801138+00:00`
+returned 200 and exact local-source SHA-256 equality for all runtime files below.
+This verifies public delivery; browser rendering and interactions were verified
+on the candidate as described above, not repeated against production.
+
+| File | SHA-256 |
+| --- | --- |
+| `index.html` | `ae30b2452a22019fe5b292ad9596bc2180c910deefb8b43434a5856967950ef2` |
+| `search.html` | `618824b2440acec815a9ea0ccb53c84aa6fd60c678221d513fc25f0cbbfc41ff` |
+| `brand.css` | `8fe33ab83a2c2d99abd04aed95799e75c0e6fac71eddce341f3d58130f572a55` |
+| `catalog-ui.css` | `e5cac201959a6a98de3c9c95f515d2500ee9caaba10d5453ae8582fc2be55ddd` |
+| `catalog-ui.js` | `21ae006e5ee6b6ce5870f01c14f4caaf7472f763cda309938dcf9ca63b5a9fa1` |
+| `app.js` | `0cb0a45ff0317ac1adcfdf69c43b8dbd980ae580c2add40b44503bac28f3ebbb` |
