@@ -63,6 +63,7 @@ let currentPropertyId = null, publicDetailSignature = '';
 let catalogLoading = true;
 function updatePublicCatalog(result) {
   properties = result.properties;
+  if(typeof window!=='undefined')window.MavoCatalogUI?.update(properties);
   catalogLoading = !!result.loading;
   if(currentPropertyId!==null){
     const fresh=properties.find(p=>p.id===currentPropertyId);
@@ -206,7 +207,7 @@ function applyCatalogFilters() {
   let count = 0;
   document.querySelectorAll('.prop-card').forEach(card => {
     const p = card._propData || {type:card.dataset.type, location:card.dataset.location, hood:card.dataset.hood};
-    const match = MavoCatalog.matchesType(p,catalogFilters.type) && MavoCatalog.inScope(p,catalogFilters) && (!window.MavoRegionSearch || window.MavoRegionSearch.matches(p,window.mavoMainRegions,window.mavoMainRegionCatalog));
+    const match = MavoCatalog.matchesType(p,catalogFilters.type) && MavoCatalog.inScope(p,catalogFilters) && (!window.MavoRegionSearch || window.MavoRegionSearch.matches(p,window.mavoMainRegions,window.mavoMainRegionCatalog)) && (!window.MavoCatalogUI || window.MavoCatalogUI.matches(p));
     card.classList.toggle('hidden', !match); if(match) count++;
   });
   const empty = document.getElementById('catalogEmpty');
@@ -1047,6 +1048,11 @@ function _mkSvgWA() {
 function renderPropertiesGrid(props) {
   const grid = document.getElementById('propertiesGrid');
   if (!grid) return;
+  if(window.MavoCatalogUI){
+    window.MavoCatalogUI.toolbar(document.querySelector('#properties .filter-bar'),applyCatalogFilters);
+    window.MavoCatalogUI.render(grid,props.slice().sort((a,b)=>b.id-a.id),{open:openPropertyModal});
+    return;
+  }
 
   while (grid.firstChild) grid.removeChild(grid.firstChild);
 

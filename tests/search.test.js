@@ -31,6 +31,11 @@ test('exact room filters preserve fractional values and 5 includes larger counts
  vm.runInContext("activeRooms='2.5';applyFilters();",s.context);assert.deepEqual(s.results(),[2,3]);
  vm.runInContext("activeRooms='5';applyFilters();",s.context);assert.deepEqual(s.results(),[6,7]);
 });
+test('catalog order matches descending canonical numbers and explicit price sort still takes precedence',()=>{
+ const s=search([{id:91,price:9700},{id:98,price:5900},{id:97,price:7500}]);
+ s.elements.sortSelect.value='default';vm.runInContext('applyFilters()',s.context);assert.deepEqual(s.results(),[98,97,91]);
+ s.elements.sortSelect.value='price-desc';vm.runInContext('applyFilters()',s.context);assert.deepEqual(s.results(),[91,97,98]);
+});
 test('every home room selection is supported by the search destination',()=>{
  const home=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');const select=home.match(/<select id="heroRooms">([\s\S]*?)<\/select>/)[1];
  for(const option of select.matchAll(/<option(?: value="([^"]+)")?>([^<]+)<\/option>/g)){const value=option[1]||option[2];assert.ok(html.includes('data-rooms="'+value+'"'),'unsupported room filter '+value);}

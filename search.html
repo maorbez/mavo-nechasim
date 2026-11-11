@@ -344,8 +344,9 @@
 <script src="/language-bridge.js?v=20261031-audit"></script>
 <link rel="stylesheet" href="public-photo.css?v=5">
 <link rel="stylesheet" href="region-drawer.css?v=20261015">
+<link rel="stylesheet" href="catalog-ui.css?v=20261111">
 </head>
-<body>
+<body class="mavo-catalog-page">
 
 <!-- ========== TOPBAR ========== -->
 <header class="topbar">
@@ -367,13 +368,14 @@
 </header>
 
 <!-- ========== PAGE ========== -->
+<section class="mavo-search-intro"><h1>הנכסים הזמינים</h1><p>מצאו את המקום הבא שלכם. חפשו, שמרו והשוו בין נכסים.</p></section>
 <div class="page-layout">
 
   <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()">⚙ הצג סינונים</button>
 
   <!-- ===== FILTER PANEL ===== -->
   <aside class="filter-panel collapsed" id="filterPanel">
-    <label class="filter-label" for="queryInput">שכונה, עיר או מספר נכס</label><input id="queryInput" class="query-input" type="search" placeholder="למשל פלורנטין" oninput="window.__q=this.value;applyFilters()">
+    <div class="filter-group catalog-query-group"><label class="filter-label" for="queryInput">שכונה, עיר או מספר נכס</label><input id="queryInput" class="query-input" type="search" placeholder="למשל פלורנטין" oninput="window.__q=this.value;applyFilters()"></div>
     <div class="panel-title">
       <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
       סינון חיפוש
@@ -400,18 +402,18 @@
       <span class="filter-label">תקציב (₪)</span>
       <div class="price-inputs">
         <div class="price-input-wrap">
-          <label>מינימום</label>
-          <input type="number" id="priceMin" placeholder="0" oninput="applyFilters()" />
+          <label for="priceMin">מינימום</label>
+          <input type="number" id="priceMin" min="0" step="1" inputmode="numeric" placeholder="0" oninput="applyFilters()" />
         </div>
         <div class="price-input-wrap">
-          <label>מקסימום</label>
-          <input type="number" id="priceMax" placeholder="ללא הגבלה" oninput="applyFilters()" />
+          <label for="priceMax">מקסימום</label>
+          <input type="number" id="priceMax" min="0" step="1" inputmode="numeric" placeholder="ללא הגבלה" oninput="applyFilters()" />
         </div>
       </div>
     </div>
 
     <!-- Rooms -->
-    <div class="filter-group">
+    <div class="filter-group catalog-rooms-group">
       <span class="filter-label">חדרים</span>
       <div class="rooms-pills">
         <button class="room-pill active" data-rooms="all" onclick="setRooms(this)">הכל</button>
@@ -444,8 +446,8 @@
   <main class="results-area">
     <div class="results-toolbar">
       <div class="results-label">נמצאו <span id="countLabel">0</span> נכסים</div>
-      <select class="sort-select" id="sortSelect" onchange="applyFilters()">
-        <option value="default">מיון: רלוונטיות</option>
+      <select class="sort-select" id="sortSelect" aria-label="מיון הנכסים" onchange="applyFilters()">
+        <option value="default">סדר הקטלוג</option>
         <option value="price-asc">מחיר: נמוך לגבוה</option>
         <option value="price-desc">מחיר: גבוה לנמוך</option>
         <option value="rooms-desc">חדרים: הכי הרבה</option>
@@ -469,6 +471,7 @@
 <script src="public-catalog-config.js?v=1"></script>
 <script src="public-media.js?v=3"></script>
 <script src="db.js?v=20261031-audit"></script>
+<script src="catalog-ui.js?v=20261111"></script>
 <script src="looking-regions.js?v=20261015"></script>
 <script src="region-drawer.js?v=20261015"></script>
 <script src="region-search.js?v=20261025-map3"></script>
@@ -490,7 +493,7 @@ async function loadData() {
   const session=window.getMavoCatalogSession();session.subscribe(updateSearchCatalog);
   await session.refresh();
 }
-function updateSearchCatalog(result){allProps=result.properties;searchLoading=!!result.loading;buildFilters();applyFilters();}
+function updateSearchCatalog(result){allProps=result.properties;window.MavoCatalogUI?.update(allProps);searchLoading=!!result.loading;buildFilters();applyFilters();}
 
 // One canonical selection is shared by the map, list and result filters.
 function buildFilters(){
@@ -539,6 +542,7 @@ function toggleFilters() {
 }
 
 function resetAll() {
+  window.MavoCatalogUI?.resetSaved();
   activeType = 'all'; activeRooms = 'all';searchRegions={locations:[]};searchRegionDrawer?.clear();
   document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.type-btn[data-type="all"]').classList.add('active');
@@ -561,6 +565,7 @@ function applyFilters() {
   const sort = document.getElementById('sortSelect').value;
 
   let results = allProps.filter(p => {
+    if(window.MavoCatalogUI&&!window.MavoCatalogUI.matches(p))return false;
     const pNum = parseInt(String(p.price||'').replace(/[^0-9]/g,'')) || 0;
     const {city,hood}=MavoCatalog.location(p);
 
@@ -582,6 +587,7 @@ function applyFilters() {
   });
 
   // Sort
+  if (sort === 'default') results.sort((a,b) => b.id-a.id);
   if (sort === 'price-asc')   results.sort((a,b) => numPrice(a) - numPrice(b));
   if (sort === 'price-desc')  results.sort((a,b) => numPrice(b) - numPrice(a));
   if (sort === 'rooms-desc')  results.sort((a,b) => (b.rooms||0) - (a.rooms||0));
@@ -599,6 +605,7 @@ function hasDisplayValue(value){ return value !== null && value !== undefined &&
 // ---- Render ----
 function renderResults(props) {
   const grid = document.getElementById('resultsGrid');
+  window.MavoCatalogUI?.toolbar(document.querySelector('.results-toolbar'),applyFilters);
   const count = props.length;
   const loading = count === 0 && searchLoading;
   document.getElementById("searchRequestCta").classList.toggle("no-results", count === 0 && !loading);
@@ -618,6 +625,8 @@ function renderResults(props) {
       </div>`;
     return;
   }
+
+  if(window.MavoCatalogUI){window.MavoCatalogUI.render(grid,props,{search:true,open:p=>openProp(p.id)});return;}
 
   const typeLabel = {sale:'למכירה', rent:'להשכרה', 'commercial-sale':'מסחרי למכירה', 'commercial-rent':'מסחרי להשכרה'};
   grid.innerHTML = props.map(p => {

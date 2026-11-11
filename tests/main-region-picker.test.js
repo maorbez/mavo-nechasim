@@ -50,7 +50,7 @@ test('results page applies the same multiple-region geography while retaining tr
  const html=fs.readFileSync(require.resolve('../search.html'),'utf8');const values={priceMin:'',priceMax:'8000',sortSelect:'default'};
  const rows=[{id:1,type:'rent',price:7000,location:'תל אביב, פלורנטין'},{id:2,type:'rent',price:7000,location:'בת ים, מרכז'},{id:3,type:'rent',price:7000,location:'תל אביב, בבלי'},{id:4,type:'sale',price:7000,location:'תל אביב, פלורנטין'},{id:5,type:'rent',price:9000,location:'תל אביב, פלורנטין'}];let shown;
  const ctx=vm.createContext({MavoCatalog:require('../catalog'),MavoRegionSearch:api,allProps:rows,activeType:'rent',activeCities:new Set(),activeHoods:new Set(),activeRooms:'all',searchRegions:pick,searchRegionCatalog:catalog,window:{},document:{getElementById:id=>Object.hasOwn(values,id)?{value:values[id]}:null},renderResults:rows=>shown=rows.map(p=>p.id)});
- vm.runInContext(html.slice(html.indexOf('function applyFilters()'),html.indexOf('function numPrice')),ctx);vm.runInContext('applyFilters()',ctx);assert.deepEqual(shown,[1,2]);
+ vm.runInContext(html.slice(html.indexOf('function applyFilters()'),html.indexOf('function numPrice')),ctx);vm.runInContext('applyFilters()',ctx);assert.deepEqual(shown,[2,1]);
 });
 test('unknown legacy neighborhood still matches the equivalent canonical city alias without widening the neighborhood',()=>{
  const value=api.readParams(new URLSearchParams({city:'תל אביב-יפו',hood:'שכונה חדשה'}),catalog);

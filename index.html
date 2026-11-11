@@ -167,8 +167,9 @@
 }
 @media(max-width:480px){.search-fields .field-group-region{min-width:0}}
 </style>
+<link rel="stylesheet" href="catalog-ui.css?v=20261111">
 </head>
-<body>
+<body class="mavo-catalog-page">
 
 <!-- ========== NAVBAR ========== -->
 <header class="navbar" id="navbar">
@@ -245,7 +246,7 @@
       <div class="search-tabs"><button type="button" data-type="all" class="tab active" onclick="setTab(this,'all')">כל הנכסים</button><button type="button" data-type="sale" class="tab" onclick="setTab(this,'sale')">למכירה</button><button type="button" data-type="rent" class="tab" onclick="setTab(this,'rent')">להשכרה</button><button type="button" data-type="commercial" class="tab" onclick="setTab(this,'commercial')">מסחרי</button></div>
       <div class="search-fields">
         <div class="field-group field-group-region"><label for="heroRegions">עיר ושכונות</label><button type="button" id="heroRegions" class="region-picker-trigger" aria-haspopup="dialog" aria-describedby="heroRegionSummary" onclick="openMainRegions()">בחירה במפה או ברשימה</button><p id="heroRegionSummary" class="region-picker-summary">כל הערים והשכונות</p></div>
-        <div class="field-group"><label for="heroBudget">תקציב עד</label><input id="heroBudget" type="number" min="0" inputmode="numeric" placeholder="ללא הגבלה"></div>
+        <div class="field-group"><label for="heroBudget">תקציב עד</label><input id="heroBudget" type="number" min="0" step="1" inputmode="numeric" placeholder="ללא הגבלה"></div>
         <div class="field-group"><label for="heroRooms">חדרים</label><select id="heroRooms"><option value="all">הכל</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option><option>3.5</option><option>4</option><option>4.5</option><option value="5">5 ומעלה</option></select></div>
         <button type="submit" class="search-btn">חיפוש נכסים ←</button>
       </div>
@@ -449,9 +450,9 @@
 <section class="section" id="properties">
   <div class="container">
     <div class="section-header">
-      <div class="section-tag">נכסים מובחרים</div>
-      <h2 class="section-title">נכסים חמים <span class="accent">השבוע</span></h2>
-      <p class="section-desc">בחרנו עבורכם את הנכסים האיכותיים והמבוקשים ביותר</p>
+      <div class="section-tag">הנכסים של מבוא</div>
+      <h2 class="section-title">הנכסים <span class="accent">הזמינים</span></h2>
+      <p class="section-desc">חפשו, שמרו והשוו בין הנכסים שמתאימים לכם.</p>
     </div>
 
     <div class="filter-bar">
@@ -841,7 +842,8 @@
 <script src="looking-regions.js?v=20261015"></script>
 <script src="region-drawer.js?v=20261015"></script>
 <script src="region-search.js?v=20261025-map3"></script>
-<script src="app.js?v=20261103-forms"></script>
+<script src="catalog-ui.js?v=20261111"></script>
+<script src="app.js?v=20261111-catalog"></script>
 <script src="property-status.js?v=1"></script>
 <script type="text/javascript">
 function googleTranslateElementInit() {
