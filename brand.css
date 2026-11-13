@@ -68,9 +68,8 @@ input:focus,select:focus,textarea:focus{border-color:#8C6B2F!important;box-shado
 .big-logo-display{background:#F8F3E9;border-color:#C9BCA8}
 
 /* Transparent source vectors: no background tile or enclosing logo card. */
-/* Keep the light mark legible on the dark hero, including browser dark mode.
-   Apply to the light variant only; scrolled and neighborhood headers use dark. */
-.logo-img.brand-symbol-light{display:block;filter:brightness(0) invert(1)!important}
+/* Light header mark is a flattened PNG: Safari can misrender the masked SVG on the dark hero. */
+.logo-img.brand-symbol-light{display:block}
 .logo-img.brand-symbol-dark{display:none}
 .navbar.scrolled .brand-symbol-light,body[data-city] .navbar .brand-symbol-light{display:none}
 .navbar.scrolled .brand-symbol-dark,body[data-city] .navbar .brand-symbol-dark{display:block}
