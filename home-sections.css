@@ -53,3 +53,30 @@
  .mavo-home-sections #contact .contact-grid{gap:36px}
  .mavo-home-sections #contact .contact-form-wrap{padding:24px 20px}
 }
+
+/* 2026-11-14 polish: stat panel replaces the oversized logo; contact columns share one top edge. */
+.mavo-home-sections #about .why-visual{align-items:center;justify-content:center}
+.mavo-home-sections #about .why-stat{display:flex;flex-direction:column;gap:6px;border-inline-start:1px solid #F8F3E926;padding-inline-start:48px}
+.mavo-home-sections #about .why-stat-num{font-size:104px;line-height:1;font-weight:700;letter-spacing:-3px;color:var(--gold);direction:ltr;text-align:end}
+.mavo-home-sections #about .why-stat-label{font-size:21px;font-weight:600;color:#F8F3E9}
+.mavo-home-sections #about .why-stat-sub{font-size:15px;color:#D4CDBF}
+.mavo-home-sections #contact .contact-header-top .section-title .accent::before{content:none}
+@media(min-width:901px){
+ .mavo-home-sections #contact>.container{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);column-gap:64px;align-items:start}
+ .mavo-home-sections #contact .contact-grid{display:contents}
+ .mavo-home-sections #contact .contact-header-top{grid-column:1;grid-row:1;margin-bottom:8px}
+ .mavo-home-sections #contact .contact-header-top>p{margin-bottom:24px!important}
+ .mavo-home-sections #contact .contact-info{grid-column:1;grid-row:2}
+ .mavo-home-sections #contact .contact-form-wrap{grid-column:2;grid-row:1/span 2;align-self:start}
+}
+@media(max-width:900px){
+ .mavo-home-sections #about .why-visual{order:0;margin:8px 0 0}
+ .mavo-home-sections #about .why-stat{border-inline-start:0;padding-inline-start:0;border-top:1px solid #F8F3E926;padding-top:28px;width:100%}
+ .mavo-home-sections #about .why-stat-num{font-size:72px;letter-spacing:-2px}
+}
+@media(min-width:901px){
+ .mavo-home-sections #contact .contact-info{padding-top:0;margin-top:0;justify-content:flex-start}
+ .mavo-home-sections #contact .contact-details{margin-top:0;padding-top:0}
+ .mavo-home-sections #contact .contact-header-top .section-tag{margin-top:0}
+}
+@media(min-width:901px){.mavo-home-sections #contact>.container{grid-template-rows:auto 1fr}.mavo-home-sections #contact .contact-form-wrap{margin-top:2px}}
