@@ -1,0 +1,55 @@
+/* Approved lower-homepage design. The hero, catalog, footer and brand tokens stay with their existing stylesheets. */
+.mavo-home-sections :is(#about,#services,#contact) .section-tag{background:none;border:0;border-radius:0;padding:0;margin-bottom:18px;font-size:14px;font-weight:500;letter-spacing:0;color:inherit;opacity:.7}
+.mavo-home-sections :is(#about,#contact) .section-tag{color:var(--white)}
+.mavo-home-sections :is(#about,#services,#contact) .section-title{font-size:40px;line-height:1.25;letter-spacing:-.5px;font-weight:700}
+.mavo-home-sections :is(#about,#services,#contact) .section-title .accent{color:inherit}
+.mavo-home-sections :is(#about,#services,#contact) .section-header{text-align:start;margin-bottom:40px}
+.mavo-home-sections :is(#about,#services,#contact) :is(.service-icon,.why-icon,.ci-icon){font-size:0;color:var(--gold)}
+.mavo-home-sections :is(#about,#services,#contact) :is(.service-icon,.why-icon,.ci-icon) svg{display:block;width:25px;height:25px}
+.mavo-home-sections #about .why-grid{gap:64px;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+.mavo-home-sections #about .why-desc{max-width:620px;color:#D4CDBF;margin-bottom:30px}
+.mavo-home-sections #about .why-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 30px;margin-bottom:32px}
+.mavo-home-sections #about .why-item{background:none;border:0;border-top:1px solid #F8F3E926;border-radius:0;padding:20px 0 0;gap:13px;box-shadow:none;transition:none}
+.mavo-home-sections #about .why-item strong{font-weight:600;font-size:16px}
+.mavo-home-sections #about .why-item p{color:#D4CDBF;font-size:14px;line-height:1.7}
+.mavo-home-sections #about .btn-primary{box-shadow:none}
+.mavo-home-sections #services .services-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px;overflow:visible;padding:0;margin-inline:0}
+.mavo-home-sections #services .service-card{display:grid;grid-template-columns:32px minmax(0,1fr);gap:0 15px;align-content:start;background:none;border:0;border-top:1px solid #C9BCA8;border-radius:0;box-shadow:none;padding:30px 0 27px;max-width:none;transition:none;overflow:visible;color:var(--text)}
+.mavo-home-sections #services .service-card:hover{transform:none;box-shadow:none}
+.mavo-home-sections #services .service-card::before{display:none}
+.mavo-home-sections #services .service-icon{grid-column:1;grid-row:1/4;margin:2px 0 0;color:var(--blue)}
+.mavo-home-sections #services .service-card :is(h3,p,a){grid-column:2}
+.mavo-home-sections #services .service-card h3{font-size:22px;font-weight:600;margin:0 0 10px;color:var(--text)}
+.mavo-home-sections #services .service-card p{font-size:15px;line-height:1.75;max-width:430px;margin:0 0 16px;color:var(--text-muted);opacity:1}
+.mavo-home-sections #services .featured-service h3{color:var(--text)!important}
+.mavo-home-sections #services .featured-service p{color:var(--text-muted)!important}
+.mavo-home-sections #services .service-link{color:var(--blue);font-size:14px;font-weight:500;width:fit-content;text-decoration:underline;text-underline-offset:5px}
+.mavo-home-sections #contact .contact-header-top{margin-bottom:36px}
+.mavo-home-sections #contact .contact-header-top .section-title br{display:none}
+.mavo-home-sections #contact .contact-header-top .section-title .accent::before{content:' '}
+.mavo-home-sections #contact .contact-header-top>p{color:#D4CDBF!important;margin-top:16px}
+.mavo-home-sections #contact .contact-grid{gap:64px}
+.mavo-home-sections #contact .contact-form-wrap{border-radius:12px;box-shadow:none}
+.mavo-home-sections #contact .contact-form h3{font-size:23px;font-weight:600}
+.mavo-home-sections #contact .form-group>label{font-size:14px;font-weight:500;letter-spacing:0}
+.mavo-home-sections #contact .form-group :is(input,select,textarea){font-size:16px;border-radius:8px;border-color:#C9BCA8}
+.mavo-home-sections #contact .contact-details{gap:0}
+.mavo-home-sections #contact .contact-item{padding:0 0 22px;margin-bottom:22px;border-bottom:1px solid #F8F3E926;gap:18px}
+.mavo-home-sections #contact .contact-item strong{font-size:15px;font-weight:500;margin-bottom:5px}
+.mavo-home-sections #contact .contact-item span{font-size:15px;color:#D4CDBF;line-height:1.65}
+.mavo-home-sections #contact .contact-direct-call{border:0;border-radius:0;padding:0;font-size:22px;font-weight:500}
+.mavo-home-sections #contact .contact-direct-call:hover{background:none;text-decoration:underline}
+.mavo-home-sections :is(#about,#services,#contact) :is(.why-item,.service-card,.section-header,.contact-form-wrap){opacity:1!important;transform:none!important;transition:none!important}
+@media(max-width:768px){
+ .mavo-home-sections :is(#about,#services,#contact){padding-block:52px}
+ .mavo-home-sections :is(#about,#services,#contact) .section-title{font-size:30px;line-height:1.3}
+ .mavo-home-sections :is(#about,#services,#contact) .section-header{margin-bottom:28px}
+ .mavo-home-sections #about .why-grid{grid-template-columns:1fr;gap:32px}
+ .mavo-home-sections #about .why-list{grid-template-columns:1fr;gap:20px}
+ .mavo-home-sections #about .why-item{padding-top:18px}
+ .mavo-home-sections #services .services-grid{grid-template-columns:1fr;gap:0}
+ .mavo-home-sections #services .service-card{padding-block:24px;gap:0 13px;max-width:none}
+ .mavo-home-sections #services .service-card h3{font-size:21px}
+ .mavo-home-sections #contact .contact-grid{gap:36px}
+ .mavo-home-sections #contact .contact-form-wrap{padding:24px 20px}
+}
